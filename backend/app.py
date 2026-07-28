@@ -10,6 +10,7 @@ responsibilities: 1. create the flask application.  2. load application configur
 #import config class
 from flask import Flask
 from config.config import Config
+from routes.auth import auth_bp
 from extensions import (db, migrate, socketio, mail, jwt, bcrypt, cors)
 import models
 
@@ -31,6 +32,11 @@ def create_app():
     bcrypt.init_app(app)
     cors.init_app(app)
     migrate.init_app(app, db) # has db to know which database it is managing
+    #register authentication endpoint
+    app.register_blueprint(
+        auth_bp,
+        url_prefix="/api/auth"
+    )
 
 
 #return the completed flask application
