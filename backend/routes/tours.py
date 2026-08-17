@@ -150,18 +150,84 @@ def get_tour(tour_id):
         #"tour_id": tour_id
     #}), 200
 
-    if "tour_name" in data:
-        tour.tour_name = data["tour_name"]
+     #update the tour data
+    @tour_bp.route("/tours/<int:tour_id>", methods = ["PATCH"])
+    def update_tour(tour_id):
+        #we check using the tour id 
+        tour = Tour.query.filter_by(id=tour_id).first()
+         #retrieve the data from client
+        data = request.get_json()
+        #check if the tour exists.
+        if not tour:
+            return jsonify({
+                "message": "tour is required."
+            }), 404
 
-        if not isinstance (tour_name, str) or not tour_name.strip():
-            return jsonify ({
+    #update tour_name
+    if "tour_name" in data:
+        tour_name = data["tour_name"]
+
+        if not isinstance(tour_name, str) or not tour_name.strip():
+            return jsonify({
                 "message": "Tour name is required."
             }), 400
 
+        tours.tour_name = tour_name.strip()    
+
+    #update destination
     if "destination" in data:
-        tour.destination = data["destination"]
+        destination = data["destination"]
 
         if not isinstance(destination, str) or not destination.strip():
             return jsonify({
-                "message": "Destination is required"
+                "message": "Destination is required."
             }), 400
+
+        tours.destination = destination.strip()    
+
+    #update charges, does not need strip since it is not a string
+    if "charges" in data:
+        charges = data["charges"]
+
+        if not isinstance(charges,(int, float)):
+            return jsonify({
+                "message": "Charges is required."
+            }), 400
+
+        if charges <=0:
+            return jsonify({
+                "message": "charges should be greater than 0."
+            }), 400
+
+        tour.charges = charges
+
+    #update departure_date
+    if departure_date in data:
+        departure_date = data["departure_date"]
+
+        if not departure_date:
+            return jsonify({
+                "message": "departure date is required."
+            }), 400
+
+        try:
+            departure_date = datetime.strptime(
+                departure_date,
+                "%Y-%m-%d"
+            )
+
+        except (TypeError, ValueError):
+            return jsonify ({
+                "message": "use the correct date format. YYYY-MM-DD." 
+            }), 400
+
+        tour.departure_date = departure_date
+     #save the changes
+    db.session.commit()
+    #notify client tour is updated successfully
+    return jsonify({
+        "message": "Tour updated successfully."
+    }), 200                                   
+
+
+                        

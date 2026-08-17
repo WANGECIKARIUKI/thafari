@@ -74,3 +74,22 @@ class User(BaseModel):
     #verify the password
     def check_password(self, password):
         return bcrypt.check_password_hash(self.password, password)
+
+
+#largest number
+
+    def find_largest(numbers):
+        #create an array of numbers
+        number = [2, 4, 6, 8, 10, 12]
+
+        #starting point of the largest number we will use index 0 as the starting point of our numbers
+        largest = number[0]
+
+        #create a loop of every number in numbers
+        for every_number in numbers:
+            #create an if statement instance where we check if every number is greater than the current largest number
+            if every_number > largest:
+                # the largest number becomes the current number
+                largest = every_number
+
+        return largest        
