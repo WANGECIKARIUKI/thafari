@@ -14,7 +14,7 @@ class User(BaseModel):
     #personal information
     first_name = db.Column(
         db.String(100),
-        nullable=False # this means you have to input
+        nullable=False # this means you have to input. Cannot be empty
     )
 
     last_name = db.Column(
@@ -58,6 +58,13 @@ class User(BaseModel):
         db.Boolean,
         default=False
 
+    )
+
+    #one-to-many r/ships(every user can have many tours) a user can access tours
+    tours = db.relationship(
+        "Tour",
+        back_populates="operator",
+        lazy=True #controls how and when related records(data) is loaded in the database
     )
 
     #hash password before you save

@@ -11,6 +11,7 @@ responsibilities: 1. create the flask application.  2. load application configur
 from flask import Flask
 from config.config import Config
 from routes.auth import auth_bp
+from routes.tours import tour_bp
 from extensions import (db, migrate, socketio, mail, jwt, bcrypt, cors)
 import models
 
@@ -36,6 +37,11 @@ def create_app():
     app.register_blueprint(
         auth_bp,
         url_prefix="/api/auth"
+    )
+
+    #register tour blueprint
+    app.register_blueprint(
+        tour_bp
     )
 
 

@@ -6,6 +6,7 @@ from flask_jwt_extended import (create_access_token, jwt_required, get_jwt_ident
 from sqlalchemy import or_
 from extensions import db
 from models.user import User
+from decorators.auth_decorator import roles_required
 
 #create blueprint
 auth_bp = Blueprint(
@@ -25,6 +26,7 @@ def register():
     username = data.get("username")
     email = data.get("email")
     password = data.get("password")
+    role = data.get("role")
     #validate first_name
     if not first_name:
         return jsonify({
@@ -53,7 +55,12 @@ def register():
     if not email:
         return jsonify({
             "message": "Email is required."
-        }), 400    
+        }), 400  
+
+    if not role:
+        return jsonify({
+            "message": "Role is required."
+        })      
 
 #check if email exists
     existing_email = User.query.filter_by(email=email).first()
@@ -74,7 +81,8 @@ def register():
         first_name=first_name,
         last_name=last_name,
         username=username,
-        email=email
+        email=email,
+        role=role
     )
     #hash the password
     new_user.set_password(password)
@@ -145,10 +153,17 @@ def login():
 
 @auth_bp.route("/me", methods=["GET"])
 @jwt_required()
+@roles_required()
 def get_me():
     current_user_id = get_jwt_identity()
     #find user that is logged in
     user = User.query.filter_by(id=current_user_id).first()
+    #authorization logic
+
+    if user.role not in roles_required:
+        return jsonify({
+            "message": "Access denied!"
+        }), 403
     return jsonify({
         "user":{
         "id": user.id,
