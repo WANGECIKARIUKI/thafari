@@ -1,5 +1,4 @@
 from extensions import db
-from datetime import datetime
 from models.base_model import BaseModel
 
 
@@ -19,18 +18,13 @@ class Tour(BaseModel):
     )
 
     charges = db.Column(
-        db.Numeric(10, 2),
+        db.Numeric(10, 2), # 10,2 means 10 is maximum total digits and 2 is the number of decimals after the digits.
         nullable = True
     )
 
     destination = db.Column(
         db.String(200),
         nullable = False
-    )
-
-    departure_date = db.Column(
-        db.DateTime,
-        nullable=False
     )
 
     is_active = db.Column(
@@ -42,6 +36,12 @@ class Tour(BaseModel):
     operator = db.relationship(
         "User",
         back_populates="tours"
+    )
+
+    departures = db.relationship(
+        "Departure",
+        back_populates="tour",
+        lazy=True
     )
 
 

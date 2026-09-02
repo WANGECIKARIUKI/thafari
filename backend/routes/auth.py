@@ -60,7 +60,7 @@ def register():
     if not role:
         return jsonify({
             "message": "Role is required."
-        })      
+        }), 400     
 
 #check if email exists
     existing_email = User.query.filter_by(email=email).first()
@@ -140,7 +140,7 @@ def login():
         "message": "login successful!",
         "access_token": access_token,
         "user":{
-            "id": 1,
+            "id": user.id,
             "first_name": user.first_name,
             "last_name": user.last_name,
             "username": user.username,
@@ -155,7 +155,9 @@ def login():
 @jwt_required()
 @roles_required()
 def get_me():
-    current_user_id = get_jwt_identity()
+    '''def get_current_user_id():
+        return int(get_jwt_identity())'''
+    current_user_id = int(get_jwt_identity())
     #find user that is logged in
     user = User.query.filter_by(id=current_user_id).first()
     #authorization logic
@@ -174,7 +176,5 @@ def get_me():
         "phone_number": user.phone_number,
         "role": user.role,
         "is_verified": user.is_verified
-    }}), 200    
-
-     
+    }}), 200
 

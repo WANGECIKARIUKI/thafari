@@ -1,6 +1,6 @@
 from functools import wraps
 from flask_jwt_extended import get_jwt_identity
-from flask import Flask, jsonify
+from flask import  jsonify
 from models.user import User
 
 #the function means the admin is required to perform the function

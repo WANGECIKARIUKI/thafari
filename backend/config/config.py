@@ -20,6 +20,7 @@ class Config:
 #create the env settings
 #Secret key for security
     SECRET_KEY = os.getenv("SECRET_KEY")
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 
 #database configs
     DB_HOST = os.getenv("DB_HOST")

@@ -11,7 +11,10 @@ responsibilities: 1. create the flask application.  2. load application configur
 from flask import Flask
 from config.config import Config
 from routes.auth import auth_bp
+from routes.bookings import booking_bp
 from routes.tours import tour_bp
+from routes.departures import departure_bp
+from routes.payments import payment_bp
 from extensions import (db, migrate, socketio, mail, jwt, bcrypt, cors)
 import models
 
@@ -42,6 +45,22 @@ def create_app():
     #register tour blueprint
     app.register_blueprint(
         tour_bp
+    )
+
+    #register booking blueprint
+    app.register_blueprint(
+        booking_bp
+    )
+
+    #register departure blueprint
+    app.register_blueprint(
+        departure_bp
+    )
+
+    #register payments blueprint
+
+    app.register_blueprint(
+        payment_bp
     )
 
 
