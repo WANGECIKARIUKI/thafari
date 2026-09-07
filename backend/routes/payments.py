@@ -5,6 +5,7 @@ from models.payment import Payment
 from decorators.auth_decorator import roles_required
 from datetime import datetime
 from extensions import db
+from decimal import Decimal, InvalidOperation
 import uuid
 import hashlib #cryptographic(scrambling) hashing function
 import hmac #create a keyed signature
@@ -46,9 +47,32 @@ def create_payment():
             "message": "Invalid payment method."
         }), 400
 
-    if not isinstance(amount, (int, float)) or amount <= 0:
+    if amount is None:
         return jsonify({
-            "message": "Amount is required and should be greater than 0."
+            "message": "Amount is required."
+        }), 400
+
+    #change the amount to a decimal and check if it is valid
+    try:
+        amount = Decimal(str(amount))
+    except InvalidOperation:
+        return jsonify({
+            "message": "Amount must be a valid number."
+        }), 400
+
+    #allow trailing zeros after the two decimal places and remove them using normalize
+    amount.normalize()
+
+    #check if it is greater than 0
+    if amount <= 0:
+        return jsonify({
+            "message": "Amount needs to be greater than zero."
+        }), 400
+
+    #check if it has 2 decimal places
+    if amount.as_tuple().exponent < -2:
+        return jsonify({
+            "message": "Amount cannot have more than 2 decimal places."
         }), 400
 
     #check if booking exists
@@ -80,7 +104,7 @@ def create_payment():
         Payment.status == "successful"
     ).all()
 
-    total_paid = 0
+    total_paid = Decimal("0.00")
     #a for loop to loop thru the successful payments made
     for payment in successful_payments:
         total_paid += payment.amount
@@ -89,7 +113,7 @@ def create_payment():
     remaining_balance = booking.total_price - total_paid
 
     #thafari rule: A booking is secured if payment of 50% minimum has been made
-    minimum_payment = booking.total_price * 50/100
+    minimum_payment = booking.total_price * Decimal("0.50")
 
     #a condition to avoid extra payment
     '''print("Booking total:", booking.total_price)
@@ -174,7 +198,7 @@ def confirm_payment(payment_id):
         Payment.status == "successful"
     ).all()
     #calculate the total payments made on that booking
-    total_paid = 0
+    total_paid = Decimal("0.00")
     #loop thru all successful payments
     for successful_payment in successful_payments:
         total_paid += successful_payment.amount
@@ -203,7 +227,7 @@ def confirm_payment(payment_id):
     remaining_balance = payment.booking.total_price - total_paid  
     
     #minimum threshold of 50%
-    minimum_requirement = payment.booking.total_price * 50/100
+    minimum_requirement = payment.booking.total_price * Decimal("0.50")
 
     #check if the 50% threshold is met
     is_secured = total_paid >= minimum_requirement
@@ -343,38 +367,130 @@ def create_webhook():
             "payment_id": payment.id,
             "status": payment.status
         }), 200
-
+    
+    #check successful payment and calculate total paid
     if provider_status == "successful":
         payment.status = "successful"
         payment.paid_at = datetime.utcnow()
 
-    #check all successful payments to find total paid
+        successful_payments = Payment.query.filter(
+            Payment.booking_id == payment.booking_id,
+            Payment.status == "successful"
+        ).all()
+
+        total_paid = Decimal("0.00")
+
+        for successful_payment in successful_payments:
+            total_paid += successful_payment.amount
+
+        #remaining balance
+        remaining_balance = payment.booking.total_price - total_paid
+
+        #minimum_payment (50%)
+        minimum_payment = payment.booking.total_price * Decimal("0.50")
+
+        #check if booking is_secured
+        is_secured = total_paid >= minimum_payment
+
+        #check if booking is_fully_paid
+        is_fully_paid = total_paid >= payment.booking.total_price
+
+        if is_fully_paid:
+            payment.booking.status = "confirmed"
+        #save the data
+        try:
+            db.session.commit()
+
+        except Exception:
+            db.session.rollback()
+
+            return jsonify({
+                "message": "Payment confirmation could not be completed."
+            }), 500           
+
+        return jsonify({
+            "message": "payment successfully confirmed.",
+            "payment_id": payment.id,
+            "booking_secured": is_secured,
+            "total_paid":float(total_paid),
+            "amount_paid":float(payment.amount),
+            "remaining_balance":float(remaining_balance),
+            "fully_paid":is_fully_paid,
+            "payment_status":payment.status
+        }), 200
+
+    return jsonify({
+        "message": "Unsupported payment status."
+    }), 400
+
+
+#create a refund payment route
+@payment_bp.route("/payment/<int:payment_id>/refund", methods=["POST"])
+@jwt_required()
+@roles_required("customer")
+def refund_payment(payment_id):
+
+    #check if the payment exists
+    payment = Payment.query.get(payment_id)
+
+    #validate the payment
+    if not payment:
+        return jsonify({
+            "message": "Payment not found."
+        }), 404
+
+     #check the user making the request
+    current_user_id = int(get_jwt_identity())
+
+    #check ownership of the customer making the request
+    if payment.booking.user_id != current_user_id:
+        return jsonify({
+            "message": "You are not authorized to refund this payment."
+        }), 403
+
+    # a condition to make it only successful payments can be refunded
+    if payment.status != "successful":
+        return jsonify({
+            "message": "Only successful payments can be refunded!",
+            "status": payment.status
+        }), 400
+    
+    #change the payment status to refunded
+    payment.status = "refunded"
+
+    #save the changes
+    db.session.commit()
+
+    #check all successful payments after refund is requested
     successful_payments = Payment.query.filter(
         Payment.booking_id == payment.booking_id,
-        Payment.status == "successful",
-    ). all()
+        Payment.status == "successful"
+    ).all()
 
-    total_paid = 0
+    #check total paid after refund is done
+    total_paid = Decimal("0.00")
 
+    #loop thru the successful payments
     for successful_payment in successful_payments:
         total_paid += successful_payment.amount
 
-    #calculate the remaining balance
+    #remaining balance
     remaining_balance = payment.booking.total_price - total_paid
 
-    #50% threshold minimum requirement calculation
-    minimum_payment = payment.booking.total_price * 50/100
+    #minimum payment - 50%
+    minimum_payment = payment.booking.total_price * Decimal("0.50")
 
-    #calculate to see if the payment is secured
+    #check if booking is secured
     is_secured = total_paid >= minimum_payment
 
-    #check if the payment is fully paid
+    #check if still fully paid
     is_fully_paid = total_paid >= payment.booking.total_price
 
     if is_fully_paid:
         payment.booking.status = "confirmed"
+    else:
+        payment.booking.status = "pending"
 
-    #save the data
     try:
         db.session.commit()
 
@@ -382,19 +498,62 @@ def create_webhook():
         db.session.rollback()
 
         return jsonify({
-            "message": "Payment confirmation could not be completed."
+            "message": "Refund processing could not be completed."
         }), 500
 
     return jsonify({
-        "message": "Payment is successfully confirmed.",
-        "payment_id":payment.id,
+        "message": "Payment successfully refunded.",
+        "payment_id": payment.id,
+        "status": payment.status,
         "booking_secured":is_secured,
-        "remaining_balance": float(remaining_balance),
-        "amount_paid":float(payment.amount),
         "total_paid": float(total_paid),
-        "payment_status": payment.status,
-        "fully_paid":is_fully_paid
+        "remaining_balance": float(remaining_balance),
+        "fully_paid": is_fully_paid
     }), 200
+
+#retrieve booking history
+@payment_bp.route("/booking/<int:booking_id>/payments", methods = ["GET"])
+@jwt_required()
+@roles_required("customer")
+def get_booking_payments(booking_id):
+    #get the bookings the customer is requesting for
+    booking = Booking.query.get(booking_id)
+
+    if not booking:
+        return jsonify({
+            "message": "Booking is not found."
+        }), 404
+
+    current_user_id = int(get_jwt_identity())
+
+    if booking.user_id != current_user_id:
+        return jsonify({
+            "message": "You are not authorized to check this booking."
+        }), 403
+
+    #get the payments for that specific booking id
+    payments = Payment.query.filter_by(booking_id=booking_id).all()
+
+    #retrieve all the payment details
+    payment_history = [
+        {
+            "payment_id": payment.id,
+            "status": payment.status,
+            "transaction_reference": payment.transaction_reference,
+            "amount": float(payment.amount),
+            "payment_method": payment.payment_method,
+            "paid_at":payment.paid_at.isoformat()
+            if payment.paid_at
+            else None
+        }
+        for payment in payments
+    ]
+
+    return jsonify({
+        "booking_id":booking_id,
+        "payment": payment_history
+    }), 200
+
 
 
 

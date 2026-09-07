@@ -21,6 +21,7 @@ class Config:
 #Secret key for security
     SECRET_KEY = os.getenv("SECRET_KEY")
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+    WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET")
 
 #database configs
     DB_HOST = os.getenv("DB_HOST")
@@ -29,12 +30,12 @@ class Config:
     DB_PASSWORD = os.getenv("DB_PASSWORD")
     DB_PORT = os.getenv("DB_PORT")
 
-#sqlalchemy connection string(build the database sqlalchemy to connect with msql)
+    #sqlalchemy connection string(build the database sqlalchemy to connect with msql)
     SQLALCHEMY_DATABASE_URI = (
     #f is an f string
     f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@"
     f"{DB_HOST}:{DB_PORT}/{DB_NAME}"
 )
 
-#disable modification for high performance
-SQLALCHEMY_TRACK_MODIFICATIONS = False
+    #disable modification for high performance
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
