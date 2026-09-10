@@ -6,7 +6,7 @@ class Payment(BaseModel):
 
     booking_id = db.Column(
         db.Integer,
-        db.ForeignKey("bookings.id"), #a payment can have many booking attempts
+        db.ForeignKey("bookings.id"), #a booking can have many payments
         nullable=False
     )
 
@@ -46,4 +46,9 @@ class Payment(BaseModel):
     booking = db.relationship(
         "Booking",
         back_populates = "payments"
+    )
+
+    refunds = db.relationship(
+        "Refund",
+        back_populates = "payment"
     )

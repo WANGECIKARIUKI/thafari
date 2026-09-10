@@ -61,7 +61,7 @@ def create_payment():
         }), 400
 
     #allow trailing zeros after the two decimal places and remove them using normalize
-    amount.normalize()
+    amount = amount.normalize()
 
     #check if it is greater than 0
     if amount <= 0:
@@ -341,12 +341,19 @@ def create_webhook():
             "message": "Invalid webhook signature."
         }), 401
 
-    #check if the payment is already successful and not to make the same payment twice
+    #check if the payment is already successful/failed and not to make the same payment twice
     if payment.status == "successful":
         return jsonify({
             "message": "Payment has already been processed.",
             "payment_id": payment.id,
             "status":payment.status
+        }), 200
+
+    if payment.status == "failed":
+        return jsonify({
+            "message": "Payment has already been processed.",
+            "payment_id": payment.id,
+            "status": payment.status
         }), 200
 
     if provider_status == "failed":
@@ -425,7 +432,7 @@ def create_webhook():
 
 
 #create a refund payment route
-@payment_bp.route("/payment/<int:payment_id>/refund", methods=["POST"])
+'''@payment_bp.route("/payment/<int:payment_id>/refund", methods=["POST"])
 @jwt_required()
 @roles_required("customer")
 def refund_payment(payment_id):
@@ -509,7 +516,7 @@ def refund_payment(payment_id):
         "total_paid": float(total_paid),
         "remaining_balance": float(remaining_balance),
         "fully_paid": is_fully_paid
-    }), 200
+    }), 200 '''
 
 #retrieve booking history
 @payment_bp.route("/booking/<int:booking_id>/payments", methods = ["GET"])
@@ -551,7 +558,7 @@ def get_booking_payments(booking_id):
 
     return jsonify({
         "booking_id":booking_id,
-        "payment": payment_history
+        "payments": payment_history
     }), 200
 
 

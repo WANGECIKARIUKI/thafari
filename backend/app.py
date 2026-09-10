@@ -15,6 +15,8 @@ from routes.bookings import booking_bp
 from routes.tours import tour_bp
 from routes.departures import departure_bp
 from routes.payments import payment_bp
+from routes.admin import admin_bp
+from routes.refund import refund_bp
 from extensions import (db, migrate, socketio, mail, jwt, bcrypt, cors)
 import models
 
@@ -61,6 +63,14 @@ def create_app():
 
     app.register_blueprint(
         payment_bp
+    )
+
+    app.register_blueprint(
+        admin_bp
+    )
+
+    app.register_blueprint(
+        refund_bp
     )
 
 
