@@ -95,10 +95,9 @@ def create_booking():
         }), 400
 
     #check if end of trip date has already passed.
-    #make today the end date
-    today = date.today()
+    #today = date.today()
 
-    if departure.end_date < today:
+    if departure.end_date < departure.start_date:
         return jsonify({
             "message": "This departure has already ended and is no longer available for booking."
         }), 400

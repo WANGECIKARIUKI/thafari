@@ -113,7 +113,7 @@ def create_payment():
     remaining_balance = booking.total_price - total_paid
 
     #thafari rule: A booking is secured if payment of 50% minimum has been made
-    minimum_payment = booking.total_price * Decimal("0.50")
+    #minimum_payment = booking.total_price * Decimal("0.50")
 
     #a condition to avoid extra payment
     '''print("Booking total:", booking.total_price)
@@ -126,16 +126,6 @@ def create_payment():
             "message": "The amount you entered is more than your remaining balance.",
             "remaining_balance": float(remaining_balance)
         }), 400
-
-    #check for new payments made successfully
-
-    total_after_payment = total_paid + amount
-
-    #check if the payment makes the booking secured
-    is_secured = total_after_payment >= minimum_payment
-
-    #check is payment is paid 100%
-    is_fully_paid = total_after_payment >= booking.total_price
 
     transaction_reference = str(uuid.uuid4())
 
@@ -185,16 +175,44 @@ def confirm_payment(payment_id):
             "message": "Access denied!"
         }), 403
 
+    #lock the payment
+    locked_payment = (Payment.query.with_for_update().filter(
+        Payment.id == payment.id
+    ).first())
+
+    if not locked_payment:
+        return jsonify({
+            "message": "Payment not found."
+        }), 404
+
+    if locked_payment.status == "successful":
+        return jsonify({
+            "message": "Payment has already been processed.",
+            "status": locked_payment.status
+        }),400
+
     #check if payment is still pending
-    if payment.status != "pending":
+    if locked_payment.status != "pending":
        return jsonify({
            "message": "Payment has already been processed.",
-           "status": payment.status
+           "status": locked_payment.status
        }), 400
+
+    #check if booking has expired and prevent payment
+    now = datetime.utcnow()
+
+    if (locked_payment.booking.expires_at is not None and
+        locked_payment.booking.expires_at <= now):
+        locked_payment.booking.status = "expired"
+        db.session.commit()
+
+        return jsonify({
+            "message": "Booking has expired. Please create a new booking"
+        }), 400
 
     #find all successful payments for the booking we are accessing
     successful_payments = Payment.query.filter(
-        Payment.booking_id == payment.booking_id,
+        Payment.booking_id == locked_payment.booking_id,
         Payment.status == "successful"
     ).all()
     #calculate the total payments made on that booking
@@ -204,40 +222,40 @@ def confirm_payment(payment_id):
         total_paid += successful_payment.amount
 
     #calculate remaining balance
-    remaining_balance = payment.booking.total_price - total_paid    
+    remaining_balance = locked_payment.booking.total_price - total_paid    
 
     #calculate what the payment would be after the above payment is successful
-    total_after_payment = total_paid + payment.amount
+    total_after_payment = total_paid + locked_payment.amount
 
-    if total_after_payment > payment.booking.total_price:
+    if total_after_payment > locked_payment.booking.total_price:
         return jsonify({
             "message": "The payment would exceed the remaining balance.",
             "remaining_balance": float(remaining_balance)
         }), 400
 
     #change the status to successful
-    payment.status = "successful"
+    locked_payment.status = "successful"
     #update the time to show when the payment was successful
-    payment.paid_at = datetime.utcnow()
+    locked_payment.paid_at = datetime.utcnow()
 
     #add the current payment made(total after payment) to get the current total paid
     total_paid = total_after_payment
 
     #calculate the remaining balance after the current total paid
-    remaining_balance = payment.booking.total_price - total_paid  
+    remaining_balance = locked_payment.booking.total_price - total_paid  
     
     #minimum threshold of 50%
-    minimum_requirement = payment.booking.total_price * Decimal("0.50")
+    minimum_requirement = locked_payment.booking.total_price * Decimal("0.50")
 
     #check if the 50% threshold is met
     is_secured = total_paid >= minimum_requirement
 
     #check if the payment is paid fully
-    is_fully_paid = total_paid >= payment.booking.total_price
+    is_fully_paid = total_paid >= locked_payment.booking.total_price
 
     #confirm the booking if the customer has fully paid
     if is_fully_paid:
-        payment.booking.status = "confirmed"
+        locked_payment.booking.status = "confirmed"
 
     #save the changes made on the payment and booking and also a rollback if payment is not made successfully
     try:
@@ -253,12 +271,12 @@ def confirm_payment(payment_id):
 
     return jsonify({
         "message": "Payment confirmed successfully",
-        "payment_id":payment.id,
-        "amount_paid":float(payment.amount),
+        "payment_id":locked_payment.id,
+        "amount_paid":float(locked_payment.amount),
         "total_paid":float(total_paid),
         "remaining_balance":float(remaining_balance),
         "booking_secured":is_secured,
-        "booking_status":payment.booking.status,
+        "booking_status":locked_payment.booking.status,
         "fully_paid":is_fully_paid
     }), 200
 
@@ -308,6 +326,26 @@ def create_webhook():
         return jsonify({
             "message": "Amount is required."
         }), 400
+
+    try:
+        provider_amount = Decimal(str(provider_amount))
+
+    except InvalidOperation:
+        return jsonify({
+            "message": "Amount must be a valid number."
+        }), 400
+
+    if provider_amount <= 0:
+        return jsonify({
+            "message": "Amount needs to be greater than 0."
+        }), 400
+
+    if provider_amount.as_tuple().exponent < -2:
+        return jsonify({
+            "message": "Amount cannot have more than two decimal places."
+        }), 400
+
+    provider_amount = provider_amount.quantize(Decimal("0.01"))
     
     #check if the provider amount is the same as the amount in booking
     if provider_amount != payment.amount:
@@ -319,9 +357,12 @@ def create_webhook():
     #update the payment status
     provider_status = data.get("status")
 
-    if not provider_status:
+    #ensure only allowed statuses are returned
+    allowed_provider_status = ["successful", "failed"]
+
+    if provider_status not in allowed_provider_status:
         return jsonify({
-            "message": "Payment status is required"
+            "message": "Unsupported payment status."
         }), 400
 
     #get payload data from webhook
@@ -336,28 +377,58 @@ def create_webhook():
         hashlib.sha256, #SHA 256 hash algorithm
     ).hexdigest() #get the signature in a hexadecimal string
 
+    print("PAYLOAD:", payload)
+    print("EXPECTED SIGNATURE:", expected_signature)
+    print("RECEIVED SIGNATURE:", signature)
+
     if not hmac.compare_digest(signature, expected_signature):
         return jsonify({
             "message": "Invalid webhook signature."
         }), 401
 
-    #check if the payment is already successful/failed and not to make the same payment twice
-    if payment.status == "successful":
+    #lock the payment
+    locked_payment = (
+        Payment.query.with_for_update().filter_by(
+            id=payment.id
+        ).first()
+    )
+     #check if payment is locked
+    if not locked_payment:
         return jsonify({
-            "message": "Payment has already been processed.",
-            "payment_id": payment.id,
-            "status":payment.status
+            "message": "Payment could not be found."
+        }), 404
+    #recheck state after getting the lock
+    '''if locked_payment.status == "successful":
+        return jsonify({
+            "message": "Payment has been processed successfully.",
+            "payment_id": locked_payment.id,
+            "status": locked_payment.status
         }), 200
 
-    if payment.status == "failed":
+    if locked_payment.status == "failed":
+        return jsonify({
+            "message": "Payment has been processed successfully.",
+            "payment.id": locked_payment.id,
+            "status": locked_payment.status
+        }), 200'''
+
+    #recheck if the locked payment is already successful/failed 
+    if locked_payment.status == "successful":
+        return jsonify({
+            "message": "Payment has already been processed",
+            "payment_id": locked_payment.id,
+            "status": locked_payment.status
+        }), 200
+
+    if locked_payment.status == "failed":
         return jsonify({
             "message": "Payment has already been processed.",
-            "payment_id": payment.id,
-            "status": payment.status
+            "payment_id": locked_payment.id,
+            "status": locked_payment.status
         }), 200
 
     if provider_status == "failed":
-        payment.status = "failed"
+        locked_payment.status = "failed" #change the status
 
         try:
             db.session.commit()
@@ -371,17 +442,43 @@ def create_webhook():
 
         return jsonify({
             "message": "Payment failed.",
-            "payment_id": payment.id,
-            "status": payment.status
+            "payment_id": locked_payment.id,
+            "status": locked_payment.status
         }), 200
     
-    #check successful payment and calculate total paid
+    #check successful payment,check if booking has expired and calculate total paid
     if provider_status == "successful":
-        payment.status = "successful"
-        payment.paid_at = datetime.utcnow()
+
+        now = datetime.utcnow()
+
+        if (locked_payment.booking.expires_at is not None and
+            locked_payment.booking.expires_at <= now):
+            locked_payment.booking.status = "expired"
+
+            try:
+
+                db.session.commit()
+
+            except:
+                db.session.rollback()
+
+                return jsonify({
+                    "message": "Payment processing could not be completed."
+                }), 500    
+                
+
+            return jsonify({
+                "message": "payment received, but booking has expired.",
+                "payment_id": locked_payment.id,
+                "payment_status": locked_payment.status,
+                "booking_status":locked_payment.booking.status
+            }), 400
+        
+        locked_payment.status = "successful"
+        locked_payment.paid_at = datetime.utcnow()
 
         successful_payments = Payment.query.filter(
-            Payment.booking_id == payment.booking_id,
+            Payment.booking_id == locked_payment.booking_id,
             Payment.status == "successful"
         ).all()
 
@@ -391,19 +488,19 @@ def create_webhook():
             total_paid += successful_payment.amount
 
         #remaining balance
-        remaining_balance = payment.booking.total_price - total_paid
+        remaining_balance = locked_payment.booking.total_price - total_paid
 
         #minimum_payment (50%)
-        minimum_payment = payment.booking.total_price * Decimal("0.50")
+        minimum_payment = locked_payment.booking.total_price * Decimal("0.50")
 
         #check if booking is_secured
         is_secured = total_paid >= minimum_payment
 
         #check if booking is_fully_paid
-        is_fully_paid = total_paid >= payment.booking.total_price
+        is_fully_paid = total_paid >= locked_payment.booking.total_price
 
         if is_fully_paid:
-            payment.booking.status = "confirmed"
+            locked_payment.booking.status = "confirmed"
         #save the data
         try:
             db.session.commit()
@@ -413,22 +510,18 @@ def create_webhook():
 
             return jsonify({
                 "message": "Payment confirmation could not be completed."
-            }), 500           
+            }), 500          
 
         return jsonify({
             "message": "payment successfully confirmed.",
-            "payment_id": payment.id,
+            "payment_id": locked_payment.id,
             "booking_secured": is_secured,
             "total_paid":float(total_paid),
-            "amount_paid":float(payment.amount),
+            "amount_paid":float(locked_payment.amount),
             "remaining_balance":float(remaining_balance),
             "fully_paid":is_fully_paid,
-            "payment_status":payment.status
+            "payment_status":locked_payment.status
         }), 200
-
-    return jsonify({
-        "message": "Unsupported payment status."
-    }), 400
 
 
 #create a refund payment route

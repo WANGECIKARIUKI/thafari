@@ -17,8 +17,18 @@ depends_on = None
 
 
 def upgrade():
-    pass
+    op.execute(
+        """
+        ALTER TABLE bookings
+        ADD CONSTRAINT check_positive_number_of_people
+        CHECK (number_of_people > 0)
+        """
+    )
 
 
 def downgrade():
-    pass
+    op.drop_constraint(
+        "check_positive_number_of_people",
+        "bookings",
+        type_="check"
+    )

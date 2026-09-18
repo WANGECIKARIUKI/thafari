@@ -30,11 +30,18 @@ def expired_pending_booking():
 
 def calculate_available_seats(departure):
 
-    #check all seats available 
+    #check all seats available we will use db and db or for this and ensure the expiry date is later than the current date
+    now = datetime.utcnow()
 
     bookings = Booking.query.filter(
-        Booking.departure_id == departure.id,
-        Booking.status.in_(["pending", "confirmed"])
+        Booking.departure_id == departure.id, #Has the same departure or
+        db.or_(
+            Booking.status == "confirmed", #is confirmed and
+            db.and_(
+                Booking.status == "pending", #pending and not yet expired
+                Booking.expires_at > now
+            )
+        )
     )
 
     #find total booked
@@ -44,7 +51,7 @@ def calculate_available_seats(departure):
         total_booked += booking.number_of_people
 
     #check available seats
-    available_seats = departure.capacity - total_booked
+    available_seats = departure.capacity - total_booked 
 
     return available_seats
 
@@ -64,18 +71,8 @@ def find_suggested_departures(departure, number_of_people):
     #loop thru the departures to find suitable ones
     for later_departure in later_departures:
 
-        later_bookings = Booking.query.filter(
-            Booking.departure_id == departure.id,
-            Booking.status.in_(["pending", "confirmed"])
-        ).all()
-
-        #check total bookings
-        total_booked = 0
-
-        for booking in later_bookings:
-            total_booked += booking.number_of_people
-
-        remaining_seats = later_departure.capacity - total_booked
+        #calculate seats for this departure. How many seats are available for the suggested departure
+        remaining_seats = calculate_available_seats(later_departure)
 
         #an if statement to give suggestions on other departure dates
         if remaining_seats >= number_of_people:

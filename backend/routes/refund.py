@@ -46,6 +46,8 @@ def create_refund(payment_id):
             "message": "Amount should be a valid number."
         }), 400
 
+    #refund_amount = refund_amount.normalize()
+
     if refund_amount <= 0:
         return jsonify({
             "message": "Refund amount should be greater than 0."
@@ -55,6 +57,8 @@ def create_refund(payment_id):
         return jsonify({
             "message": "Refund amount should have only two decimal places."
         }), 400
+
+    #refund_amount = refund_amount.quantize(Decimal("0.01"))
 
     #get the payments  and check if it exists
     payment = Payment.query.get(payment_id)
@@ -80,7 +84,7 @@ def create_refund(payment_id):
             "message": "Access denied."
         }), 403
 
-    #check for the first pending refund on this particular id
+    #check for the first pending refund on this particular payment
     pending_refund = Refund.query.filter(
         Refund.payment_id == payment_id,
         Refund.status == "pending"
@@ -92,7 +96,7 @@ def create_refund(payment_id):
             "status": pending_refund.status
         }), 400
     
-    #get all successful refunds
+    #get all successful refunds associated with this payment
     successful_refunds = Refund.query.filter(
         Refund.payment_id == payment.id,
         Refund.status == "successful"
@@ -103,7 +107,7 @@ def create_refund(payment_id):
     for successful_refund in successful_refunds:
         total_refunded += successful_refund.amount
 
-    #check refundable amount
+    #check refundable amount(balance to after a refund is done)
     refundable_amount = payment.amount - total_refunded
 
     #condition to ensure you do not refund more than refundable amount balance
@@ -119,7 +123,7 @@ def create_refund(payment_id):
     #create a refund
     refund = Refund(
         payment_id=payment.id,
-        amount=refund_amount,
+        amount= refund_amount,
         status="pending",
         refund_reference=refund_reference,
         refunded_at=None
@@ -213,11 +217,11 @@ def create_webhook():
         }), 401
 
     webhook_secret = current_app.config["WEBHOOK_SECRET"]
-    #print("Flask secret length:", len(webhook_secret))
-    #print("Postman secret length:", request.headers.get("X-Debug-Secret-Length"))
+    print("Flask secret length:", len(webhook_secret))
+    print("Postman secret length:", request.headers.get("X-Debug-Secret-Length"))
 
     # create a payload string to be used to get the secret signature
-    payload = f"{refund_reference}|{amount}|{status}"
+    payload = f"{refund_reference}|{amount:.2f}|{status}"
 
     # create a Thafari signature
     expected_signature = hmac.new(
@@ -225,6 +229,10 @@ def create_webhook():
         payload.encode(),
         hashlib.sha256
     ).hexdigest()
+
+    print("WEBHOOK PAYLOAD:", payload)
+    print("EXPECTED SIGNATURE:", expected_signature)
+    print("RECEIVED SIGNATURE:", signature)
 
     #print("Webhook payload:", payload)
     #print("Expected signature:", expected_signature)
@@ -258,7 +266,7 @@ def create_webhook():
 
     if refund.status == "failed":
         return jsonify({
-            "message": "Refund already processed.",
+            "message": "Refund already failed.",
             "status": refund.status
         }), 200
     
@@ -267,19 +275,84 @@ def create_webhook():
         refund.status = "successful"
         refund.refunded_at = datetime.utcnow()
 
-        db.session.commit()
+        db.session.flush()# add the changes to the database first this doesn't permanently save the changes.
+
+        #get all successful payments too.
+        successful_payments = Payment.query.filter(
+            Payment.booking_id == refund.payment.booking_id, #the payment should be the same as the refund.
+            Payment.status == "successful"
+
+        ).all()
+
+        total_successful_paid = Decimal("0.00")
+
+        for successful_payment in successful_payments:
+            total_successful_paid += successful_payment.amount
+
+        #get all successful refunds for all payments belonging to a certain booking
+        successful_refunds = Refund.query.join(Payment).filter(
+            Payment.booking_id == refund.payment.booking_id, #helps us check all payments and refunds associated with that booking
+            Refund.status == "successful"
+        ).all()
+
+        total_refunded = Decimal("0.00")
+        
+
+        for successful_refund in successful_refunds:
+            total_refunded += successful_refund.amount
+
+        print("TOTAL SUCCESSFUL PAID:", total_successful_paid)
+        print("TOTAL REFUNDED:", total_refunded)
+        print("BOOKING STATUS BEFORE:", refund.payment.booking.status)    
+
+        #get the payment the refund belongs to.
+        payment = refund.payment
+        #check if the total refunded amount is same or more than total successful payment for that specific booking. then we cancel the booking
+        if total_refunded >= total_successful_paid:
+            refund.payment.booking.status = "cancelled" 
+
+        else:
+            refund.payment.booking.status = "pending" # if refund partially paid change the booking status to pending
+
+        print("BOOKING STATUS AFTER:", refund.payment.booking.status)     
+
+        try:
+            db.session.commit()
+
+        except Exception:
+            db.session.rollback()
+
+            return jsonify({
+                "message": "Refund process could not be completed."
+            }), 500
+
+        return jsonify({
+            "message": "Refund has been confirmed",
+            "refund_id": refund.id,
+            "refund_status": refund.status,
+            "refund_amount":float(refund.amount),
+            "total_refunded": float(total_refunded),
+            "booking_status": payment.booking.status,
+            "refunded_at": refund.refunded_at.isoformat()
+        }), 200
 
     else:
         refund.status = "failed"
 
-        db.session.commit()       
+        try:
+            db.session.commit()
+
+        except Exception:
+            db.session.rollback()
+
+            return jsonify({
+                "message": "Refund processing could not be processed."
+            }), 500
 
     return jsonify({
-        "message": "Refund successfully confirmed.",
-        "refund_id":refund.id,
-        "refund_status":refund.status,
-        "refund_amount":refund.amount,
-        "refunded_at":refund.refunded_at
+        "message":"Refund failed.",
+        "refund_id": refund.id,
+        "refund_status": refund.status
     }), 200
 
 
