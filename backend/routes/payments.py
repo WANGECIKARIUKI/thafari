@@ -9,12 +9,131 @@ from decimal import Decimal, InvalidOperation
 import uuid
 import hashlib #cryptographic(scrambling) hashing function
 import hmac #create a keyed signature
+import requests
 
 payment_bp = Blueprint(
     "payment",
     __name__,
     url_prefix = "/api"
 )
+
+# Get an access token from Pesapal
+# The access token allows Thafari to communicate with the Pesapal API
+def get_pesapal_token():
+
+    # Get the Pesapal sandbox API URL from our Flask configuration
+    url = f"{current_app.config['PESAPAL_BASE_URL']}/api/Auth/RequestToken"
+
+    # Prepare the credentials that Pesapal requires for authentication
+    payload = {
+        # Get the consumer key from the .env file through Flask config
+        "consumer_key": current_app.config["PESAPAL_CONSUMER_KEY"],
+
+        # Get the consumer secret from the .env file through Flask config
+        "consumer_secret": current_app.config["PESAPAL_CONSUMER_SECRET"]
+    }
+
+    #tell pesapal that we are sending JSON and we expect it back.
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    }
+
+    # Send the credentials to Pesapal using a POST request
+    # json=payload automatically sends our data as JSON
+    response= requests.post(
+        url,
+        json=payload,
+        headers=headers
+    )
+    #show pesapal's http status code
+    #print(response.status_code)
+    #show us pesapal's response
+    #print(response.json())
+
+    # Return Pesapal's response so we can process the access token
+    #return response
+    # Convert Pesapal's JSON response into a Python dictionary
+    result = response.json()
+
+    # Get the access token from the response
+    token = result["token"]
+
+    # Return the access token
+    return token
+
+#submit an order to pesapal
+def submit_pesapal_order(
+        transaction_reference,
+        amount,
+        description,
+        callback_url,
+        notification_id,
+        billing_address
+):
+
+    #get a fresh pesapal token
+    token = get_pesapal_token()
+
+    #pesapal endpoint for creating a payment order
+    url = f"{current_app.config['PESAPAL_BASE_URL']}"
+    "/api/Transactions/Submit/Order/Request"
+
+    #pesapal requires the access token as a bearer token
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}" #to prove thafari is authenticated 
+    }
+
+    #information pesapal needs to create a payment order
+    payload = {
+        "id":transaction_reference, #thafari identifier
+        "currency": "KES",
+        "amount": float(amount),
+        "description": description,
+        "callback_url": callback_url,
+        "notification_id": notification_id,
+        "billing_address": billing_address
+    }
+
+    #send the payment method to pesapal
+    response = requests.post(
+        url,
+        json=payload,
+        headers=headers,       
+    )
+
+    #converts pesapal json to a python dictionary
+
+    result = response.json()
+
+    #return the complete response for inspection during testing
+
+    return result
+
+
+
+
+
+
+
+
+# Temporary route for testing Pesapal authentication
+@payment_bp.route("/payment/test-pesapal", methods=["GET"])
+def test_pesapal():
+
+    # Call our function to request an access token from Pesapal
+    #response = get_pesapal_token()
+    token = get_pesapal_token()
+
+    # Return Pesapal's response to us so we can inspect it
+    #return jsonify(response.json()), response.status_code
+    return jsonify({
+        "token": token
+    }), 200
+
+
 
 #create a payment endpoint
 

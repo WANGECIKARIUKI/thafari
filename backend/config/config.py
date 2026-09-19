@@ -22,6 +22,11 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY")
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
     WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET")
+    PESAPAL_CONSUMER_KEY = os.getenv("PESAPAL_CONSUMER_KEY")
+    PESAPAL_CONSUMER_SECRET = os.getenv("PESAPAL_CONSUMER_SECRET")
+    PESAPAL_BASE_URL = os.getenv("PESAPAL_BASE_URL")
+    PESAPAL_IPN_URL = os.getenv("PESAPAL_IPN_URL")
+    PESAPAL_CALLBACK_URL = os.getenv("PESAPAL_CALLBACK_URL")
 
 #database configs
     DB_HOST = os.getenv("DB_HOST")

@@ -52,3 +52,9 @@ class Payment(BaseModel):
         "Refund",
         back_populates = "payment"
     )
+
+    pesapal_order_tracking_id = db.Column(
+        db.String(250),
+        nullable=True,
+        unique=True
+    )
