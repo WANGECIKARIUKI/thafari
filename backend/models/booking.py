@@ -66,4 +66,11 @@ class Booking(BaseModel):
         back_populates = "booking"
     )
 
+    # A booking can have one conversation associated with it.
+    conversation = db.relationship(
+        "Conversation",
+        back_populates="booking",
+        uselist=False #one booking one main conversation
+    )
+
     

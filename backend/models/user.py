@@ -75,6 +75,32 @@ class User(BaseModel):
         lazy=True
     )
 
+    conversation_participations = db.relationship(
+    "ConversationParticipant",
+    back_populates="user",
+    lazy=True,
+    cascade="all, delete-orphan"
+    )
+
+    sent_messages = db.relationship(
+    "Message",
+    back_populates="sender",
+    lazy=True
+    )
+
+    notifications = db.relationship(
+    "Notification",
+    back_populates="user",
+    lazy=True,
+    cascade="all, delete-orphan"
+    )
+
+    password_reset_tokens = db.relationship(
+    "PasswordResetToken",
+    back_populates="user",
+    cascade="all, delete-orphan"
+    )
+
     #hash password before you save
     def set_password(self, password):
         self.password = bcrypt.generate_password_hash(password).decode("utf-8")

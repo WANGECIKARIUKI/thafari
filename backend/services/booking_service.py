@@ -3,78 +3,112 @@ from models.booking import Booking
 from models.departure import Departure
 from extensions import db
 
-def expired_pending_booking():
 
-    #get current time
+# ---------------------------------------------------------
+# EXPIRE PENDING BOOKINGS
+# ---------------------------------------------------------
+
+def expired_pending_booking():
+    """
+    Find pending bookings whose payment window has expired
+    and change their status to expired.
+    """
+
+    # Get the current UTC time.
     now = datetime.utcnow()
 
-    #check for bookings which have expired
-
+    # Find pending bookings whose expiration time has passed.
     expired_bookings = Booking.query.filter(
         Booking.status == "pending",
         Booking.expires_at <= now
-    ). all()
+    ).all()
 
-    '''print("CURRENT PYTHON TIME:", now)
-    print("BOOKINGS FOUND:", [booking.id for booking in expired_bookings])'''
-
-    #change booking status from pending to expired
-
+    # Change each expired booking from pending to expired.
     for booking in expired_bookings:
         booking.status = "expired"
 
-    #save the changes
+    # Save all status changes to the database.
     db.session.commit()
 
-#calculate available seats
+
+# ---------------------------------------------------------
+# CALCULATE AVAILABLE SEATS
+# ---------------------------------------------------------
 
 def calculate_available_seats(departure):
+    """
+    Calculate how many seats are currently available
+    for a departure.
 
-    #check all seats available we will use db and db or for this and ensure the expiry date is later than the current date
+    Confirmed bookings always occupy seats.
+
+    Pending bookings only occupy seats while their payment
+    window is still active.
+    """
+
+    # Get the current UTC time.
     now = datetime.utcnow()
 
+    # Get bookings that currently occupy seats.
     bookings = Booking.query.filter(
-        Booking.departure_id == departure.id, #Has the same departure or
+        Booking.departure_id == departure.id,
         db.or_(
-            Booking.status == "confirmed", #is confirmed and
+            # Confirmed bookings occupy seats.
+            Booking.status == "confirmed",
+
+            # Pending bookings occupy seats only if
+            # their payment window has not expired.
             db.and_(
-                Booking.status == "pending", #pending and not yet expired
+                Booking.status == "pending",
                 Booking.expires_at > now
             )
         )
     )
 
-    #find total booked
+    # Keep track of the number of people already occupying seats.
     total_booked = 0
 
     for booking in bookings:
         total_booked += booking.number_of_people
 
-    #check available seats
-    available_seats = departure.capacity - total_booked 
+    # Calculate remaining capacity.
+    available_seats = departure.capacity - total_booked
 
     return available_seats
 
-#find suggested departures
-def find_suggested_departures(departure, number_of_people):
 
-    #check alternatives if current tour has no enough seats
+# ---------------------------------------------------------
+# FIND SUGGESTED DEPARTURES
+# ---------------------------------------------------------
+
+def find_suggested_departures(departure, number_of_people):
+    """
+    Find later departures for the same tour that have
+    enough available seats.
+    """
+
+    # Find later active departures belonging to the same tour.
     later_departures = Departure.query.filter(
         Departure.tour_id == departure.tour_id,
         Departure.is_active == True,
         Departure.start_date > departure.start_date
-    ).order_by(Departure.start_date.asc()).all()
+    ).order_by(
+        Departure.start_date.asc()
+    ).all()
 
-    #create an empty list for storing the later departure data
+    # Store suitable alternatives here.
     suggested_departures = []
 
-    #loop thru the departures to find suitable ones
+    # Check every later departure.
     for later_departure in later_departures:
 
-        #calculate seats for this departure. How many seats are available for the suggested departure
-        remaining_seats = calculate_available_seats(later_departure)
+        # Calculate available seats for this departure.
+        remaining_seats = calculate_available_seats(
+            later_departure
+        )
 
-        #an if statement to give suggestions on other departure dates
+        # Only suggest departures that can accommodate
+        # the requested number of people.
         if remaining_seats >= number_of_people:
             suggested_departures.append({
                 "departure_id": later_departure.id,
@@ -82,36 +116,57 @@ def find_suggested_departures(departure, number_of_people):
                 "capacity": later_departure.capacity,
                 "start_date": later_departure.start_date.isoformat(),
                 "end_date": later_departure.end_date.isoformat(),
-                "price_per_person": float(later_departure.price_per_person)
+                "price_per_person": float(
+                    later_departure.price_per_person
+                )
             })
 
-        return suggested_departures
+    # IMPORTANT:
+    # This return belongs outside the loop so that ALL
+    # suitable departures can be checked.
+    return suggested_departures
 
 
-#create a booking
-def create_pending_booking(user_id, departure, number_of_people):
+# ---------------------------------------------------------
+# CREATE PENDING BOOKING
+# ---------------------------------------------------------
+
+def create_pending_booking(
+    user_id,
+    departure,
+    number_of_people
+):
+    """
+    Create a new pending booking.
+
+    The booking receives a temporary payment window.
+    """
+
+    # Get the price per person directly from the departure.
     price_per_person = departure.price_per_person
+
+    # Calculate the total booking price.
     total_price = price_per_person * number_of_people
 
-
-    #create a new booking
+    # Create the booking.
     booking = Booking(
         user_id=user_id,
         departure_id=departure.id,
         price_per_person=price_per_person,
         total_price=total_price,
         number_of_people=number_of_people,
+
+        # Give the customer 25 minutes to complete payment.
         expires_at=datetime.utcnow() + timedelta(minutes=25),
+
+        # A newly created booking starts as pending.
         status="pending"
     )
 
-    #prepare to save the data
+    # Add the booking to the database session.
     db.session.add(booking)
 
-    #save the data
+    # Save the booking permanently.
     db.session.commit()
 
-    return booking 
-
-
-    
+    return booking

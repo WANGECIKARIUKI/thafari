@@ -2,779 +2,1028 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.booking import Booking
 from models.payment import Payment
+from models.user import User
 from decorators.auth_decorator import roles_required
 from datetime import datetime
 from extensions import db
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 import uuid
-import hashlib #cryptographic(scrambling) hashing function
-import hmac #create a keyed signature
 import requests
-
-payment_bp = Blueprint(
-    "payment",
-    __name__,
-    url_prefix = "/api"
+from services.email_service import (
+    send_payment_success_email,
+    send_booking_confirmed_email
+)
+from services.notification_service import(
+    create_notification,
+    emit_notification
 )
 
-# Get an access token from Pesapal
-# The access token allows Thafari to communicate with the Pesapal API
-def get_pesapal_token():
 
-    # Get the Pesapal sandbox API URL from our Flask configuration
+# ---------------------------------------------------------
+# PAYMENT BLUEPRINT
+# ---------------------------------------------------------
+
+payment_bp = Blueprint("payment", __name__, url_prefix="/api")
+
+
+# ---------------------------------------------------------
+# PESAPAL AUTHENTICATION
+# ---------------------------------------------------------
+
+def get_pesapal_token():
+    """
+    Request an authentication token from Pesapal.
+
+    The token is required when communicating with the
+    Pesapal API.
+    """
+
     url = f"{current_app.config['PESAPAL_BASE_URL']}/api/Auth/RequestToken"
 
-    # Prepare the credentials that Pesapal requires for authentication
     payload = {
-        # Get the consumer key from the .env file through Flask config
         "consumer_key": current_app.config["PESAPAL_CONSUMER_KEY"],
-
-        # Get the consumer secret from the .env file through Flask config
         "consumer_secret": current_app.config["PESAPAL_CONSUMER_SECRET"]
     }
 
-    #tell pesapal that we are sending JSON and we expect it back.
+    response = requests.post(url, json=payload, timeout=30)
+
+    response.raise_for_status()
+
+    result = response.json()
+
+    # Pesapal returns the API token inside the response.
+    return result["token"]
+
+
+# ---------------------------------------------------------
+# PESAPAL IPN REGISTRATION
+# ---------------------------------------------------------
+
+def register_pesapal_ipn():
+    """
+    Register Thafari's IPN endpoint with Pesapal.
+
+    This is a setup/helper function rather than a public API
+    endpoint. We do not expose this through a customer route.
+    """
+
+    token = get_pesapal_token()
+
+    url = (
+        f"{current_app.config['PESAPAL_BASE_URL']}"
+        "/api/URLSetup/RegisterIPN"
+    )
+
     headers = {
-        "Accept": "application/json",
+        "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
     }
 
-    # Send the credentials to Pesapal using a POST request
-    # json=payload automatically sends our data as JSON
-    response= requests.post(
-        url,
-        json=payload,
-        headers=headers
-    )
-    #show pesapal's http status code
-    #print(response.status_code)
-    #show us pesapal's response
-    #print(response.json())
-
-    # Return Pesapal's response so we can process the access token
-    #return response
-    # Convert Pesapal's JSON response into a Python dictionary
-    result = response.json()
-
-    # Get the access token from the response
-    token = result["token"]
-
-    # Return the access token
-    return token
-
-#submit an order to pesapal
-def submit_pesapal_order(
-        transaction_reference,
-        amount,
-        description,
-        callback_url,
-        notification_id,
-        billing_address
-):
-
-    #get a fresh pesapal token
-    token = get_pesapal_token()
-
-    #pesapal endpoint for creating a payment order
-    url = f"{current_app.config['PESAPAL_BASE_URL']}"
-    "/api/Transactions/Submit/Order/Request"
-
-    #pesapal requires the access token as a bearer token
-    headers = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {token}" #to prove thafari is authenticated 
-    }
-
-    #information pesapal needs to create a payment order
     payload = {
-        "id":transaction_reference, #thafari identifier
-        "currency": "KES",
-        "amount": float(amount),
-        "description": description,
-        "callback_url": callback_url,
-        "notification_id": notification_id,
-        "billing_address": billing_address
+        "url": current_app.config["PESAPAL_IPN_URL"],
+        "ipn_notification_type": "POST"
     }
 
-    #send the payment method to pesapal
     response = requests.post(
         url,
         json=payload,
-        headers=headers,       
+        headers=headers,
+        timeout=30
     )
 
-    #converts pesapal json to a python dictionary
+    response.raise_for_status()
 
-    result = response.json()
-
-    #return the complete response for inspection during testing
-
-    return result
+    return response.json()
 
 
+# ---------------------------------------------------------
+# SUBMIT ORDER TO PESAPAL
+# ---------------------------------------------------------
 
+def submit_pesapal_order(
+    transaction_reference,
+    amount,
+    description,
+    billing_address
+):
+    """
+    Submit a payment order to Pesapal.
 
+    Pesapal creates the checkout session and returns a
+    redirect URL where the customer completes payment.
+    """
 
-
-
-
-# Temporary route for testing Pesapal authentication
-@payment_bp.route("/payment/test-pesapal", methods=["GET"])
-def test_pesapal():
-
-    # Call our function to request an access token from Pesapal
-    #response = get_pesapal_token()
     token = get_pesapal_token()
 
-    # Return Pesapal's response to us so we can inspect it
-    #return jsonify(response.json()), response.status_code
-    return jsonify({
-        "token": token
-    }), 200
+    url = (
+        f"{current_app.config['PESAPAL_BASE_URL']}"
+        "/api/Transactions/SubmitOrderRequest"
+    )
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        # Our unique reference for this payment.
+        "id": transaction_reference,
+
+        # Thafari currently processes payments in Kenyan Shillings.
+        "currency": "KES",
+
+        # Pesapal expects the amount as a number.
+        "amount": float(amount),
+
+        "description": description,
+
+        # Pesapal redirects the customer here after checkout.
+        "callback_url": current_app.config["PESAPAL_CALLBACK_URL"],
+
+        # Pesapal uses this registered IPN ID to notify Thafari
+        # when the payment status changes.
+        "notification_id": current_app.config["PESAPAL_IPN_ID"],
+
+        # Customer billing information.
+        "billing_address": billing_address
+    }
+
+    response = requests.post(
+        url,
+        json=payload,
+        headers=headers,
+        timeout=30
+    )
+
+    response.raise_for_status()
+
+    return response.json()
 
 
+# ---------------------------------------------------------
+# GET PESAPAL TRANSACTION STATUS
+# ---------------------------------------------------------
 
-#create a payment endpoint
+def get_pesapal_transaction_status(order_tracking_id):
+    """
+    Ask Pesapal for the authoritative status of a transaction.
 
-@payment_bp.route("/payment", methods = ["POST"])
+    We do NOT trust the IPN notification alone to determine
+    whether money was actually received.
+
+    The IPN gives us the transaction ID, then we ask Pesapal
+    for the real transaction status.
+    """
+
+    token = get_pesapal_token()
+
+    url = (
+        f"{current_app.config['PESAPAL_BASE_URL']}"
+        "/api/Transactions/GetTransactionStatus"
+    )
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+
+    params = {
+        "orderTrackingId": order_tracking_id
+    }
+
+    response = requests.get(
+        url,
+        params=params,
+        headers=headers,
+        timeout=30
+    )
+
+    response.raise_for_status()
+
+    return response.json()
+
+
+# ---------------------------------------------------------
+# NORMALIZE PESAPAL PAYMENT METHODS
+# ---------------------------------------------------------
+
+def normalize_pesapal_payment_method(payment_method):
+    """
+    Convert Pesapal's payment method names into the values
+    accepted by our Payment model.
+
+    Pesapal may return slightly different labels, so we
+    normalize them before saving them.
+    """
+
+    if not payment_method:
+        return None
+
+    method = payment_method.strip().lower()
+
+    if method == "mpesa":
+        return "mpesa"
+
+    if method == "visa":
+        return "visa"
+
+    if method in ["mastercard", "master card"]:
+        return "mastercard"
+
+    if method == "amex":
+        return "amex"
+
+    if method in ["bank", "bank transfer", "bank_transfer"]:
+        return "bank_transfer"
+
+    # Unknown provider method.
+    # We leave it as NULL rather than storing an invalid enum value.
+    return None
+
+
+# ---------------------------------------------------------
+# CREATE PAYMENT
+# ---------------------------------------------------------
+
+@payment_bp.route("/payment", methods=["POST"])
 @jwt_required()
 @roles_required("customer")
 def create_payment():
-    #retrieve the data from the client
-    data = request.get_json()
+    """
+    Create a pending payment for a customer's booking.
 
-    if not data:
-        return jsonify({
-            "message": "Request body is required."
-        }), 400
+    The payment amount is calculated from the remaining booking
+    balance rather than trusting an amount supplied by the client.
+    """
 
-    #extract the data
+    data = request.get_json(silent=True) or {}
+
     booking_id = data.get("booking_id")
-    payment_method = data.get("payment_method")
-    amount = data.get("amount")
 
-    #validate the data
-    if not isinstance(booking_id, int) or booking_id <= 0:
+    # -----------------------------------------------------
+    # Validate booking ID
+    # -----------------------------------------------------
+
+    if booking_id is None:
         return jsonify({
-            "message": "Booking id is required and should be greater than 0."
+            "message": "booking_id is required."
         }), 400
 
-    allowed_payment_method = ["mpesa", "visa", "bank_transfer"]
-    if payment_method not in allowed_payment_method:
-        return jsonify({
-            "message": "Invalid payment method."
-        }), 400
-
-    if amount is None:
-        return jsonify({
-            "message": "Amount is required."
-        }), 400
-
-    #change the amount to a decimal and check if it is valid
     try:
-        amount = Decimal(str(amount))
-    except InvalidOperation:
+        booking_id = int(booking_id)
+    except (TypeError, ValueError):
         return jsonify({
-            "message": "Amount must be a valid number."
+            "message": "booking_id must be a valid integer."
         }), 400
 
-    #allow trailing zeros after the two decimal places and remove them using normalize
-    amount = amount.normalize()
-
-    #check if it is greater than 0
-    if amount <= 0:
+    if booking_id <= 0:
         return jsonify({
-            "message": "Amount needs to be greater than zero."
+            "message": "booking_id must be greater than zero."
         }), 400
 
-    #check if it has 2 decimal places
-    if amount.as_tuple().exponent < -2:
-        return jsonify({
-            "message": "Amount cannot have more than 2 decimal places."
-        }), 400
+    # -----------------------------------------------------
+    # Get the authenticated customer
+    # -----------------------------------------------------
 
-    #check if booking exists
-    booking = Booking.query.filter_by(id=booking_id).first()
+    current_user_id = int(get_jwt_identity())
+
+    current_user = User.query.get(current_user_id)
+
+    if not current_user:
+        return jsonify({
+            "message": "User not found."
+        }), 404
+
+    # -----------------------------------------------------
+    # Find the booking
+    # -----------------------------------------------------
+
+    booking = Booking.query.get(booking_id)
 
     if not booking:
         return jsonify({
             "message": "Booking not found."
         }), 404
 
-    #check if user booking and making payment exists
-    current_user_id = int(get_jwt_identity())
-    #current_user = User.query.filter_by(id=current_user_id).first()
-
+    # Customers can only make payments for their own bookings.
     if booking.user_id != current_user_id:
         return jsonify({
-            "message": "Access denied!"
+            "message": "You are not authorized to pay for this booking."
         }), 403
-    #we are checking is the current status pending for the payment process to continue.
+
+    # -----------------------------------------------------
+    # Check booking status
+    # -----------------------------------------------------
+
     if booking.status != "pending":
         return jsonify({
-            "message": "This booking is no-longer available!",
-            "status": booking.status
+            "message": "Only pending bookings can receive payments."
         }), 400
 
-    #check total paid
-    successful_payments = Payment.query.filter(
-        Payment.booking_id == booking.id,
-        Payment.status == "successful"
+    # -----------------------------------------------------
+    # Calculate how much has already been successfully paid
+    # -----------------------------------------------------
+
+    successful_payments = Payment.query.filter_by(
+        booking_id=booking.id,
+        status="successful"
     ).all()
 
     total_paid = Decimal("0.00")
-    #a for loop to loop thru the successful payments made
+
     for payment in successful_payments:
-        total_paid += payment.amount
+        total_paid += Decimal(str(payment.amount))
 
-    #find the remaining balance
-    remaining_balance = booking.total_price - total_paid
+    # -----------------------------------------------------
+    # Calculate the remaining booking balance
+    # -----------------------------------------------------
 
-    #thafari rule: A booking is secured if payment of 50% minimum has been made
-    #minimum_payment = booking.total_price * Decimal("0.50")
+    booking_total = Decimal(str(booking.total_price))
 
-    #a condition to avoid extra payment
-    '''print("Booking total:", booking.total_price)
-    print("Total paid:", total_paid)
-    print("Remaining balance:", remaining_balance)
-    print("New payment amount:", amount)'''
+    remaining_balance = booking_total - total_paid
 
-    if amount > remaining_balance:
+    # A booking with no remaining balance should not create
+    # another payment.
+    if remaining_balance <= Decimal("0.00"):
         return jsonify({
-            "message": "The amount you entered is more than your remaining balance.",
-            "remaining_balance": float(remaining_balance)
+            "message": "This booking has already been fully paid."
         }), 400
+
+    # -----------------------------------------------------
+    # Generate our unique payment reference
+    # -----------------------------------------------------
 
     transaction_reference = str(uuid.uuid4())
 
-    #create a new payment
-    new_payment = Payment(
+    # -----------------------------------------------------
+    # Create the local payment record
+    # -----------------------------------------------------
+
+    payment = Payment(
         booking_id=booking.id,
-        transaction_reference=transaction_reference,
-        status = "pending",
-        amount=amount,
-        paid_at=None, #it is none since at the moment no payment has been made yet
-        payment_method=payment_method
 
+        # We initially do not know the payment method because
+        # the customer selects it during the Pesapal checkout.
+        payment_method=None,
+
+        # Payment starts as pending until Pesapal confirms it.
+        status="pending",
+
+        # The amount comes from our database calculation,
+        # NOT from the client.
+        amount=remaining_balance,
+
+        # This reference connects the Thafari payment to the
+        # Pesapal merchant reference.
+        transaction_reference=transaction_reference
     )
 
-    #prepare to save the data
-    db.session.add(new_payment)
-    #save the data
-    db.session.commit()
+    db.session.add(payment)
 
-    return jsonify({
-        "message": "Payment request has been created and is awaiting confirmation.",
-        "payment_id":new_payment.id,
-        "status":new_payment.status,
-        "booking_id":new_payment.booking_id,
-        "amount":float(new_payment.amount)
-    }), 201
+    # Flush gives us the payment ID without permanently
+    # committing the transaction yet.
+    db.session.flush()
 
-#an endpoint to check and update a confirmation using payment id
-@payment_bp.route("/payment/<int:payment_id>/confirmation", methods = ["POST"])
-@jwt_required()
-@roles_required("customer")
-def confirm_payment(payment_id):
-    #check if the payment id exists
-    payment = Payment.query.filter_by(id=payment_id).first()
+    # -----------------------------------------------------
+    # Prepare customer billing information for Pesapal
+    # -----------------------------------------------------
 
-    if not payment:
-        return jsonify({
-            "message": "Payment not found."
-        }), 404
+    billing_address = {
+        "email_address": current_user.email,
+        "phone_number": current_user.phone_number,
+        "country_code": "KE",
+        "first_name": current_user.first_name,
+        "last_name": current_user.last_name,
+        "line_1": "",
+        "line_2": "",
+        "city": "",
+        "state": "",
+        "postal_code": "",
+        "zip_code": ""
+    }
 
-    #check the current user logged in
-    current_user_id = int(get_jwt_identity())
-
-    #confirm the user id is of the same customer
-    if payment.booking.user_id != current_user_id:
-        return jsonify({
-            "message": "Access denied!"
-        }), 403
-
-    #lock the payment
-    locked_payment = (Payment.query.with_for_update().filter(
-        Payment.id == payment.id
-    ).first())
-
-    if not locked_payment:
-        return jsonify({
-            "message": "Payment not found."
-        }), 404
-
-    if locked_payment.status == "successful":
-        return jsonify({
-            "message": "Payment has already been processed.",
-            "status": locked_payment.status
-        }),400
-
-    #check if payment is still pending
-    if locked_payment.status != "pending":
-       return jsonify({
-           "message": "Payment has already been processed.",
-           "status": locked_payment.status
-       }), 400
-
-    #check if booking has expired and prevent payment
-    now = datetime.utcnow()
-
-    if (locked_payment.booking.expires_at is not None and
-        locked_payment.booking.expires_at <= now):
-        locked_payment.booking.status = "expired"
-        db.session.commit()
-
-        return jsonify({
-            "message": "Booking has expired. Please create a new booking"
-        }), 400
-
-    #find all successful payments for the booking we are accessing
-    successful_payments = Payment.query.filter(
-        Payment.booking_id == locked_payment.booking_id,
-        Payment.status == "successful"
-    ).all()
-    #calculate the total payments made on that booking
-    total_paid = Decimal("0.00")
-    #loop thru all successful payments
-    for successful_payment in successful_payments:
-        total_paid += successful_payment.amount
-
-    #calculate remaining balance
-    remaining_balance = locked_payment.booking.total_price - total_paid    
-
-    #calculate what the payment would be after the above payment is successful
-    total_after_payment = total_paid + locked_payment.amount
-
-    if total_after_payment > locked_payment.booking.total_price:
-        return jsonify({
-            "message": "The payment would exceed the remaining balance.",
-            "remaining_balance": float(remaining_balance)
-        }), 400
-
-    #change the status to successful
-    locked_payment.status = "successful"
-    #update the time to show when the payment was successful
-    locked_payment.paid_at = datetime.utcnow()
-
-    #add the current payment made(total after payment) to get the current total paid
-    total_paid = total_after_payment
-
-    #calculate the remaining balance after the current total paid
-    remaining_balance = locked_payment.booking.total_price - total_paid  
-    
-    #minimum threshold of 50%
-    minimum_requirement = locked_payment.booking.total_price * Decimal("0.50")
-
-    #check if the 50% threshold is met
-    is_secured = total_paid >= minimum_requirement
-
-    #check if the payment is paid fully
-    is_fully_paid = total_paid >= locked_payment.booking.total_price
-
-    #confirm the booking if the customer has fully paid
-    if is_fully_paid:
-        locked_payment.booking.status = "confirmed"
-
-    #save the changes made on the payment and booking and also a rollback if payment is not made successfully
-    try:
-        db.session.commit()
-
-    except Exception:
-        db.session.rollback()
-
-        return jsonify({
-            "message": "Payment confirmation could not be completed!"
-        }), 500    
-    
-
-    return jsonify({
-        "message": "Payment confirmed successfully",
-        "payment_id":locked_payment.id,
-        "amount_paid":float(locked_payment.amount),
-        "total_paid":float(total_paid),
-        "remaining_balance":float(remaining_balance),
-        "booking_secured":is_secured,
-        "booking_status":locked_payment.booking.status,
-        "fully_paid":is_fully_paid
-    }), 200
-
-#create an endpoint that allows the provider to communicate with thafari when the payment is made
-@payment_bp.route("/payment/webhook", methods = ["POST"])
-
-def create_webhook():
-    data = request.get_json()
-
-    if not data:
-        return jsonify({
-            "message": "Request body is required."
-        }), 400
-
-    #extract the transaction reference for the payment made
-    transaction_reference = data.get("transaction_reference")
-
-    if not transaction_reference:
-        return jsonify({
-            "message": "Transaction reference is required."
-        }), 400
-
-    #check if the transaction reference exists
-    payment = Payment.query.filter_by(transaction_reference=transaction_reference).first()
-
-    if not payment:
-        return jsonify({
-            "message": "payment transaction is not found."
-        }), 404
-
-    #temporary signature from the provider to prove it is the actual provider
-    signature = request.headers.get("X-Webhook-Signature")
-
-    if not signature:
-        return jsonify({
-            "message": "Webhook signature is required."
-        }), 401 # the server cannot authenticate who you are.
-
-    #get the webhook secret from config
-    webhook_secret = current_app.config["WEBHOOK_SECRET"]
-
-    #check the payment received by the provider
-    provider_amount = data.get("amount")
-
-    #ensure the amount data is available
-    if provider_amount is None:
-        return jsonify({
-            "message": "Amount is required."
-        }), 400
+    # -----------------------------------------------------
+    # Submit the order to Pesapal
+    # -----------------------------------------------------
 
     try:
-        provider_amount = Decimal(str(provider_amount))
+        pesapal_response = submit_pesapal_order(
+            transaction_reference=transaction_reference,
+            amount=remaining_balance,
+            description=f"Thafari booking payment #{booking.id}",
+            billing_address=billing_address
+        )
 
-    except InvalidOperation:
-        return jsonify({
-            "message": "Amount must be a valid number."
-        }), 400
+        # Pesapal returns a status code in the response.
+        response_status = str(
+            pesapal_response.get("status")
+        )
 
-    if provider_amount <= 0:
-        return jsonify({
-            "message": "Amount needs to be greater than 0."
-        }), 400
-
-    if provider_amount.as_tuple().exponent < -2:
-        return jsonify({
-            "message": "Amount cannot have more than two decimal places."
-        }), 400
-
-    provider_amount = provider_amount.quantize(Decimal("0.01"))
-    
-    #check if the provider amount is the same as the amount in booking
-    if provider_amount != payment.amount:
-        return jsonify({
-            "message": "The payment amount does not match the expected amount."
-        }), 400
-
-    #get the status given by the provider
-    #update the payment status
-    provider_status = data.get("status")
-
-    #ensure only allowed statuses are returned
-    allowed_provider_status = ["successful", "failed"]
-
-    if provider_status not in allowed_provider_status:
-        return jsonify({
-            "message": "Unsupported payment status."
-        }), 400
-
-    #get payload data from webhook
-    payload = (
-        f"{transaction_reference}|{provider_amount}|{provider_status}"
-    )
-
-    #generate the expected signature
-    expected_signature = hmac.new(
-        webhook_secret.encode(), #turn the webhook secret to bytes
-        payload.encode(), #turn the payload to bytes
-        hashlib.sha256, #SHA 256 hash algorithm
-    ).hexdigest() #get the signature in a hexadecimal string
-
-    print("PAYLOAD:", payload)
-    print("EXPECTED SIGNATURE:", expected_signature)
-    print("RECEIVED SIGNATURE:", signature)
-
-    if not hmac.compare_digest(signature, expected_signature):
-        return jsonify({
-            "message": "Invalid webhook signature."
-        }), 401
-
-    #lock the payment
-    locked_payment = (
-        Payment.query.with_for_update().filter_by(
-            id=payment.id
-        ).first()
-    )
-     #check if payment is locked
-    if not locked_payment:
-        return jsonify({
-            "message": "Payment could not be found."
-        }), 404
-    #recheck state after getting the lock
-    '''if locked_payment.status == "successful":
-        return jsonify({
-            "message": "Payment has been processed successfully.",
-            "payment_id": locked_payment.id,
-            "status": locked_payment.status
-        }), 200
-
-    if locked_payment.status == "failed":
-        return jsonify({
-            "message": "Payment has been processed successfully.",
-            "payment.id": locked_payment.id,
-            "status": locked_payment.status
-        }), 200'''
-
-    #recheck if the locked payment is already successful/failed 
-    if locked_payment.status == "successful":
-        return jsonify({
-            "message": "Payment has already been processed",
-            "payment_id": locked_payment.id,
-            "status": locked_payment.status
-        }), 200
-
-    if locked_payment.status == "failed":
-        return jsonify({
-            "message": "Payment has already been processed.",
-            "payment_id": locked_payment.id,
-            "status": locked_payment.status
-        }), 200
-
-    if provider_status == "failed":
-        locked_payment.status = "failed" #change the status
-
-        try:
-            db.session.commit()
-
-        except Exception:
+        if response_status != "200":
             db.session.rollback()
 
             return jsonify({
-                "message": "Payment processing could not be completed."
-            }), 500    
+                "message": "Pesapal could not create the payment session.",
+                "pesapal_response": pesapal_response
+            }), 502
+
+        # Pesapal assigns its own tracking ID.
+        order_tracking_id = pesapal_response.get(
+            "order_tracking_id"
+        )
+
+        redirect_url = pesapal_response.get(
+            "redirect_url"
+        )
+
+        if not order_tracking_id or not redirect_url:
+            db.session.rollback()
+
+            return jsonify({
+                "message": "Pesapal returned an incomplete payment response."
+            }), 502
+
+        # Save Pesapal's tracking ID so that future IPN
+        # notifications can locate this payment.
+        payment.pesapal_order_tracking_id = order_tracking_id
+
+        # Only now do we permanently save our local payment.
+        db.session.commit()
 
         return jsonify({
-            "message": "Payment failed.",
-            "payment_id": locked_payment.id,
-            "status": locked_payment.status
-        }), 200
-    
-    #check successful payment,check if booking has expired and calculate total paid
-    if provider_status == "successful":
+            "message": "Payment created successfully.",
+            "payment_id": payment.id,
+            "transaction_reference": payment.transaction_reference,
+            "pesapal_order_tracking_id": payment.pesapal_order_tracking_id,
+            "amount": float(payment.amount),
+            "status": payment.status,
+            "redirect_url": redirect_url
+        }), 201
 
-        now = datetime.utcnow()
+    except requests.RequestException as e:
+        # If Pesapal cannot be reached, do not leave behind
+        # a payment record that was never submitted successfully.
+        db.session.rollback()
 
-        if (locked_payment.booking.expires_at is not None and
-            locked_payment.booking.expires_at <= now):
-            locked_payment.booking.status = "expired"
+        print(f"Pesapal request error: {e}")
 
-            try:
+        return jsonify({
+            "message": "Unable to connect to the payment provider."
+        }), 502
+
+    except Exception as e:
+        db.session.rollback()
+
+        print(f"Payment creation error: {e}")
+
+        return jsonify({
+            "message": "An error occurred while creating the payment."
+        }), 500
+
+
+# ---------------------------------------------------------
+# PESAPAL CUSTOMER CALLBACK
+# ---------------------------------------------------------
+
+@payment_bp.route("/payment/pesapal/callback", methods=["GET"])
+def pesapal_callback():
+    """
+    Receive the customer redirect after Pesapal checkout.
+
+    IMPORTANT:
+    This endpoint does not mark a payment as successful.
+
+    Pesapal's IPN + transaction-status API remain the source
+    of truth for payment confirmation.
+    """
+
+    order_tracking_id = request.args.get("OrderTrackingId")
+    merchant_reference = request.args.get(
+        "OrderMerchantReference"
+    )
+
+    return jsonify({
+        "message": "Pesapal callback received.",
+        "order_tracking_id": order_tracking_id,
+        "merchant_reference": merchant_reference
+    }), 200
+
+
+# ---------------------------------------------------------
+# PESAPAL IPN
+# ---------------------------------------------------------
+
+@payment_bp.route("/payment/pesapal/ipn", methods=["POST"])
+def pesapal_ipn():
+    """
+    Receive payment notifications from Pesapal.
+
+    Flow:
+
+    1. Pesapal sends the order tracking ID.
+    2. We locate the local Payment.
+    3. We verify the merchant reference.
+    4. We ask Pesapal for the authoritative transaction status.
+    5. We validate amount and currency.
+    6. We update the local payment.
+    7. We update the booking if fully paid.
+
+    This endpoint is also designed to be idempotent because
+    payment providers may send the same notification more than once.
+    """
+
+    data = request.get_json(silent=True) or {}
+
+    order_tracking_id = data.get("OrderTrackingId")
+    merchant_reference = data.get("OrderMerchantReference")
+
+    # -----------------------------------------------------
+    # Validate IPN payload
+    # -----------------------------------------------------
+
+    if not order_tracking_id or not merchant_reference:
+        return jsonify({
+            "message": "OrderTrackingId and OrderMerchantReference are required.",
+            "status": "400"
+        }), 400
+
+    try:
+
+        # -------------------------------------------------
+        # Lock the payment row while processing it.
+        # This helps prevent concurrent updates from creating
+        # inconsistent payment states.
+        # -------------------------------------------------
+
+        payment = (
+            Payment.query
+            .filter_by(
+                pesapal_order_tracking_id=order_tracking_id
+            )
+            .with_for_update()
+            .first()
+        )
+
+        if not payment:
+            return jsonify({
+                "message": "Payment not found.",
+                "status": "404"
+            }), 404
+
+        # -------------------------------------------------
+        # Make sure the Pesapal merchant reference belongs
+        # to the payment we found.
+        # -------------------------------------------------
+
+        if payment.transaction_reference != merchant_reference:
+            return jsonify({
+                "message": "Merchant reference does not match the payment.",
+                "status": "400"
+            }), 400
+
+        # -------------------------------------------------
+        # Ask Pesapal for the authoritative transaction status.
+        # -------------------------------------------------
+
+        pesapal_result = get_pesapal_transaction_status(
+            order_tracking_id
+        )
+
+        raw_status_code = pesapal_result.get("status_code")
+
+        try:
+            status_code = int(raw_status_code)
+        except (TypeError, ValueError):
+            status_code = None
+
+        # -------------------------------------------------
+        # Pending payment
+        # -------------------------------------------------
+
+        if status_code == 0:
+
+            payment.status = "pending"
+
+            db.session.commit()
+
+            return jsonify({
+                "message": "Payment is still pending.",
+                "status": "200"
+            }), 200
+
+        # -------------------------------------------------
+        # Failed payment
+        # -------------------------------------------------
+
+        if status_code == 2:
+
+            payment.status = "failed"
+
+            db.session.commit()
+
+            return jsonify({
+                "message": "Payment failed.",
+                "status": "200"
+            }), 200
+
+        # -------------------------------------------------
+        # Reversed payment
+        # -------------------------------------------------
+
+        if status_code == 3:
+
+            payment.status = "reversed"
+
+            db.session.commit()
+
+            return jsonify({
+                "message": "Payment was reversed.",
+                "status": "200"
+            }), 200
+
+        # -------------------------------------------------
+        # Successful payment
+        # -------------------------------------------------
+
+                # -------------------------------------------------
+        # Successful payment
+        # -------------------------------------------------
+
+        if status_code == 1:
+
+            # ---------------------------------------------
+            # Validate amount returned by Pesapal.
+            # ---------------------------------------------
+
+            pesapal_amount = Decimal(
+                str(pesapal_result.get("amount"))
+            )
+
+            local_amount = Decimal(
+                str(payment.amount)
+            )
+
+            if pesapal_amount != local_amount:
+                return jsonify({
+                    "message": "Payment amount does not match.",
+                    "status": "400"
+                }), 400
+
+            # ---------------------------------------------
+            # Validate currency.
+            # ---------------------------------------------
+
+            pesapal_currency = pesapal_result.get("currency")
+
+            if pesapal_currency != "KES":
+                return jsonify({
+                    "message": "Unsupported payment currency.",
+                    "status": "400"
+                }), 400
+
+            # ---------------------------------------------
+            # Validate merchant reference returned by Pesapal.
+            # ---------------------------------------------
+
+            pesapal_merchant_reference = (
+                pesapal_result.get("merchant_reference")
+            )
+
+            if pesapal_merchant_reference != payment.transaction_reference:
+                return jsonify({
+                    "message": "Pesapal merchant reference does not match.",
+                    "status": "400"
+                }), 400
+
+            # ---------------------------------------------
+            # Idempotency check.
+            #
+            # If Pesapal sends the same successful notification
+            # again, do not process the payment a second time.
+            # ---------------------------------------------
+
+            if payment.status == "successful":
 
                 db.session.commit()
 
-            except:
-                db.session.rollback()
-
                 return jsonify({
-                    "message": "Payment processing could not be completed."
-                }), 500    
-                
+                    "message": "Payment was already processed.",
+                    "status": "successful"
+                }), 200
 
-            return jsonify({
-                "message": "payment received, but booking has expired.",
-                "payment_id": locked_payment.id,
-                "payment_status": locked_payment.status,
-                "booking_status":locked_payment.booking.status
-            }), 400
-        
-        locked_payment.status = "successful"
-        locked_payment.paid_at = datetime.utcnow()
+            # ---------------------------------------------
+            # Save the payment method selected at Pesapal.
+            # ---------------------------------------------
 
-        successful_payments = Payment.query.filter(
-            Payment.booking_id == locked_payment.booking_id,
-            Payment.status == "successful"
-        ).all()
+            payment.payment_method = normalize_pesapal_payment_method(
+                pesapal_result.get("payment_method")
+            )
 
-        total_paid = Decimal("0.00")
+            # ---------------------------------------------
+            # Save Pesapal's confirmation code.
+            # ---------------------------------------------
 
-        for successful_payment in successful_payments:
-            total_paid += successful_payment.amount
+            payment.pesapal_confirmation_code = (
+                pesapal_result.get("confirmation_code")
+            )
 
-        #remaining balance
-        remaining_balance = locked_payment.booking.total_price - total_paid
+            # ---------------------------------------------
+            # Mark the local payment as successful.
+            # ---------------------------------------------
 
-        #minimum_payment (50%)
-        minimum_payment = locked_payment.booking.total_price * Decimal("0.50")
+            payment.status = "successful"
+            payment.paid_at = datetime.utcnow()
 
-        #check if booking is_secured
-        is_secured = total_paid >= minimum_payment
+            # Flush the payment update before calculating
+            # the total successful payments.
+            db.session.flush()
 
-        #check if booking is_fully_paid
-        is_fully_paid = total_paid >= locked_payment.booking.total_price
+            # ---------------------------------------------
+            # Get the booking and its owner.
+            # ---------------------------------------------
 
-        if is_fully_paid:
-            locked_payment.booking.status = "confirmed"
-        #save the data
-        try:
+            booking = payment.booking
+            user = booking.user
+
+            # ---------------------------------------------
+            # Calculate total successful payments for this
+            # booking.
+            # ---------------------------------------------
+
+            successful_payments = (
+                Payment.query
+                .filter_by(
+                    booking_id=booking.id,
+                    status="successful"
+                )
+                .all()
+            )
+
+            total_paid = Decimal("0.00")
+
+            for successful_payment in successful_payments:
+                total_paid += Decimal(
+                    str(successful_payment.amount)
+                )
+
+            booking_total = Decimal(
+                str(booking.total_price)
+            )
+
+            # Keep track of the booking status before updating it.
+            # This allows us to know whether this payment caused
+            # the booking to become confirmed.
+            previous_booking_status = booking.status
+
+            # ---------------------------------------------
+            # Update booking payment status.
+            # ---------------------------------------------
+
+            if total_paid >= booking_total:
+
+                booking.status = "confirmed"
+
+            else:
+
+                # Partial payment means the booking remains pending.
+                booking.status = "pending"
+
+            # ---------------------------------------------
+            # Create payment-success notification.
+            #
+            # IMPORTANT:
+            # create_notification() does NOT commit.
+            #
+            # Therefore this notification is part of the same
+            # database transaction as the payment update.
+            # ---------------------------------------------
+
+            payment_notification = create_notification(
+                user_id=user.id,
+                title="Payment Successful",
+                message=(
+                    f"Your payment of KES {payment.amount} "
+                    f"for booking #{booking.id} was received successfully."
+                ),
+                notification_type="payment"
+            )
+
+            # ---------------------------------------------
+            # Create booking-confirmed notification only if
+            # this payment caused the booking to become fully
+            # paid and confirmed.
+            # ---------------------------------------------
+
+            booking_notification = None
+
+            if (
+                booking.status == "confirmed"
+                and previous_booking_status != "confirmed"
+            ):
+
+                booking_notification = create_notification(
+                    user_id=user.id,
+                    title="Booking Confirmed",
+                    message=(
+                        f"Your booking #{booking.id} is fully paid "
+                        f"and has been confirmed."
+                    ),
+                    notification_type="booking"
+                )
+
+            # ---------------------------------------------
+            # Commit EVERYTHING together:
+            #
+            # - payment update
+            # - booking update
+            # - payment notification
+            # - booking notification (if applicable)
+            #
+            # If the commit fails, the database transaction is
+            # rolled back and no notification is emitted.
+            # ---------------------------------------------
+
             db.session.commit()
 
-        except Exception:
-            db.session.rollback()
+            # -------------------------------------------------
+            # EMIT PAYMENT NOTIFICATION AFTER COMMIT
+            # -------------------------------------------------
+
+            try:
+
+                emit_notification(payment_notification)
+
+            except Exception as e:
+
+                # The payment and notification already exist in
+                # the database. A Socket.IO delivery failure must
+                # not undo the successful payment.
+                print(
+                    f"Payment notification could not be delivered: {e}"
+                )
+
+            # -------------------------------------------------
+            # EMIT BOOKING CONFIRMATION NOTIFICATION
+            # AFTER COMMIT
+            # -------------------------------------------------
+
+            if booking_notification:
+
+                try:
+
+                    emit_notification(booking_notification)
+
+                except Exception as e:
+
+                    print(
+                        f"Booking confirmation notification "
+                        f"could not be delivered: {e}"
+                    )
+
+            # -------------------------------------------------
+            # SEND PAYMENT SUCCESS EMAIL
+            # -------------------------------------------------
+
+            try:
+
+                send_payment_success_email(
+                    user,
+                    payment,
+                    booking
+                )
+
+            except Exception as e:
+
+                # Payment has already been committed successfully.
+                # Email failure must not reverse the payment.
+                print(
+                    f"Payment success email could not be sent: {e}"
+                )
+
+            # -------------------------------------------------
+            # SEND BOOKING CONFIRMATION EMAIL
+            # ONLY IF THE BOOKING IS FULLY PAID.
+            # -------------------------------------------------
+
+            if booking.status == "confirmed":
+
+                try:
+
+                    send_booking_confirmed_email(
+                        user,
+                        booking
+                    )
+
+                except Exception as e:
+
+                    # Booking remains confirmed even if the
+                    # confirmation email cannot be delivered.
+                    print(
+                        f"Booking confirmation email could not "
+                        f"be sent: {e}"
+                    )
 
             return jsonify({
-                "message": "Payment confirmation could not be completed."
-            }), 500          
+                "message": "Payment processed successfully.",
+                "payment_id": payment.id,
+                "status": payment.status,
+                "payment_method": payment.payment_method,
+                "amount": float(payment.amount),
+                "booking_status": booking.status,
+                "status_code": "200"
+            }), 200
 
-        return jsonify({
-            "message": "payment successfully confirmed.",
-            "payment_id": locked_payment.id,
-            "booking_secured": is_secured,
-            "total_paid":float(total_paid),
-            "amount_paid":float(locked_payment.amount),
-            "remaining_balance":float(remaining_balance),
-            "fully_paid":is_fully_paid,
-            "payment_status":locked_payment.status
-        }), 200
+    except requests.RequestException as e:
 
-
-#create a refund payment route
-'''@payment_bp.route("/payment/<int:payment_id>/refund", methods=["POST"])
-@jwt_required()
-@roles_required("customer")
-def refund_payment(payment_id):
-
-    #check if the payment exists
-    payment = Payment.query.get(payment_id)
-
-    #validate the payment
-    if not payment:
-        return jsonify({
-            "message": "Payment not found."
-        }), 404
-
-     #check the user making the request
-    current_user_id = int(get_jwt_identity())
-
-    #check ownership of the customer making the request
-    if payment.booking.user_id != current_user_id:
-        return jsonify({
-            "message": "You are not authorized to refund this payment."
-        }), 403
-
-    # a condition to make it only successful payments can be refunded
-    if payment.status != "successful":
-        return jsonify({
-            "message": "Only successful payments can be refunded!",
-            "status": payment.status
-        }), 400
-    
-    #change the payment status to refunded
-    payment.status = "refunded"
-
-    #save the changes
-    db.session.commit()
-
-    #check all successful payments after refund is requested
-    successful_payments = Payment.query.filter(
-        Payment.booking_id == payment.booking_id,
-        Payment.status == "successful"
-    ).all()
-
-    #check total paid after refund is done
-    total_paid = Decimal("0.00")
-
-    #loop thru the successful payments
-    for successful_payment in successful_payments:
-        total_paid += successful_payment.amount
-
-    #remaining balance
-    remaining_balance = payment.booking.total_price - total_paid
-
-    #minimum payment - 50%
-    minimum_payment = payment.booking.total_price * Decimal("0.50")
-
-    #check if booking is secured
-    is_secured = total_paid >= minimum_payment
-
-    #check if still fully paid
-    is_fully_paid = total_paid >= payment.booking.total_price
-
-    if is_fully_paid:
-        payment.booking.status = "confirmed"
-    else:
-        payment.booking.status = "pending"
-
-    try:
-        db.session.commit()
-
-    except Exception:
         db.session.rollback()
 
+        print(f"Pesapal status request error: {e}")
+
+        # Returning a server error allows Pesapal to retry
+        # the notification later.
         return jsonify({
-            "message": "Refund processing could not be completed."
+            "message": "Unable to verify payment with Pesapal."
         }), 500
 
-    return jsonify({
-        "message": "Payment successfully refunded.",
-        "payment_id": payment.id,
-        "status": payment.status,
-        "booking_secured":is_secured,
-        "total_paid": float(total_paid),
-        "remaining_balance": float(remaining_balance),
-        "fully_paid": is_fully_paid
-    }), 200 '''
+    except Exception as e:
 
-#retrieve booking history
-@payment_bp.route("/booking/<int:booking_id>/payments", methods = ["GET"])
+        db.session.rollback()
+
+        print(f"Pesapal IPN processing error: {e}")
+
+        return jsonify({
+            "message": "An error occurred while processing the payment."
+        }), 500
+
+
+# ---------------------------------------------------------
+# PAYMENT HISTORY
+# ---------------------------------------------------------
+
+@payment_bp.route(
+    "/booking/<int:booking_id>/payments",
+    methods=["GET"]
+)
 @jwt_required()
 @roles_required("customer")
 def get_booking_payments(booking_id):
-    #get the bookings the customer is requesting for
+    """
+    Return payment history for a customer's booking.
+
+    Customers can only view payment history for their own
+    bookings.
+    """
+
+    # -----------------------------------------------------
+    # Find the booking
+    # -----------------------------------------------------
+
     booking = Booking.query.get(booking_id)
 
     if not booking:
         return jsonify({
-            "message": "Booking is not found."
+            "message": "Booking not found."
         }), 404
+
+    # -----------------------------------------------------
+    # Check ownership
+    # -----------------------------------------------------
 
     current_user_id = int(get_jwt_identity())
 
     if booking.user_id != current_user_id:
         return jsonify({
-            "message": "You are not authorized to check this booking."
+            "message": "You are not authorized to view these payments."
         }), 403
 
-    #get the payments for that specific booking id
-    payments = Payment.query.filter_by(booking_id=booking_id).all()
+    # -----------------------------------------------------
+    # Get all payments associated with the booking
+    # -----------------------------------------------------
 
-    #retrieve all the payment details
-    payment_history = [
-        {
+    payments = Payment.query.filter_by(
+        booking_id=booking_id
+    ).order_by(
+        Payment.created_at.desc()
+    ).all()
+
+    payment_history = []
+
+    for payment in payments:
+
+        payment_history.append({
             "payment_id": payment.id,
             "status": payment.status,
             "transaction_reference": payment.transaction_reference,
             "amount": float(payment.amount),
             "payment_method": payment.payment_method,
-            "paid_at":payment.paid_at.isoformat()
-            if payment.paid_at
-            else None
-        }
-        for payment in payments
-    ]
+            "paid_at": (
+                payment.paid_at.isoformat()
+                if payment.paid_at
+                else None
+            )
+        })
 
     return jsonify({
-        "booking_id":booking_id,
+        "booking_id": booking_id,
         "payments": payment_history
     }), 200
-
-
-
-
-
-    

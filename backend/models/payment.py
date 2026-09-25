@@ -11,7 +11,7 @@ class Payment(BaseModel):
     )
 
     status = db.Column(
-        db.Enum("pending", "successful", "failed", "cancelled", "refunded"),
+        db.Enum("pending", "successful", "failed", "cancelled", "refunded", "reversed"),
         default = "pending",
         nullable=False
     )
@@ -28,9 +28,15 @@ class Payment(BaseModel):
     )
 
     payment_method = db.Column(
-        db.Enum("mpesa", "visa", "bank_transfer"),
-        nullable=False
-    )
+    db.Enum(
+        "mpesa",
+        "visa",
+        "mastercard",
+        "amex",
+        "bank_transfer"
+    ),
+    nullable=True
+)
 
     transaction_reference = db.Column(
         db.String(250),
@@ -57,4 +63,12 @@ class Payment(BaseModel):
         db.String(250),
         nullable=True,
         unique=True
+    )
+
+    # Stores the confirmation/reference code returned by Pesapal
+    # after a payment is successfully completed.
+    pesapal_confirmation_code = db.Column(
+        db.String(250),
+        unique=True,
+        nullable=True
     )

@@ -5,3 +5,12 @@ from .departure import Departure
 from .payment import Payment
 from .revenue_target import RevenueTarget
 from .refund import Refund
+from models.conversation import Conversation
+from models.conversation_participant import ConversationParticipant
+from models.message import Message
+from models.notification import Notification
+from models.revoked_token import RevokedToken
+from models.password_reset_token import PasswordResetToken
+from models.tour_itinerary import TourItinerary
+from models.tour_accommodation import TourAccommodation
+from models.tour_faq import TourFAQ

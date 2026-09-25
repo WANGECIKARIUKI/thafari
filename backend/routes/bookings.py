@@ -1,173 +1,318 @@
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import (jwt_required, get_jwt_identity)
+from flask_jwt_extended import (
+    jwt_required,
+    get_jwt_identity
+)
 from decorators.auth_decorator import roles_required
 from models.user import User
 from models.booking import Booking
 from models.departure import Departure
 from models.tour import Tour
+
+from services.booking_service import (
+    expired_pending_booking,
+    calculate_available_seats,
+    find_suggested_departures,
+    create_pending_booking
+)
+
 from datetime import date
-from services.booking_service import (expired_pending_booking, calculate_available_seats, find_suggested_departures, create_pending_booking)
+
+# Email service used to notify customers about new bookings.
+from services.email_service import send_booking_created_email
 
 
+# ---------------------------------------------------------
+# BOOKING BLUEPRINT
+# ---------------------------------------------------------
 
 booking_bp = Blueprint(
     "booking",
     __name__,
-    url_prefix = "/api"
+    url_prefix="/api"
 )
 
-#create a booking
-@booking_bp.route("/booking", methods = ["POST"])
+
+# ---------------------------------------------------------
+# CREATE A BOOKING
+# ---------------------------------------------------------
+
+@booking_bp.route("/booking", methods=["POST"])
 @jwt_required()
 @roles_required("admin", "customer")
-
 def create_booking():
-    #retrieve the data
+
+    # Retrieve the request body.
     data = request.get_json()
 
     if not data:
         return jsonify({
             "message": "Request body is required."
         }), 400
-    
-    #extract the data
+
+    # Extract booking information.
     departure_id = data.get("departure_id")
     number_of_people = data.get("number_of_people")
 
-    #validate the data
+    # -----------------------------------------------------
+    # VALIDATE DEPARTURE ID
+    # -----------------------------------------------------
 
     if not isinstance(departure_id, int):
         return jsonify({
             "message": "Departure id is required."
         }), 400
 
-    if departure_id <=0:
+    if departure_id <= 0:
         return jsonify({
             "message": "departure id should be greater than 0."
         }), 400
+
+    # -----------------------------------------------------
+    # VALIDATE NUMBER OF PEOPLE
+    # -----------------------------------------------------
 
     if not isinstance(number_of_people, int):
         return jsonify({
             "message": "Number of people is required."
         }), 400
 
-    if number_of_people <=0:
+    if number_of_people <= 0:
         return jsonify({
             "message": "number of people should be greater than 0."
         }), 400
 
-    #check if the user exists
+    # -----------------------------------------------------
+    # GET CURRENT USER
+    # -----------------------------------------------------
+
     current_user_id = int(get_jwt_identity())
 
-    current_user = User.query.filter_by(id=current_user_id).first()
+    current_user = User.query.filter_by(
+        id=current_user_id
+    ).first()
+
+    if not current_user:
+        return jsonify({
+            "message": "Current user not found."
+        }), 404
+
+    # -----------------------------------------------------
+    # DETERMINE WHO THE BOOKING IS FOR
+    # -----------------------------------------------------
 
     if current_user.role == "admin":
+
+        # Admins can create bookings on behalf of customers.
         booking_user_id = data.get("user_id")
 
-        #need to validate the user-id is provided
-        if not isinstance(booking_user_id, int) or booking_user_id <=0:
+        if not isinstance(booking_user_id, int) or booking_user_id <= 0:
             return jsonify({
-                "message": "User id is required and has to be greater than 0."
+                "message": (
+                    "User id is required and has to be greater than 0."
+                )
             }), 400
+
     else:
+
+        # Normal customers create bookings for themselves.
         booking_user_id = current_user_id
 
-    #check if the user exists
-    booking_user = User.query.filter_by(id=booking_user_id).first()
+    # -----------------------------------------------------
+    # CHECK THAT THE BOOKING USER EXISTS
+    # -----------------------------------------------------
+
+    booking_user = User.query.filter_by(
+        id=booking_user_id
+    ).first()
 
     if not booking_user:
         return jsonify({
-            "message": "User not found"
+            "message": "User not found."
         }), 404
 
-    #check if tour exists
-    departure = Departure.query.filter_by(id=departure_id).first()
+    # -----------------------------------------------------
+    # FIND THE DEPARTURE
+    # -----------------------------------------------------
+
+    departure = Departure.query.filter_by(
+        id=departure_id
+    ).first()
 
     if not departure:
         return jsonify({
             "message": "Departure not found."
         }), 404
 
-    #check if the departure is active
+    # -----------------------------------------------------
+    # CHECK WHETHER THE DEPARTURE IS ACTIVE
+    # -----------------------------------------------------
+
     if not departure.is_active:
         return jsonify({
-            "message": "This departure is no longer available for booking!"
+            "message": (
+                "This departure is no longer available for booking!"
+            )
         }), 400
 
-    #check if end of trip date has already passed.
-    #today = date.today()
+    # -----------------------------------------------------
+    # CHECK WHETHER THE DEPARTURE HAS ALREADY STARTED
+    # -----------------------------------------------------
 
-    if departure.end_date < departure.start_date:
+    today = date.today()
+
+    if departure.start_date <= today:
         return jsonify({
-            "message": "This departure has already ended and is no longer available for booking."
+            "message": "This departure has already started and is no longer available for booking."
         }), 400
 
-    #calculate available seats// data is in services
-    available_seats = calculate_available_seats(departure)
+    # -----------------------------------------------------
+    # CALCULATE AVAILABLE SEATS
+    # -----------------------------------------------------
 
-    #check if remaining slots are enough
+    available_seats = calculate_available_seats(
+        departure
+    )
+
+    # -----------------------------------------------------
+    # CHECK WHETHER THERE ARE ENOUGH SEATS
+    # -----------------------------------------------------
+
     if number_of_people > available_seats:
-        suggested_departures = find_suggested_departures(departure, number_of_people)
+
+        # If there aren't enough seats, look for later
+        # departures for the same tour.
+        suggested_departures = find_suggested_departures(
+            departure,
+            number_of_people
+        )
 
         return jsonify({
-            "message": "The available slots are not enough for you all.",
+            "message": (
+                "The available slots are not enough for you all."
+            ),
             "available_seats": available_seats,
             "suggested_departures": suggested_departures
-        }), 400            
+        }), 400
 
-   #create a booking
+    # -----------------------------------------------------
+    # CREATE THE PENDING BOOKING
+    # -----------------------------------------------------
+
     booking = create_pending_booking(
-       user_id=booking_user_id,
-       departure=departure,
-       number_of_people=number_of_people
-   )
+        user_id=booking_user_id,
+        departure=departure,
+        number_of_people=number_of_people
+    )
+
+    # -----------------------------------------------------
+    # SEND BOOKING EMAIL
+    # -----------------------------------------------------
+
+    try:
+        # Send the email AFTER the booking has successfully
+        # been committed to the database.
+        send_booking_created_email(
+            booking_user,
+            booking
+        )
+
+    except Exception as e:
+        # Email failure should NOT undo a successfully
+        # created booking.
+        #
+        # The booking already exists in the database, so we
+        # simply log the email error.
+        print(
+            f"Booking email could not be sent: {e}"
+        )
+
+    # -----------------------------------------------------
+    # RETURN BOOKING RESPONSE
+    # -----------------------------------------------------
 
     return jsonify({
         "message": "A New booking created successfully!",
-        "booking_id":booking.id,
-        "departure_id":booking.departure_id,
-        "status":booking.status,
-        "number_of_people":booking.number_of_people,
-        "price_per_person":float(booking.price_per_person),
-        "total_price":float(booking.total_price),
-        "expires_at":booking.expires_at.isoformat() #isoformat - converts the time into a string
+        "booking_id": booking.id,
+        "departure_id": booking.departure_id,
+        "status": booking.status,
+        "number_of_people": booking.number_of_people,
+        "price_per_person": float(
+            booking.price_per_person
+        ),
+        "total_price": float(
+            booking.total_price
+        ),
+        "expires_at": booking.expires_at.isoformat()
     }), 201
 
-#temporary expiry check
-@booking_bp.route("/booking/expires", methods = ["POST"] )
+
+# ---------------------------------------------------------
+# PROCESS EXPIRED BOOKINGS
+# ---------------------------------------------------------
+
+@booking_bp.route(
+    "/booking/expires",
+    methods=["POST"]
+)
 @jwt_required()
 @roles_required("admin")
 def expired_bookings():
 
+    # Process pending bookings whose payment window has expired.
     expired_pending_booking()
 
     return jsonify({
         "message": "Expired bookings processed successfully."
     }), 200
 
-#get a single booking
-@booking_bp.route("/booking/<int:booking_id>", methods = ["GET"])
+
+# ---------------------------------------------------------
+# GET A SINGLE BOOKING
+# ---------------------------------------------------------
+
+@booking_bp.route(
+    "/booking/<int:booking_id>",
+    methods=["GET"]
+)
 @jwt_required()
 @roles_required("admin", "customer")
 def get_booking(booking_id):
-    #check if the booking exists
-    booking = Booking.query.filter_by(id=booking_id).first()
 
-    #check if the booking is found
+    # Find the requested booking.
+    booking = Booking.query.filter_by(
+        id=booking_id
+    ).first()
+
     if not booking:
         return jsonify({
             "message": "Booking not found"
         }), 404
 
-    #confirm the customer accessing the booking is the correct customer
-    current_user_id = int(get_jwt_identity())
+    # Get the authenticated user.
+    current_user_id = int(
+        get_jwt_identity()
+    )
 
-    current_user = User.query.filter_by(id=current_user_id).first()
+    current_user = User.query.filter_by(
+        id=current_user_id
+    ).first()
 
-    if current_user.role != "customer":
+    if not current_user:
+        return jsonify({
+            "message": "User not found."
+        }), 404
+
+    # Customers may only access their own bookings.
+    #
+    # Admins are allowed to access bookings generally.
+    if current_user.role == "customer":
+
         if booking.user_id != current_user_id:
             return jsonify({
-                "message": "You are not authorized to view this booking!"
+                "message": (
+                    "You are not authorized to view this booking!"
+                )
             }), 403
 
     return jsonify({
@@ -175,8 +320,12 @@ def get_booking(booking_id):
         "user_id": booking.user_id,
         "departure_id": booking.departure_id,
         "number_of_people": booking.number_of_people,
-        "price_per_person": float(booking.price_per_person),
-        "total_price": float(booking.total_price),
+        "price_per_person": float(
+            booking.price_per_person
+        ),
+        "total_price": float(
+            booking.total_price
+        ),
         "status": booking.status,
         "expires_at": (
             booking.expires_at.isoformat()
@@ -187,46 +336,95 @@ def get_booking(booking_id):
         "updated_at": booking.updated_at.isoformat()
     }), 200
 
-#get all bookings
-@booking_bp.route("/bookings", methods = ["GET"])
-@jwt_required()
-@roles_required("admin", "customer", "tour_operator")
-#the tour_operator is there since we will eventually use it to get only their own bookings
 
+# ---------------------------------------------------------
+# GET ALL BOOKINGS
+# ---------------------------------------------------------
+
+@booking_bp.route(
+    "/bookings",
+    methods=["GET"]
+)
+@jwt_required()
+@roles_required(
+    "admin",
+    "customer",
+    "tour_operator"
+)
 def get_bookings():
 
-    #get current user id
-    current_user_id = int(get_jwt_identity())
+    # Get the authenticated user's ID.
+    current_user_id = int(
+        get_jwt_identity()
+    )
 
-    #get user role
+    # Find the authenticated user.
+    current_user = User.query.filter_by(
+        id=current_user_id
+    ).first()
 
-    current_user = User.query.filter_by(id=current_user_id).first()
+    if not current_user:
+        return jsonify({
+            "message": "User not found."
+        }), 404
 
-    #check bookings for admin and customer
+    # -----------------------------------------------------
+    # ADMIN
+    # -----------------------------------------------------
+
     if current_user.role == "admin":
-        bookings = Booking.query.all()
-    #use join to connect different tables and their foreign keys
-    elif current_user.role == "tour_operator":
-        bookings = (
-            Booking.query.join(Departure).join(Tour)
-            .filter(Tour.tour_operator_id == current_user_id).all()
-        )
-    #customer
-    else:
-        booking = Booking.query.filter(Booking.user_id == current_user_id).all()    
 
-    #create an empty list to store your bookings
+        # Admins can see all bookings.
+        bookings = Booking.query.all()
+
+    # -----------------------------------------------------
+    # TOUR OPERATOR
+    # -----------------------------------------------------
+
+    elif current_user.role == "tour_operator":
+
+        # Tour operators only see bookings belonging to
+        # their own tours.
+        bookings = (
+            Booking.query
+            .join(Departure)
+            .join(Tour)
+            .filter(
+                Tour.tour_operator_id == current_user_id
+            )
+            .all()
+        )
+
+    # -----------------------------------------------------
+    # CUSTOMER
+    # -----------------------------------------------------
+
+    else:
+
+        # Customers only see their own bookings.
+        bookings = Booking.query.filter(
+            Booking.user_id == current_user_id
+        ).all()
+
+    # -----------------------------------------------------
+    # FORMAT BOOKINGS
+    # -----------------------------------------------------
+
     booking_list = []
 
-    #loop thru the list
     for booking in bookings:
+
         booking_list.append({
             "booking_id": booking.id,
             "user_id": booking.user_id,
             "departure_id": booking.departure_id,
             "number_of_people": booking.number_of_people,
-            "price_per_person": float(booking.price_per_person),
-            "total_price": float(booking.total_price),
+            "price_per_person": float(
+                booking.price_per_person
+            ),
+            "total_price": float(
+                booking.total_price
+            ),
             "status": booking.status,
             "expires_at": (
                 booking.expires_at.isoformat()

@@ -1,16 +1,25 @@
 """
 run.py file
-purpose: i. to start the application(server)
+purpose:
+i. Start the Thafari application server.
 """
 
-#import the function that creates and configures the flask application
-
+# Import the function that creates and configures the Flask application
 from app import create_app
 
-#create an instance of the function
+# Import the Socket.IO instance
+from extensions import socketio
 
+
+# Create the Flask application
 app = create_app()
 
-#start the server
+
+# Start the server
 if __name__ == "__main__":
-    app.run(debug=True)
+
+    # Start the application using Flask-SocketIO
+    socketio.run(
+        app,
+        debug=True
+    )
