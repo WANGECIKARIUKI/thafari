@@ -1,0 +1,106 @@
+/* =========================================================
+   THAFARI FOOTER
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   FOOTER CONTAINER
+   --------------------------------------------------------- */
+
+.footer {
+    padding: 4rem 8% 1.5rem;
+
+    background: #17221b;
+    color: #ffffff;
+}
+
+/* ---------------------------------------------------------
+   FOOTER CONTENT
+   --------------------------------------------------------- */
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    gap: 3rem;
+}
+
+/* ---------------------------------------------------------
+   FOOTER BRAND
+   --------------------------------------------------------- */
+
+.footer-brand h2 {
+    margin-bottom: 0.7rem;
+
+    letter-spacing: 2px;
+}
+
+.footer-brand p {
+    color: #b8c0b9;
+}
+
+/* ---------------------------------------------------------
+   FOOTER LINKS
+   --------------------------------------------------------- */
+
+.footer-links {
+    display: flex;
+    gap: 5rem;
+}
+
+.footer-links div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+.footer-links h3 {
+    margin-bottom: 0.5rem;
+}
+
+.footer-links a {
+    color: #b8c0b9;
+
+    transition: color 0.2s ease;
+}
+
+.footer-links a:hover {
+    color: #ffffff;
+}
+
+/* ---------------------------------------------------------
+   FOOTER BOTTOM
+   --------------------------------------------------------- */
+
+.footer-bottom {
+    margin-top: 3rem;
+
+    padding-top: 1.5rem;
+
+    border-top: 1px solid #344139;
+
+    color: #89938b;
+
+    font-size: 0.85rem;
+}
+
+/* =========================================================
+   RESPONSIVE FOOTER
+   ========================================================= */
+
+@media (max-width: 850px) {
+
+    .footer-content {
+        flex-direction: column;
+    }
+
+    .footer-links {
+        gap: 3rem;
+    }
+}
+
+@media (max-width: 500px) {
+
+    .footer-links {
+        flex-direction: column;
+        gap: 2rem;
+    }
+}

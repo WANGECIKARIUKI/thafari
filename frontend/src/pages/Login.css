@@ -1,0 +1,379 @@
+/* =========================================================
+   THAFARI LOGIN PAGE
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   PAGE
+   --------------------------------------------------------- */
+
+.login-page {
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 4rem 6%;
+
+    background: #f8f6f1;
+}
+
+
+/* ---------------------------------------------------------
+   MAIN CONTAINER
+   --------------------------------------------------------- */
+
+.login-container {
+    width: 100%;
+    max-width: 1100px;
+
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+
+    overflow: hidden;
+
+    border-radius: 30px;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 20px 60px rgba(31, 42, 36, 0.12);
+}
+
+
+/* =========================================================
+   LEFT SIDE
+   ========================================================= */
+
+.login-intro {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    padding: 4rem;
+
+    background: #24382b;
+
+    color: #ffffff;
+}
+
+
+/* ---------------------------------------------------------
+   EYEBROW
+   --------------------------------------------------------- */
+
+.login-eyebrow {
+    margin-bottom: 1.2rem;
+
+    font-size: 0.75rem;
+    font-weight: 700;
+
+    letter-spacing: 3px;
+}
+
+
+/* ---------------------------------------------------------
+   TITLE
+   --------------------------------------------------------- */
+
+.login-intro h1 {
+    margin-bottom: 1.5rem;
+
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+
+    line-height: 1.02;
+}
+
+
+/* ---------------------------------------------------------
+   DESCRIPTION
+   --------------------------------------------------------- */
+
+.login-intro > p:last-child {
+    max-width: 450px;
+
+    color: #cbd2cc;
+
+    font-size: 1rem;
+
+    line-height: 1.8;
+}
+
+
+/* =========================================================
+   RIGHT SIDE
+   ========================================================= */
+
+.login-form-container {
+    padding: 4rem;
+}
+
+
+/* ---------------------------------------------------------
+   FORM HEADER
+   --------------------------------------------------------- */
+
+.login-form-header {
+    margin-bottom: 2rem;
+}
+
+
+.login-form-header .section-eyebrow {
+    margin-bottom: 0.7rem;
+
+    color: #61745f;
+
+    font-size: 0.75rem;
+    font-weight: 700;
+
+    letter-spacing: 2px;
+}
+
+
+.login-form-header h2 {
+    margin-bottom: 0.7rem;
+
+    font-size: 2.3rem;
+
+    color: #1f2a24;
+}
+
+
+.login-form-header p:last-child {
+    color: #718074;
+
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   FORM
+   ========================================================= */
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+
+    gap: 1.2rem;
+}
+
+
+/* ---------------------------------------------------------
+   FORM GROUP
+   --------------------------------------------------------- */
+
+.login-form .form-group {
+    display: flex;
+    flex-direction: column;
+
+    gap: 0.45rem;
+}
+
+
+/* ---------------------------------------------------------
+   LABEL
+   --------------------------------------------------------- */
+
+.login-form .form-group label {
+    color: #344139;
+
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+
+/* ---------------------------------------------------------
+   INPUT
+   --------------------------------------------------------- */
+
+.login-form .form-group input {
+    width: 100%;
+
+    padding: 0.9rem 1rem;
+
+    border: 1px solid #dcd9d1;
+
+    border-radius: 10px;
+
+    background: #ffffff;
+
+    color: #1f2a24;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.login-form .form-group input::placeholder {
+    color: #a3aaa4;
+}
+
+
+.login-form .form-group input:focus {
+    border-color: #61745f;
+
+    box-shadow:
+        0 0 0 3px rgba(97, 116, 95, 0.12);
+}
+
+
+/* =========================================================
+   ERROR MESSAGE
+   ========================================================= */
+
+.login-message {
+    margin-bottom: 1.2rem;
+
+    padding: 0.9rem 1rem;
+
+    border-radius: 10px;
+
+    font-size: 0.9rem;
+}
+
+
+.login-error {
+    background: #f4e8e5;
+
+    color: #8a4f43;
+
+    border: 1px solid #e5c9c2;
+}
+
+
+/* =========================================================
+   SUBMIT BUTTON
+   ========================================================= */
+
+.login-submit {
+    width: 100%;
+
+    margin-top: 0.5rem;
+
+    padding: 1rem;
+
+    border: none;
+
+    border-radius: 999px;
+
+    background: #24382b;
+
+    color: #ffffff;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        opacity 0.2s ease;
+}
+
+
+.login-submit:hover:not(:disabled) {
+    transform: translateY(-2px);
+
+    opacity: 0.9;
+}
+
+
+.login-submit:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.6;
+}
+
+
+/* =========================================================
+   REGISTER LINK
+   ========================================================= */
+
+.login-register {
+    margin-top: 1.5rem;
+
+    text-align: center;
+
+    color: #718074;
+
+    font-size: 0.9rem;
+}
+
+
+.login-register a {
+    color: #24382b;
+
+    font-weight: 700;
+}
+
+
+.login-register a:hover {
+    text-decoration: underline;
+}
+
+
+/* =========================================================
+   RESPONSIVE DESIGN
+   ========================================================= */
+
+@media (max-width: 850px) {
+
+    .login-container {
+        grid-template-columns: 1fr;
+    }
+
+    .login-intro {
+        padding: 3rem;
+    }
+
+    .login-intro h1 {
+        font-size: 3rem;
+    }
+
+    .login-form-container {
+        padding: 3rem;
+    }
+}
+
+
+@media (max-width: 550px) {
+
+    .login-page {
+        padding: 2rem 1rem;
+    }
+
+    .login-container {
+        border-radius: 20px;
+    }
+
+    .login-intro {
+        padding: 2.5rem 2rem;
+    }
+
+    .login-form-container {
+        padding: 2.5rem 2rem;
+    }
+}
+
+/* =========================================================
+   FORGOT PASSWORD LINK
+   ========================================================= */
+
+.forgot-password-link {
+    text-align: right;
+    margin-top: -8px;
+    margin-bottom: 20px;
+}
+
+.forgot-password-link a {
+    color: inherit;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.forgot-password-link a:hover {
+    text-decoration: underline;
+}

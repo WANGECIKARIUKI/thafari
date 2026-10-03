@@ -1,0 +1,1528 @@
+/* =========================================================
+   THAFARI BOOKING PAGE
+   ========================================================= */
+
+/* =========================================================
+   PAGE
+   ========================================================= */
+
+.booking-page {
+    min-height: 100vh;
+    background: #f7f7f2;
+    padding: 50px 24px 90px;
+    color: #20251f;
+}
+
+
+/* =========================================================
+   MAIN CONTAINER
+   ========================================================= */
+
+.booking-container {
+    width: min(1180px, 100%);
+    margin: 0 auto;
+}
+
+
+/* =========================================================
+   PAGE HEADER
+   ========================================================= */
+
+.booking-header {
+    margin-bottom: 42px;
+}
+
+.booking-eyebrow {
+    margin: 0 0 12px;
+    color: #7a5c35;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 2px;
+}
+
+.booking-header h1 {
+    margin: 0 0 12px;
+    font-size: clamp(34px, 5vw, 52px);
+    line-height: 1.05;
+    font-weight: 700;
+    letter-spacing: -1.5px;
+}
+
+.booking-header p:not(.booking-eyebrow) {
+    margin: 0;
+    max-width: 650px;
+    color: #70756e;
+    font-size: 17px;
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   BOOKING LAYOUT
+   ========================================================= */
+
+.booking-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.75fr);
+    gap: 28px;
+    align-items: start;
+}
+
+
+/* =========================================================
+   LEFT SIDE
+   ========================================================= */
+
+.booking-details {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+
+/* =========================================================
+   GENERAL BOOKING CARD
+   ========================================================= */
+
+.booking-card {
+    background: #ffffff;
+    border: 1px solid #e8e8df;
+    border-radius: 22px;
+    padding: 32px;
+    box-shadow: 0 12px 35px rgba(35, 42, 32, 0.05);
+}
+
+.booking-card-label {
+    margin: 0 0 10px;
+    color: #8a6a3e;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+}
+
+.booking-card h2 {
+    margin: 0 0 8px;
+    color: #222820;
+    font-size: 25px;
+    line-height: 1.25;
+}
+
+.booking-card > p:not(.booking-card-label) {
+    color: #73786f;
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   DESTINATION
+   ========================================================= */
+
+.booking-destination {
+    margin: 0 0 28px;
+    color: #777b72;
+    font-size: 15px;
+}
+
+
+/* =========================================================
+   BOOKING INFORMATION GRID
+   ========================================================= */
+
+.booking-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    border-top: 1px solid #eeeeea;
+}
+
+.booking-info-grid > div {
+    padding: 20px 18px 5px 0;
+}
+
+.booking-info-grid > div:nth-child(2n) {
+    padding-left: 18px;
+    border-left: 1px solid #eeeeea;
+}
+
+.booking-info-grid span {
+    display: block;
+    margin-bottom: 7px;
+    color: #8a8d85;
+    font-size: 13px;
+}
+
+.booking-info-grid strong {
+    color: #282d26;
+    font-size: 15px;
+}
+
+
+/* =========================================================
+   TRAVELLER SELECTOR
+   ========================================================= */
+
+.traveller-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 26px;
+    margin-top: 28px;
+    padding: 22px;
+    background: #f7f7f2;
+    border: 1px solid #e8e8df;
+    border-radius: 18px;
+}
+
+.traveller-selector button {
+    width: 48px;
+    height: 48px;
+    border: 1px solid #d9d9d0;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #30372e;
+    font-size: 25px;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.traveller-selector button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    background: #eeeede;
+    border-color: #bdbda9;
+}
+
+.traveller-selector button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.traveller-count {
+    min-width: 100px;
+    text-align: center;
+}
+
+.traveller-count strong {
+    display: block;
+    color: #293027;
+    font-size: 32px;
+    line-height: 1;
+}
+
+.traveller-count span {
+    display: block;
+    margin-top: 7px;
+    color: #777b72;
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   RIGHT SIDE / SUMMARY
+   ========================================================= */
+
+.booking-summary {
+    position: sticky;
+    top: 30px;
+}
+
+.booking-summary-card {
+    padding: 30px;
+    background: #263126;
+    border-radius: 24px;
+    color: #ffffff;
+    box-shadow: 0 20px 45px rgba(31, 39, 29, 0.16);
+}
+
+.booking-summary-card .booking-card-label {
+    color: #c6a66c;
+}
+
+.booking-summary-card h2 {
+    margin: 0 0 26px;
+    font-size: 27px;
+}
+
+
+/* =========================================================
+   SUMMARY TOUR
+   ========================================================= */
+
+.summary-tour {
+    padding-bottom: 22px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.summary-tour strong {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 18px;
+}
+
+.summary-tour span {
+    color: #c5c9c0;
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   SUMMARY LINE
+   ========================================================= */
+
+.summary-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 22px 0;
+    color: #c7cbc3;
+    font-size: 14px;
+}
+
+.summary-line strong {
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   SUMMARY TOTAL
+   ========================================================= */
+
+.summary-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 22px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.summary-total span {
+    color: #d1d4ce;
+    font-size: 15px;
+}
+
+.summary-total strong {
+    color: #ffffff;
+    font-size: 25px;
+}
+
+
+/* =========================================================
+   CONFIRM BOOKING BUTTON
+   ========================================================= */
+
+.booking-confirm-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 12px;
+    padding: 16px 19px;
+    border: none;
+    border-radius: 13px;
+    background: #d8b56d;
+    color: #20271f;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.booking-confirm-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(216, 181, 109, 0.22);
+}
+
+.booking-confirm-button:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+.booking-confirm-button span {
+    font-size: 21px;
+}
+
+
+/* =========================================================
+   BOOKING NOTE
+   ========================================================= */
+
+.booking-note {
+    margin: 17px 0 0;
+    color: #aeb4aa;
+    font-size: 12px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+
+/* =========================================================
+   BACK LINK
+   ========================================================= */
+
+.booking-back-link {
+    display: inline-block;
+    margin-top: 18px;
+    color: #666c63;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.booking-back-link:hover {
+    color: #7a5c35;
+}
+
+
+/* =========================================================
+   ALERT
+   ========================================================= */
+
+.booking-alert {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 24px;
+    padding: 16px 18px;
+    border: 1px solid #e7caca;
+    border-radius: 13px;
+    background: #fff6f6;
+    color: #8a3838;
+}
+
+.booking-alert strong {
+    font-size: 14px;
+}
+
+.booking-alert span {
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   LOADING
+   ========================================================= */
+
+.booking-loading {
+    min-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    color: #72776f;
+}
+
+.booking-loading p {
+    margin: 0;
+    font-size: 15px;
+}
+
+.booking-spinner {
+    width: 42px;
+    height: 42px;
+    border: 4px solid #deded4;
+    border-top-color: #7a5c35;
+    border-radius: 50%;
+    animation: bookingSpin 0.8s linear infinite;
+}
+
+@keyframes bookingSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* =========================================================
+   ERROR PAGE
+   ========================================================= */
+
+.booking-error {
+    width: min(600px, 100%);
+    min-height: 60vh;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.booking-error h1 {
+    margin: 0 0 12px;
+    font-size: 34px;
+}
+
+.booking-error p {
+    margin: 0 0 25px;
+    color: #70756e;
+    line-height: 1.7;
+}
+
+.booking-back-button {
+    display: inline-flex;
+    padding: 13px 20px;
+    border-radius: 10px;
+    background: #263126;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   MODAL OVERLAY
+   ========================================================= */
+
+.booking-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(17, 22, 17, 0.68);
+    backdrop-filter: blur(7px);
+    overflow-y: auto;
+    animation: bookingOverlayIn 0.25s ease;
+}
+
+@keyframes bookingOverlayIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+
+.booking-modal {
+    position: relative;
+    width: min(600px, 100%);
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    padding: 38px;
+    border: 1px solid #e7e7df;
+    border-radius: 26px;
+    background: #ffffff;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.24);
+    animation: bookingModalIn 0.3s ease;
+}
+
+@keyframes bookingModalIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+/* =========================================================
+   MODAL CLOSE ICON
+   ========================================================= */
+
+.booking-modal-close {
+    position: absolute;
+    top: 17px;
+    right: 17px;
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 50%;
+    background: #f1f1eb;
+    color: #565b53;
+    font-size: 25px;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.booking-modal-close:hover {
+    background: #e6e6dc;
+    transform: rotate(4deg);
+}
+
+
+/* =========================================================
+   MODAL SUCCESS ICON
+   ========================================================= */
+
+.booking-modal-success-icon {
+    width: 62px;
+    height: 62px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #e8efe3;
+    color: #3f623d;
+    font-size: 30px;
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   MODAL HEADER
+   ========================================================= */
+
+.booking-modal-eyebrow {
+    margin: 0 0 8px;
+    color: #8a6a3e;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.8px;
+}
+
+.booking-modal h2 {
+    margin: 0 35px 10px 0;
+    color: #222820;
+    font-size: 30px;
+    line-height: 1.2;
+}
+
+.booking-modal-message {
+    margin: 0 0 22px;
+    color: #747970;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   PENDING PAYMENT BANNER
+   ========================================================= */
+
+.booking-modal-pending {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    margin-bottom: 22px;
+    padding: 15px 16px;
+    border: 1px solid #eadfbe;
+    border-radius: 14px;
+    background: #fffaf0;
+}
+
+.booking-modal-pending-icon {
+    flex-shrink: 0;
+    font-size: 20px;
+}
+
+.booking-modal-pending strong {
+    display: block;
+    margin-bottom: 3px;
+    color: #6f542a;
+    font-size: 14px;
+}
+
+.booking-modal-pending span:not(.booking-modal-pending-icon) {
+    display: block;
+    color: #83765e;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   MODAL SUMMARY
+   ========================================================= */
+
+.booking-modal-summary {
+    overflow: hidden;
+    border: 1px solid #e7e7df;
+    border-radius: 17px;
+    background: #fafaf7;
+}
+
+
+/* =========================================================
+   MODAL SUMMARY HEADER
+   ========================================================= */
+
+.booking-modal-summary-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 19px;
+    border-bottom: 1px solid #e7e7df;
+    background: #f4f4ee;
+}
+
+.booking-modal-summary-header div {
+    min-width: 0;
+}
+
+.booking-modal-summary-header div span {
+    display: block;
+    margin-bottom: 5px;
+    color: #8b8d84;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1.4px;
+}
+
+.booking-modal-summary-header div strong {
+    display: block;
+    color: #293027;
+    font-size: 16px;
+}
+
+.booking-modal-id {
+    flex-shrink: 0;
+    padding: 6px 9px;
+    border-radius: 7px;
+    background: #e8e8df;
+    color: #60645c;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   MODAL SUMMARY ROW
+   ========================================================= */
+
+.booking-modal-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 14px 19px;
+    border-bottom: 1px solid #e9e9e3;
+}
+
+.booking-modal-row span {
+    color: #7e8279;
+    font-size: 13px;
+}
+
+.booking-modal-row strong {
+    color: #30362d;
+    font-size: 13px;
+    text-align: right;
+}
+
+
+/* =========================================================
+   MODAL TOTAL
+   ========================================================= */
+
+.booking-modal-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 19px;
+    background: #263126;
+}
+
+.booking-modal-total span {
+    color: #cdd1c9;
+    font-size: 14px;
+}
+
+.booking-modal-total strong {
+    color: #ffffff;
+    font-size: 22px;
+}
+
+
+/* =========================================================
+   PAYMENT OPTIONS
+   ========================================================= */
+
+.payment-options-section {
+    margin-top: 22px;
+}
+
+.payment-options-heading > span,
+.direct-payment-heading > span {
+    display: block;
+    margin-bottom: 7px;
+    color: #8a6a3e;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.6px;
+}
+
+.payment-options-heading h3,
+.direct-payment-heading h3 {
+    margin: 0 0 7px;
+    color: #293027;
+    font-size: 21px;
+}
+
+.payment-options-heading p,
+.direct-payment-heading p {
+    margin: 0;
+    color: #747970;
+    font-size: 13px;
+    line-height: 1.65;
+}
+
+
+/* =========================================================
+   PAYMENT OPTION LIST
+   ========================================================= */
+
+.payment-option-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.payment-option-card {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 14px;
+    padding: 17px;
+    border: 1px solid #dfdfd6;
+    border-radius: 15px;
+    background: #ffffff;
+    text-align: left;
+    cursor: pointer;
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.payment-option-card:hover:not(:disabled) {
+    transform: translateY(-2px);
+    border-color: #bdbda9;
+    background: #fafaf6;
+    box-shadow: 0 8px 22px rgba(35, 42, 32, 0.07);
+}
+
+.payment-option-card:disabled {
+    opacity: 0.55;
+    cursor: wait;
+}
+
+.payment-option-icon {
+    flex-shrink: 0;
+    width: 43px;
+    height: 43px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: #f0f1e9;
+    font-size: 20px;
+}
+
+.payment-option-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.payment-option-content strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #293027;
+    font-size: 14px;
+}
+
+.payment-option-content span {
+    display: block;
+    color: #777c73;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.payment-option-arrow {
+    flex-shrink: 0;
+    color: #7a5c35;
+    font-size: 21px;
+}
+
+
+/* =========================================================
+   PAYMENT SETTINGS LOADING
+   ========================================================= */
+
+.payment-settings-loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+    padding: 12px 14px;
+    border-radius: 11px;
+    background: #f6f6f1;
+    color: #747970;
+    font-size: 12px;
+}
+
+.payment-mini-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #deded4;
+    border-top-color: #7a5c35;
+    border-radius: 50%;
+    animation: bookingSpin 0.8s linear infinite;
+}
+
+
+/* =========================================================
+   PAYMENT SETTINGS ERROR
+   ========================================================= */
+
+.payment-settings-error {
+    margin-top: 15px;
+    padding: 12px 14px;
+    border: 1px solid #ead1d1;
+    border-radius: 11px;
+    background: #fff7f7;
+    color: #8a3838;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   DIRECT PAYMENT
+   ========================================================= */
+
+.direct-payment-section {
+    margin-top: 22px;
+}
+
+.payment-back-button {
+    margin-bottom: 20px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #747970;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.payment-back-button:hover {
+    color: #7a5c35;
+}
+
+
+/* =========================================================
+   DIRECT PAYMENT METHODS
+   ========================================================= */
+
+.direct-methods {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.direct-method-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 55px;
+    border: 1px solid #deded5;
+    border-radius: 13px;
+    background: #ffffff;
+    color: #454b43;
+    cursor: pointer;
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.direct-method-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    border-color: #b9b9a8;
+    background: #f9f9f4;
+}
+
+.direct-method-button.active {
+    border-color: #7a5c35;
+    background: #f8f3e9;
+    color: #654a28;
+    box-shadow: 0 0 0 2px rgba(122, 92, 53, 0.08);
+}
+
+.direct-method-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   DIRECT PAYMENT DETAILS
+   ========================================================= */
+
+.direct-payment-details {
+    margin-top: 16px;
+    overflow: hidden;
+    border: 1px solid #e3e3da;
+    border-radius: 15px;
+    background: #fafaf7;
+}
+
+.direct-payment-details-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 15px 17px;
+    background: #f2f2ec;
+    border-bottom: 1px solid #e3e3da;
+}
+
+.direct-payment-details-header span {
+    color: #888c83;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+}
+
+.direct-payment-details-header strong {
+    color: #30362d;
+    font-size: 12px;
+}
+
+.direct-detail-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 13px 17px;
+    border-bottom: 1px solid #e9e9e2;
+}
+
+.direct-detail-row:last-child {
+    border-bottom: none;
+}
+
+.direct-detail-row span {
+    color: #7c8077;
+    font-size: 12px;
+}
+
+.direct-detail-row strong {
+    color: #30362d;
+    font-size: 13px;
+    text-align: right;
+}
+
+
+/* =========================================================
+   BOOKING REFERENCE
+   ========================================================= */
+
+.direct-booking-reference {
+    margin-top: 15px;
+    padding: 17px;
+    border: 1px solid #eadfbe;
+    border-radius: 15px;
+    background: #fffaf0;
+    text-align: center;
+}
+
+.direct-booking-reference > span {
+    display: block;
+    margin-bottom: 6px;
+    color: #92784c;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1.4px;
+}
+
+.direct-booking-reference strong {
+    display: block;
+    color: #604821;
+    font-size: 20px;
+    letter-spacing: 1px;
+}
+
+.direct-booking-reference p {
+    margin: 7px 0 0;
+    color: #88775e;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   PAYMENT INSTRUCTIONS
+   ========================================================= */
+
+.direct-payment-instructions {
+    margin-top: 12px;
+    padding: 15px 16px;
+    border-radius: 13px;
+    background: #f5f5f0;
+}
+
+.direct-payment-instructions strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #343a31;
+    font-size: 12px;
+}
+
+.direct-payment-instructions p {
+    margin: 0;
+    color: #747970;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   TRANSACTION REFERENCE FIELD
+   ========================================================= */
+
+.direct-reference-field {
+    margin-top: 18px;
+}
+
+.direct-reference-field label {
+    display: block;
+    margin-bottom: 8px;
+    color: #363c34;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.direct-reference-field input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 14px 15px;
+    border: 1px solid #d8d8cf;
+    border-radius: 11px;
+    outline: none;
+    background: #ffffff;
+    color: #292f27;
+    font-family: inherit;
+    font-size: 14px;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.direct-reference-field input:focus {
+    border-color: #8a6a3e;
+    box-shadow: 0 0 0 3px rgba(138, 106, 62, 0.09);
+}
+
+.direct-reference-field input::placeholder {
+    color: #a1a49d;
+}
+
+.direct-reference-field small {
+    display: block;
+    margin-top: 7px;
+    color: #858980;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   DIRECT PAYMENT SUBMIT
+   ========================================================= */
+
+.direct-payment-submit {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 18px;
+    padding: 15px 18px;
+    border: none;
+    border-radius: 12px;
+    background: #263126;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.direct-payment-submit:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(38, 49, 38, 0.2);
+}
+
+.direct-payment-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.direct-payment-submit span {
+    font-size: 20px;
+}
+
+
+/* =========================================================
+   DIRECT PAYMENT SUCCESS
+   ========================================================= */
+
+.direct-payment-success {
+    margin-top: 22px;
+    text-align: center;
+}
+
+.direct-payment-success-icon {
+    width: 62px;
+    height: 62px;
+    margin: 0 auto 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #e8efe3;
+    color: #3f623d;
+    font-size: 29px;
+    font-weight: 800;
+}
+
+.direct-payment-success-label {
+    display: block;
+    margin-bottom: 7px;
+    color: #8a6a3e;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+}
+
+.direct-payment-success h3 {
+    margin: 0 0 9px;
+    color: #293027;
+    font-size: 22px;
+}
+
+.direct-payment-success > p {
+    margin: 0;
+    color: #747970;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   DIRECT SUBMISSION SUMMARY
+   ========================================================= */
+
+.direct-submission-summary {
+    margin-top: 20px;
+    overflow: hidden;
+    border: 1px solid #e4e4db;
+    border-radius: 15px;
+    background: #fafaf7;
+    text-align: left;
+}
+
+.direct-submission-summary > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 13px 16px;
+    border-bottom: 1px solid #e9e9e2;
+}
+
+.direct-submission-summary > div:last-child {
+    border-bottom: none;
+}
+
+.direct-submission-summary span {
+    color: #7c8077;
+    font-size: 12px;
+}
+
+.direct-submission-summary strong {
+    max-width: 60%;
+    color: #30362d;
+    font-size: 12px;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+.direct-submission-summary .pending-status {
+    color: #8a6a3e;
+}
+
+
+/* =========================================================
+   WHAT HAPPENS NEXT
+   ========================================================= */
+
+.booking-modal-next {
+    margin-top: 20px;
+    padding: 16px 17px;
+    border-radius: 13px;
+    background: #f5f5f0;
+}
+
+.booking-modal-next strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #333a30;
+    font-size: 13px;
+}
+
+.booking-modal-next p {
+    margin: 0;
+    color: #747970;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   MODAL ACTIONS
+   ========================================================= */
+
+.booking-modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+
+/* =========================================================
+   PAYMENT BUTTON
+   ========================================================= */
+
+.booking-modal-payment-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 16px 18px;
+    border: none;
+    border-radius: 12px;
+    background: #263126;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.booking-modal-payment-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(38, 49, 38, 0.2);
+}
+
+.booking-modal-payment-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.booking-modal-payment-button span {
+    font-size: 20px;
+}
+
+
+/* =========================================================
+   REVIEW BUTTON
+   ========================================================= */
+
+.booking-modal-close-button {
+    width: 100%;
+    padding: 14px 18px;
+    border: 1px solid #dcdcd3;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #555b52;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.booking-modal-close-button:hover {
+    background: #f6f6f1;
+    border-color: #c9c9bf;
+}
+
+.payment-review-button {
+    margin-top: 12px;
+}
+
+
+/* =========================================================
+   RESPONSIVE TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .booking-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .booking-summary {
+        position: static;
+    }
+
+    .booking-summary-card {
+        max-width: none;
+    }
+}
+
+
+/* =========================================================
+   RESPONSIVE MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+    .booking-page {
+        padding: 32px 16px 60px;
+    }
+
+    .booking-header {
+        margin-bottom: 28px;
+    }
+
+    .booking-header h1 {
+        font-size: 35px;
+    }
+
+    .booking-header p:not(.booking-eyebrow) {
+        font-size: 15px;
+    }
+
+    .booking-card {
+        padding: 23px;
+        border-radius: 18px;
+    }
+
+    .booking-card h2 {
+        font-size: 22px;
+    }
+
+    .booking-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .booking-info-grid > div {
+        padding: 15px 0;
+        border-bottom: 1px solid #eeeeea;
+    }
+
+    .booking-info-grid > div:nth-child(2n) {
+        padding-left: 0;
+        border-left: none;
+    }
+
+    .booking-info-grid > div:last-child {
+        border-bottom: none;
+    }
+
+    .booking-summary-card {
+        padding: 23px;
+        border-radius: 19px;
+    }
+
+    .traveller-selector {
+        gap: 18px;
+    }
+
+    .booking-modal-overlay {
+        align-items: flex-start;
+        padding: 14px;
+    }
+
+    .booking-modal {
+        max-height: calc(100vh - 28px);
+        padding: 28px 20px 22px;
+        border-radius: 21px;
+    }
+
+    .booking-modal h2 {
+        font-size: 25px;
+    }
+
+    .booking-modal-summary-header {
+        align-items: flex-start;
+    }
+
+    .booking-modal-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .booking-modal-row strong {
+        text-align: left;
+    }
+
+    .booking-modal-total strong {
+        font-size: 19px;
+    }
+
+    .direct-methods {
+        grid-template-columns: 1fr;
+    }
+
+    .direct-payment-details-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .direct-detail-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .direct-detail-row strong {
+        text-align: left;
+    }
+
+    .direct-submission-summary > div {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .direct-submission-summary strong {
+        max-width: 100%;
+        text-align: left;
+    }
+}

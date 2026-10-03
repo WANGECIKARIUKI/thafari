@@ -9,25 +9,64 @@ from models.message import Message
 from datetime import datetime
 
 
-
 message_bp = Blueprint(
     "messages",
     __name__,
     url_prefix="/api"
 )
 
+
+# ---------------------------------------------------------
+# FIND EXISTING OPERATOR CONVERSATION
+# ---------------------------------------------------------
+# A customer should have ONE conversation with each tour
+# operator, even if the customer has multiple bookings with
+# that operator.
+#
+# We keep this as a small helper so both the create and GET
+# endpoints use the same rule.
+# ---------------------------------------------------------
+
+def find_operator_conversation(customer_id, operator_id):
+
+    participations = (
+        ConversationParticipant.query
+        .filter_by(user_id=customer_id)
+        .all()
+    )
+
+    for participation in participations:
+
+        conversation = participation.conversation
+
+        if not conversation:
+            continue
+
+        operator_participant = (
+            ConversationParticipant.query
+            .filter_by(
+                conversation_id=conversation.id,
+                user_id=operator_id
+            )
+            .first()
+        )
+
+        if operator_participant:
+            return conversation
+
+    return None
+
+
 # ---------------------------------------------------------
 # CREATE CONVERSATION
 # ---------------------------------------------------------
-# Creates a conversation connected to an existing booking.
+# Creates or returns ONE conversation between the logged-in
+# customer and the tour operator connected to the booking.
 #
-# The customer only provides the booking ID.
-# The backend determines:
-#   1. The customer who owns the booking.
-#   2. The tour operator responsible for the tour.
-#
-# This prevents users from creating conversations with
-# arbitrary users.
+# The booking is used only to discover the tour operator.
+# If the customer already has a conversation with that
+# operator, that existing conversation is returned instead
+# of creating another one.
 # ---------------------------------------------------------
 
 @message_bp.route("/conversations", methods=["POST"])
@@ -79,7 +118,7 @@ def create_conversation():
 
     # -----------------------------------------------------
     # Only the customer who owns the booking can create
-    # the booking conversation.
+    # the conversation.
     # -----------------------------------------------------
 
     if booking.user_id != current_user_id:
@@ -88,25 +127,9 @@ def create_conversation():
         }), 403
 
     # -----------------------------------------------------
-    # Check whether a conversation already exists.
-    #
-    # A booking should have one main conversation.
-    # -----------------------------------------------------
-
-    existing_conversation = Conversation.query.filter_by(
-        booking_id=booking.id
-    ).first()
-
-    if existing_conversation:
-        return jsonify({
-            "message": "A conversation already exists for this booking.",
-            "conversation_id": existing_conversation.id
-        }), 200
-
-    # -----------------------------------------------------
     # Find the tour operator.
     #
-    # Booking → Departure → Tour → Operator
+    # Booking -> Departure -> Tour -> Operator
     # -----------------------------------------------------
 
     departure = booking.departure
@@ -132,8 +155,6 @@ def create_conversation():
 
     # -----------------------------------------------------
     # Prevent the customer from messaging themselves.
-    # This should normally never happen, but it is a useful
-    # defensive check.
     # -----------------------------------------------------
 
     if operator.id == current_user_id:
@@ -142,7 +163,51 @@ def create_conversation():
         }), 400
 
     # -----------------------------------------------------
-    # Create the conversation.
+    # IMPORTANT:
+    # Check by CUSTOMER + OPERATOR, not by BOOKING.
+    #
+    # This prevents:
+    # Booking 1 -> Martha chat
+    # Booking 2 -> another Martha chat
+    #
+    # Instead both bookings use the same Martha chat.
+    # -----------------------------------------------------
+
+    existing_conversation = find_operator_conversation(
+        current_user_id,
+        operator.id
+    )
+
+    if existing_conversation:
+
+        # Make sure an existing conversation remains usable.
+        if not existing_conversation.is_active:
+            existing_conversation.is_active = True
+
+            try:
+                db.session.commit()
+
+            except Exception:
+                db.session.rollback()
+
+                return jsonify({
+                    "message": "Conversation could not be reactivated."
+                }), 500
+
+        return jsonify({
+            "message": "Conversation already exists.",
+            "conversation_id": existing_conversation.id,
+            "booking_id": existing_conversation.booking_id,
+            "operator_id": operator.id
+        }), 200
+
+    # -----------------------------------------------------
+    # No conversation exists yet.
+    # Create ONE conversation for this customer/operator pair.
+    #
+    # We keep the first booking ID for reference, but future
+    # bookings with the same operator will reuse this same
+    # conversation.
     # -----------------------------------------------------
 
     conversation = Conversation(
@@ -155,19 +220,13 @@ def create_conversation():
     # Flush so SQLAlchemy generates the conversation ID.
     db.session.flush()
 
-    # -----------------------------------------------------
     # Add the customer as a participant.
-    # -----------------------------------------------------
-
     customer_participant = ConversationParticipant(
         conversation_id=conversation.id,
         user_id=booking.user_id
     )
 
-    # -----------------------------------------------------
     # Add the tour operator as a participant.
-    # -----------------------------------------------------
-
     operator_participant = ConversationParticipant(
         conversation_id=conversation.id,
         user_id=operator.id
@@ -175,10 +234,6 @@ def create_conversation():
 
     db.session.add(customer_participant)
     db.session.add(operator_participant)
-
-    # -----------------------------------------------------
-    # Save everything.
-    # -----------------------------------------------------
 
     try:
         db.session.commit()
@@ -193,7 +248,8 @@ def create_conversation():
     return jsonify({
         "message": "Conversation created successfully.",
         "conversation_id": conversation.id,
-        "booking_id": booking.id,
+        "booking_id": conversation.booking_id,
+        "operator_id": operator.id,
         "participants": [
             {
                 "user_id": booking.user_id,
@@ -206,24 +262,109 @@ def create_conversation():
         ]
     }), 201
 
+
 # ---------------------------------------------------------
 # GET USER CONVERSATIONS
 # ---------------------------------------------------------
-# Returns all conversations where the logged-in user is a
-# participant.
+# Returns the logged-in customer's conversations.
 #
-# This ensures users only see conversations they belong to.
-#their unread messages too.
+# For customers, we also look at their bookings and make
+# sure a conversation exists for every tour operator they
+# have booked with.
+#
+# This means the customer can open Messages directly and
+# see their tour operator chats without first going through
+# Booking History.
+#
+# The conversation is still ONE conversation per operator.
 # ---------------------------------------------------------
 
 @message_bp.route("/conversations", methods=["GET"])
 @jwt_required()
 def get_conversations():
 
-    # Get the currently authenticated user's ID from the JWT
+    # Get the currently authenticated user's ID from the JWT.
     current_user_id = int(get_jwt_identity())
 
-    # Get all conversations where the current user is a participant
+    # -----------------------------------------------------
+    # Automatically create missing operator conversations
+    # for the customer's existing bookings.
+    # -----------------------------------------------------
+
+    bookings = (
+        Booking.query
+        .filter_by(user_id=current_user_id)
+        .all()
+    )
+
+    for booking in bookings:
+
+        departure = booking.departure
+
+        if not departure:
+            continue
+
+        tour = departure.tour
+
+        if not tour:
+            continue
+
+        operator = tour.operator
+
+        if not operator:
+            continue
+
+        # Never create a conversation with yourself.
+        if operator.id == current_user_id:
+            continue
+
+        # Reuse an existing customer/operator conversation.
+        existing_conversation = find_operator_conversation(
+            current_user_id,
+            operator.id
+        )
+
+        if existing_conversation:
+            continue
+
+        # Create the first conversation for this operator.
+        conversation = Conversation(
+            booking_id=booking.id,
+            is_active=True
+        )
+
+        db.session.add(conversation)
+        db.session.flush()
+
+        customer_participant = ConversationParticipant(
+            conversation_id=conversation.id,
+            user_id=current_user_id
+        )
+
+        operator_participant = ConversationParticipant(
+            conversation_id=conversation.id,
+            user_id=operator.id
+        )
+
+        db.session.add(customer_participant)
+        db.session.add(operator_participant)
+
+    # Save any automatically-created conversations.
+    try:
+        db.session.commit()
+
+    except Exception:
+        db.session.rollback()
+
+        return jsonify({
+            "message": "Conversations could not be loaded."
+        }), 500
+
+    # -----------------------------------------------------
+    # Get all conversations where the current user is a
+    # participant.
+    # -----------------------------------------------------
+
     participations = (
         ConversationParticipant.query
         .filter_by(user_id=current_user_id)
@@ -232,11 +373,19 @@ def get_conversations():
 
     conversations = []
 
+    # Track operators already included in the response.
+    # This protects the frontend from showing duplicate
+    # conversations if duplicate records already exist.
+    seen_operator_ids = set()
+
     for participation in participations:
 
         conversation = participation.conversation
 
-        # Find the other participant in the conversation
+        if not conversation:
+            continue
+
+        # Find the other participant in the conversation.
         other_participant = (
             ConversationParticipant.query
             .filter(
@@ -246,14 +395,28 @@ def get_conversations():
             .first()
         )
 
-        # Get the other user's details
+        # Get the other user's details.
         other_user = (
             other_participant.user
             if other_participant
             else None
         )
 
-        # Get the latest message in the conversation
+        if not other_user:
+            continue
+
+        # -------------------------------------------------
+        # One visible conversation per tour operator.
+        # -------------------------------------------------
+
+        if other_user.role == "tour_operator":
+
+            if other_user.id in seen_operator_ids:
+                continue
+
+            seen_operator_ids.add(other_user.id)
+
+        # Get the latest message in the conversation.
         latest_message = (
             Message.query
             .filter_by(conversation_id=conversation.id)
@@ -261,11 +424,11 @@ def get_conversations():
             .first()
         )
 
-        # Count only messages from other participants
-        # that were sent after the current user's last read time.
+        # Count only messages from other participants that
+        # were sent after the current user's last read time.
         unread_query = Message.query.filter(
             Message.conversation_id == conversation.id,
-            Message.sender_id != current_user_id  #only count messages that the sender is not the current user. i.e messages sent by the other user in the convo
+            Message.sender_id != current_user_id
         )
 
         if participation.last_read_at:
@@ -275,26 +438,23 @@ def get_conversations():
 
         unread_count = unread_query.count()
 
-        # Build the conversation response
+        # Build the conversation response.
         conversation_data = {
             "conversation_id": conversation.id,
             "booking_id": conversation.booking_id,
             "is_active": conversation.is_active,
             "created_at": conversation.created_at.isoformat(),
 
-            # Information about the person the current user is chatting with
-            "other_user": (
-                {
-                    "user_id": other_user.id,
-                    "first_name": other_user.first_name,
-                    "last_name": other_user.last_name,
-                    "role": other_user.role
-                }
-                if other_user
-                else None
-            ),
+            # Information about the person the current user
+            # is chatting with.
+            "other_user": {
+                "user_id": other_user.id,
+                "first_name": other_user.first_name,
+                "last_name": other_user.last_name,
+                "role": other_user.role
+            },
 
-            # Most recent message in the conversation
+            # Most recent message in the conversation.
             "latest_message": (
                 {
                     "message_id": latest_message.id,
@@ -306,13 +466,13 @@ def get_conversations():
                 else None
             ),
 
-            # Number of messages the current user has not read
+            # Number of messages the current user has not read.
             "unread_count": unread_count
         }
 
         conversations.append(conversation_data)
 
-    # Sort conversations by newest conversation first
+    # Sort conversations by newest conversation first.
     conversations.sort(
         key=lambda conversation: conversation["created_at"],
         reverse=True
@@ -321,6 +481,7 @@ def get_conversations():
     return jsonify({
         "conversations": conversations
     }), 200
+
 
 # ---------------------------------------------------------
 # SEND MESSAGE

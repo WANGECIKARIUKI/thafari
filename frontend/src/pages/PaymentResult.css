@@ -1,0 +1,274 @@
+/* =========================================================
+   THAFARI PAYMENT RESULT PAGE
+========================================================= */
+
+.payment-result-page {
+    min-height: calc(100vh - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    background:
+        linear-gradient(
+            135deg,
+            #f8f4ed 0%,
+            #f4eee4 50%,
+            #efe7da 100%
+        );
+}
+
+
+/* =========================================================
+   CARD
+========================================================= */
+
+.payment-result-card {
+    width: 100%;
+    max-width: 620px;
+    padding: 52px 42px;
+    background: #ffffff;
+    border-radius: 28px;
+    text-align: center;
+    box-shadow:
+        0 25px 70px rgba(47, 43, 37, 0.12);
+}
+
+
+/* =========================================================
+   ICON
+========================================================= */
+
+.payment-result-icon {
+    width: 82px;
+    height: 82px;
+    margin: 0 auto 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: 700;
+}
+
+
+.payment-result-icon-success {
+    background: #e6f6ec;
+    color: #21864b;
+}
+
+
+.payment-result-icon-processing {
+    background: #fff4d6;
+    color: #9b6b00;
+}
+
+
+.payment-result-icon-failed {
+    background: #fde8e8;
+    color: #c43c3c;
+}
+
+
+/* =========================================================
+   TEXT
+========================================================= */
+
+.payment-result-eyebrow {
+    margin: 0 0 10px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    color: #8a6a43;
+}
+
+
+.payment-result-card h1 {
+    margin: 0;
+    color: #29251f;
+    font-size: clamp(28px, 4vw, 40px);
+    line-height: 1.15;
+}
+
+
+.payment-result-message {
+    max-width: 500px;
+    margin: 18px auto 0;
+    color: #6d665d;
+    font-size: 16px;
+    line-height: 1.7;
+}
+
+
+.payment-result-small {
+    margin-top: 20px;
+    color: #8b8379;
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   LOADER
+========================================================= */
+
+.payment-result-loader {
+    display: flex;
+    justify-content: center;
+    gap: 7px;
+    margin: 28px 0 10px;
+}
+
+
+.payment-result-loader span {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #8a6a43;
+    animation: payment-loader 1.2s infinite ease-in-out;
+}
+
+
+.payment-result-loader span:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+
+.payment-result-loader span:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+
+@keyframes payment-loader {
+
+    0%,
+    80%,
+    100% {
+        opacity: 0.3;
+        transform: scale(0.8);
+    }
+
+    40% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+
+/* =========================================================
+   PAYMENT SUMMARY
+========================================================= */
+
+.payment-result-summary {
+    margin-top: 30px;
+    padding: 22px;
+    border: 1px solid #eee7dd;
+    border-radius: 18px;
+    text-align: left;
+}
+
+
+.payment-result-summary div {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 13px 0;
+    border-bottom: 1px solid #eee7dd;
+}
+
+
+.payment-result-summary div:last-child {
+    border-bottom: none;
+}
+
+
+.payment-result-summary span {
+    color: #81796f;
+    font-size: 14px;
+}
+
+
+.payment-result-summary strong {
+    max-width: 60%;
+    color: #302b25;
+    font-size: 14px;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
+.payment-result-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 30px;
+}
+
+
+.payment-result-primary-button,
+.payment-result-secondary-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 52px;
+    padding: 0 22px;
+    border-radius: 14px;
+    text-decoration: none;
+    font-weight: 700;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.payment-result-primary-button {
+    background: #2f2a24;
+    color: #ffffff;
+}
+
+
+.payment-result-secondary-button {
+    background: #f4eee6;
+    color: #51483e;
+}
+
+
+.payment-result-primary-button:hover,
+.payment-result-secondary-button:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 10px 25px rgba(47, 43, 37, 0.12);
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+    .payment-result-page {
+        padding: 30px 15px;
+    }
+
+
+    .payment-result-card {
+        padding: 40px 22px;
+        border-radius: 22px;
+    }
+
+
+    .payment-result-summary div {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+
+    .payment-result-summary strong {
+        max-width: 100%;
+        text-align: left;
+    }
+
+}

@@ -114,6 +114,9 @@ class Config:
     WHATSAPP_PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_NUMBER_ID")
     WHATSAPP_API_VERSION = os.getenv("WHATSAPP_API_VERSION")
 
+    #FRONTEND URL
+    FRONTEND_URL = os.getenv("FRONTEND_URL")
+
 
     # -----------------------------------------------------
     # DATABASE CONFIGURATION

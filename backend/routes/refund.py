@@ -5,6 +5,10 @@ from decimal import Decimal, InvalidOperation
 from models.refund import Refund
 from models.payment import Payment
 from models.user import User
+from models.booking import Booking
+from models.departure import Departure
+from models.tour import Tour
+from models.cancellation_request import CancellationRequest
 from datetime import datetime
 from extensions import db
 import uuid
@@ -300,6 +304,595 @@ def create_refund(payment_id):
         "status": refund.status,
         "refund_reference": refund.refund_reference
     }), 201
+
+
+# =========================================================
+# GET CANCELLATION REQUESTS
+# =========================================================
+#
+# GET /api/admin/cancellation-requests?status=pending
+#
+# Admins can see all cancellation requests.
+# Tour operators only see requests belonging to their own
+# tours.
+#
+# Supported statuses:
+#     pending
+#     approved
+#     denied
+# =========================================================
+
+@refund_bp.route(
+    "/admin/cancellation-requests",
+    methods=["GET"]
+)
+@jwt_required()
+@roles_required(
+    "admin",
+    "tour_operator"
+)
+def get_cancellation_requests():
+
+    current_user_id = int(
+        get_jwt_identity()
+    )
+
+    current_user = User.query.filter_by(
+        id=current_user_id
+    ).first()
+
+    if not current_user:
+        return jsonify({
+            "message": "User not found."
+        }), 404
+
+    requested_status = request.args.get(
+        "status",
+        "pending"
+    ).strip().lower()
+
+    allowed_statuses = {
+        "pending",
+        "approved",
+        "denied"
+    }
+
+    if requested_status not in allowed_statuses:
+        return jsonify({
+            "message": (
+                "Invalid status. Use pending, approved, or denied."
+            )
+        }), 400
+
+    query = (
+        CancellationRequest.query
+        .join(Booking)
+        .join(Departure)
+        .join(Tour)
+        .filter(
+            CancellationRequest.status == requested_status
+        )
+    )
+
+    if current_user.role == "tour_operator":
+        query = query.filter(
+            Tour.tour_operator_id == current_user_id
+        )
+
+    cancellation_requests = (
+        query
+        .order_by(
+            CancellationRequest.created_at.desc()
+        )
+        .all()
+    )
+
+    request_list = []
+
+    for cancellation_request in cancellation_requests:
+
+        booking = cancellation_request.booking
+        departure = booking.departure if booking else None
+        tour = departure.tour if departure else None
+        customer = booking.user if booking else None
+
+        request_list.append({
+            "cancellation_request_id": cancellation_request.id,
+            "booking_id": booking.id if booking else None,
+            "status": cancellation_request.status,
+            "reason": cancellation_request.reason,
+            "admin_reason": cancellation_request.admin_reason,
+            "created_at": (
+                cancellation_request.created_at.isoformat()
+                if cancellation_request.created_at
+                else None
+            ),
+            "reviewed_at": (
+                cancellation_request.reviewed_at.isoformat()
+                if cancellation_request.reviewed_at
+                else None
+            ),
+            "reviewed_by": cancellation_request.reviewed_by,
+            "customer": (
+                {
+                    "user_id": customer.id,
+                    "username": customer.username,
+                    "email": customer.email
+                }
+                if customer
+                else None
+            ),
+            "booking": (
+                {
+                    "booking_id": booking.id,
+                    "number_of_people": booking.number_of_people,
+                    "total_price": float(booking.total_price),
+                    "status": booking.status
+                }
+                if booking
+                else None
+            ),
+            "departure": (
+                {
+                    "departure_id": departure.id,
+                    "start_date": departure.start_date.isoformat()
+                }
+                if departure
+                else None
+            ),
+            "tour": (
+                {
+                    "tour_id": tour.id,
+                    "tour_name": tour.tour_name,
+                    "destination": tour.destination
+                }
+                if tour
+                else None
+            )
+        })
+
+    return jsonify({
+        "message": "Cancellation requests retrieved successfully.",
+        "status": requested_status,
+        "count": len(request_list),
+        "cancellation_requests": request_list
+    }), 200
+
+
+# =========================================================
+# APPROVE CANCELLATION REQUEST
+# =========================================================
+
+@refund_bp.route(
+    "/admin/cancellation-requests/<int:request_id>/approve",
+    methods=["PATCH"]
+)
+@jwt_required()
+@roles_required("admin", "tour_operator")
+def approve_cancellation_request(request_id):
+    """
+    Approve a customer's cancellation request.
+
+    IMPORTANT:
+    Approval does NOT immediately cancel the booking.
+
+    The booking remains confirmed until the refund webhook
+    confirms that the successful payment(s) have been refunded.
+
+    A pending Refund record is created for every successful
+    payment that still has a refundable balance.
+    """
+
+    # -----------------------------------------------------
+    # FIND CANCELLATION REQUEST
+    # -----------------------------------------------------
+
+    cancellation_request = CancellationRequest.query.filter_by(
+        id=request_id
+    ).first()
+
+    if not cancellation_request:
+        return jsonify({
+            "message": "Cancellation request not found."
+        }), 404
+
+    # -----------------------------------------------------
+    # REQUEST MUST STILL BE PENDING
+    # -----------------------------------------------------
+
+    if cancellation_request.status != "pending":
+        return jsonify({
+            "message": (
+                "This cancellation request has already been reviewed."
+            ),
+            "status": cancellation_request.status
+        }), 400
+
+    booking = cancellation_request.booking
+
+    if not booking:
+        return jsonify({
+            "message": "Booking associated with this request was not found."
+        }), 404
+
+    # -----------------------------------------------------
+    # TOUR OPERATOR ACCESS CHECK
+    # -----------------------------------------------------
+    #
+    # Admins can review any cancellation request.
+    # Tour operators can only review requests belonging to
+    # their own tours.
+    # -----------------------------------------------------
+
+    current_user_id = int(
+        get_jwt_identity()
+    )
+
+    current_user = User.query.filter_by(
+        id=current_user_id
+    ).first()
+
+    if not current_user:
+        return jsonify({
+            "message": "User not found."
+        }), 404
+
+    if current_user.role == "tour_operator":
+
+        departure = booking.departure
+
+        tour = departure.tour if departure else None
+
+        if not tour or tour.tour_operator_id != current_user_id:
+            return jsonify({
+                "message": "You are not authorized to review this cancellation request."
+            }), 403
+
+    # -----------------------------------------------------
+    # BOOKING MUST STILL BE CONFIRMED
+    # -----------------------------------------------------
+
+    if booking.status != "confirmed":
+        return jsonify({
+            "message": (
+                "Only confirmed bookings can have a cancellation "
+                "request approved."
+            ),
+            "status": booking.status
+        }), 400
+
+    # -----------------------------------------------------
+    # FIND SUCCESSFUL PAYMENTS
+    # -----------------------------------------------------
+
+    successful_payments = Payment.query.filter_by(
+        booking_id=booking.id,
+        status="successful"
+    ).all()
+
+    if not successful_payments:
+        return jsonify({
+            "message": (
+                "No successful payment was found for this booking."
+            )
+        }), 400
+
+    # -----------------------------------------------------
+    # PREPARE REFUNDS
+    # -----------------------------------------------------
+
+    refunds_to_create = []
+
+    for payment in successful_payments:
+
+        successful_refunds = Refund.query.filter(
+            Refund.payment_id == payment.id,
+            Refund.status == "successful"
+        ).all()
+
+        total_refunded = Decimal("0.00")
+
+        for successful_refund in successful_refunds:
+            total_refunded += Decimal(
+                str(successful_refund.amount)
+            )
+
+        refundable_amount = (
+            Decimal(str(payment.amount))
+            - total_refunded
+        )
+
+        if refundable_amount <= 0:
+            continue
+
+        pending_refund = Refund.query.filter(
+            Refund.payment_id == payment.id,
+            Refund.status == "pending"
+        ).first()
+
+        if pending_refund:
+            refunds_to_create.append(pending_refund)
+            continue
+
+        refund = Refund(
+            payment_id=payment.id,
+            amount=refundable_amount,
+            status="pending",
+            refund_reference=str(uuid.uuid4()),
+            refunded_at=None
+        )
+
+        db.session.add(refund)
+        refunds_to_create.append(refund)
+
+    if not refunds_to_create:
+        return jsonify({
+            "message": (
+                "No refundable balance is available for this booking."
+            )
+        }), 400
+
+    # -----------------------------------------------------
+    # APPROVE CANCELLATION REQUEST
+    # -----------------------------------------------------
+
+    cancellation_request.status = "approved"
+    cancellation_request.reviewed_by = current_user_id
+    cancellation_request.reviewed_at = datetime.utcnow()
+
+    # The booking deliberately remains CONFIRMED here.
+    # The existing refund webhook will change it to CANCELLED
+    # after all successful payment amounts have been refunded.
+
+    try:
+
+        db.session.commit()
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        print(
+            f"Cancellation approval error: {e}"
+        )
+
+        return jsonify({
+            "message": (
+                "Cancellation approval could not be completed."
+            )
+        }), 500
+
+    # -----------------------------------------------------
+    # CUSTOMER NOTIFICATION
+    # -----------------------------------------------------
+
+    notification = None
+
+    notification = create_notification(
+        user_id=booking.user_id,
+        title="Cancellation Request Approved",
+        message=(
+            f"Your cancellation request for booking "
+            f"#{booking.id} has been approved. "
+            f"Your refund is now being processed."
+        ),
+        notification_type="refund",
+        link=f"/booking/view/{booking.id}"
+    )
+
+    try:
+
+        emit_notification(notification)
+
+    except Exception as e:
+
+        # The approval and refund records already succeeded.
+        # A Socket.IO failure must not reverse the transaction.
+        print(
+            "Cancellation approval notification could not "
+            f"be delivered: {e}"
+        )
+
+    return jsonify({
+        "message": (
+            "Cancellation request approved successfully. "
+            "Refund processing has been initiated."
+        ),
+        "cancellation_request": {
+            "id": cancellation_request.id,
+            "booking_id": booking.id,
+            "status": cancellation_request.status,
+            "reviewed_by": cancellation_request.reviewed_by,
+            "reviewed_at": (
+                cancellation_request.reviewed_at.isoformat()
+            )
+        },
+        "booking_status": booking.status,
+        "refunds": [
+            {
+                "refund_id": refund.id,
+                "payment_id": refund.payment_id,
+                "amount": float(refund.amount),
+                "status": refund.status,
+                "refund_reference": refund.refund_reference
+            }
+            for refund in refunds_to_create
+        ]
+    }), 200
+
+
+# =========================================================
+# DENY CANCELLATION REQUEST
+# =========================================================
+
+@refund_bp.route(
+    "/admin/cancellation-requests/<int:request_id>/deny",
+    methods=["PATCH"]
+)
+@jwt_required()
+@roles_required("admin", "tour_operator")
+def deny_cancellation_request(request_id):
+    """
+    Deny a customer's cancellation request.
+
+    A denial reason is required and the booking remains
+    confirmed.
+    """
+
+    data = request.get_json(silent=True)
+
+    if not data:
+        return jsonify({
+            "message": "Request body is required."
+        }), 400
+
+    admin_reason = data.get("reason")
+
+    if not isinstance(admin_reason, str) or not admin_reason.strip():
+        return jsonify({
+            "message": "A denial reason is required."
+        }), 400
+
+    cancellation_request = CancellationRequest.query.filter_by(
+        id=request_id
+    ).first()
+
+    if not cancellation_request:
+        return jsonify({
+            "message": "Cancellation request not found."
+        }), 404
+
+    if cancellation_request.status != "pending":
+        return jsonify({
+            "message": (
+                "This cancellation request has already been reviewed."
+            ),
+            "status": cancellation_request.status
+        }), 400
+
+    booking = cancellation_request.booking
+
+    if not booking:
+        return jsonify({
+            "message": "Booking associated with this request was not found."
+        }), 404
+
+    if booking.status != "confirmed":
+        return jsonify({
+            "message": (
+                "Only confirmed bookings can have a cancellation "
+                "request denied."
+            ),
+            "status": booking.status
+        }), 400
+
+    # -----------------------------------------------------
+    # TOUR OPERATOR ACCESS CHECK
+    # -----------------------------------------------------
+    #
+    # Admins can review any cancellation request.
+    # Tour operators can only review requests belonging to
+    # their own tours.
+    # -----------------------------------------------------
+
+    current_user_id = int(
+        get_jwt_identity()
+    )
+
+    current_user = User.query.filter_by(
+        id=current_user_id
+    ).first()
+
+    if not current_user:
+        return jsonify({
+            "message": "User not found."
+        }), 404
+
+    if current_user.role == "tour_operator":
+
+        departure = booking.departure
+
+        tour = departure.tour if departure else None
+
+        if not tour or tour.tour_operator_id != current_user_id:
+            return jsonify({
+                "message": "You are not authorized to review this cancellation request."
+            }), 403
+
+    # -----------------------------------------------------
+    # DENY REQUEST
+    # -----------------------------------------------------
+
+    cancellation_request.status = "denied"
+    cancellation_request.admin_reason = admin_reason.strip()
+    cancellation_request.reviewed_by = current_user_id
+    cancellation_request.reviewed_at = datetime.utcnow()
+
+    # The booking deliberately remains CONFIRMED.
+
+    try:
+
+        db.session.commit()
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        print(
+            f"Cancellation denial error: {e}"
+        )
+
+        return jsonify({
+            "message": (
+                "Cancellation denial could not be completed."
+            )
+        }), 500
+
+    # -----------------------------------------------------
+    # CUSTOMER NOTIFICATION
+    # -----------------------------------------------------
+
+    notification = create_notification(
+        user_id=booking.user_id,
+        title="Cancellation Request Denied",
+        message=(
+            f"Your cancellation request for booking "
+            f"#{booking.id} was denied. "
+            f"Reason: {cancellation_request.admin_reason}"
+        ),
+        notification_type="booking",
+        link=f"/booking/view/{booking.id}"
+    )
+
+    try:
+
+        emit_notification(notification)
+
+    except Exception as e:
+
+        # The cancellation decision already succeeded.
+        print(
+            "Cancellation denial notification could not "
+            f"be delivered: {e}"
+        )
+
+    return jsonify({
+        "message": (
+            "Cancellation request denied successfully."
+        ),
+        "cancellation_request": {
+            "id": cancellation_request.id,
+            "booking_id": booking.id,
+            "status": cancellation_request.status,
+            "reason": cancellation_request.reason,
+            "admin_reason": cancellation_request.admin_reason,
+            "reviewed_by": cancellation_request.reviewed_by,
+            "reviewed_at": (
+                cancellation_request.reviewed_at.isoformat()
+            )
+        },
+        "booking_status": booking.status
+    }), 200
 
 
 # =========================================================

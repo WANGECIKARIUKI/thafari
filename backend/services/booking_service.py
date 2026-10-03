@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta
 from models.booking import Booking
 from models.departure import Departure
 from extensions import db
@@ -10,25 +9,17 @@ from extensions import db
 
 def expired_pending_booking():
     """
-    Find pending bookings whose payment window has expired
-    and change their status to expired.
+    Automatic booking expiry has been disabled.
+
+    This function is kept so existing routes that call it
+    do not break, but it no longer changes pending bookings
+    to expired.
     """
 
-    # Get the current UTC time.
-    now = datetime.utcnow()
-
-    # Find pending bookings whose expiration time has passed.
-    expired_bookings = Booking.query.filter(
-        Booking.status == "pending",
-        Booking.expires_at <= now
-    ).all()
-
-    # Change each expired booking from pending to expired.
-    for booking in expired_bookings:
-        booking.status = "expired"
-
-    # Save all status changes to the database.
-    db.session.commit()
+    # Automatic expiry is intentionally disabled.
+    # Pending bookings remain pending until they are
+    # confirmed, cancelled, or otherwise handled.
+    return
 
 
 # ---------------------------------------------------------
@@ -40,14 +31,12 @@ def calculate_available_seats(departure):
     Calculate how many seats are currently available
     for a departure.
 
-    Confirmed bookings always occupy seats.
+    Confirmed and pending bookings occupy seats.
 
-    Pending bookings only occupy seats while their payment
-    window is still active.
+    Pending bookings are no longer tied to a temporary
+    payment window because automatic booking expiry
+    has been disabled.
     """
-
-    # Get the current UTC time.
-    now = datetime.utcnow()
 
     # Get bookings that currently occupy seats.
     bookings = Booking.query.filter(
@@ -56,12 +45,9 @@ def calculate_available_seats(departure):
             # Confirmed bookings occupy seats.
             Booking.status == "confirmed",
 
-            # Pending bookings occupy seats only if
-            # their payment window has not expired.
-            db.and_(
-                Booking.status == "pending",
-                Booking.expires_at > now
-            )
+            # Pending bookings also occupy seats.
+            # They remain pending until they are handled.
+            Booking.status == "pending"
         )
     )
 
@@ -139,7 +125,8 @@ def create_pending_booking(
     """
     Create a new pending booking.
 
-    The booking receives a temporary payment window.
+    Automatic booking expiry has been disabled, so the
+    booking does not receive a temporary payment window.
     """
 
     # Get the price per person directly from the departure.
@@ -156,8 +143,8 @@ def create_pending_booking(
         total_price=total_price,
         number_of_people=number_of_people,
 
-        # Give the customer 25 minutes to complete payment.
-        expires_at=datetime.utcnow() + timedelta(minutes=25),
+        # No automatic expiry.
+        expires_at=None,
 
         # A newly created booking starts as pending.
         status="pending"

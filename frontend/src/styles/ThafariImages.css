@@ -1,0 +1,647 @@
+/* =========================================================
+   THAFARI UNIVERSAL IMAGE SYSTEM
+   =========================================================
+
+   Shared image UX/UI rules for:
+   - Homepage
+   - Tour cards
+   - Tour listings
+   - Tour details
+   - Tour galleries
+   - Recommended tours
+   - Accommodation imagery
+   - Thumbnails
+   - Hero imagery
+
+   IMPORTANT:
+   These rules control the visual container, not the original
+   dimensions of the uploaded image.
+
+   The image is cropped visually with object-fit: cover rather
+   than stretched or distorted.
+   ========================================================= */
+
+
+/* =========================================================
+   UNIVERSAL IMAGE RESET
+   ========================================================= */
+
+.thafari-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+
+/* =========================================================
+   UNIVERSAL IMAGE CONTAINER
+   ========================================================= */
+
+.thafari-image-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    background: #e8eee5;
+}
+
+
+/* =========================================================
+   STANDARD TOUR COVER
+   =========================================================
+
+   Used for:
+   - Tour cards
+   - Homepage featured tours
+   - Tour listing cards
+   - Recommended tours
+   ========================================================= */
+
+.thafari-image-tour-cover {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: #e8eee5;
+}
+
+.thafari-image-tour-cover img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.45s ease;
+}
+
+
+/* =========================================================
+   TOUR COVER HOVER
+   ========================================================= */
+
+.thafari-image-tour-cover:hover img {
+    transform: scale(1.04);
+}
+
+
+/* =========================================================
+   HOMEPAGE HERO IMAGE
+   =========================================================
+
+   The hero itself can use a background image or an image
+   element. This class gives the image predictable coverage.
+   ========================================================= */
+
+.thafari-image-hero {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.thafari-image-hero img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+
+/* =========================================================
+   HERO IMAGE OVERLAY
+   =========================================================
+
+   Keeps text readable regardless of the uploaded image.
+   ========================================================= */
+
+.thafari-image-hero-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(12, 28, 20, 0.88) 0%,
+            rgba(12, 28, 20, 0.55) 45%,
+            rgba(12, 28, 20, 0.16) 100%
+        );
+}
+
+
+/* =========================================================
+   TOUR DETAIL HERO IMAGE
+   ========================================================= */
+
+.thafari-image-detail-hero {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #dfe7df;
+}
+
+.thafari-image-detail-hero img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+
+/* =========================================================
+   TOUR DETAIL GALLERY
+   ========================================================= */
+
+.thafari-image-gallery {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 16px;
+    background: #e8eee5;
+}
+
+.thafari-image-gallery img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.5s ease;
+}
+
+.thafari-image-gallery:hover img {
+    transform: scale(1.04);
+}
+
+
+/* =========================================================
+   GALLERY MAIN IMAGE
+   ========================================================= */
+
+.thafari-image-gallery-main {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: 18px;
+    background: #e8eee5;
+}
+
+.thafari-image-gallery-main img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+
+/* =========================================================
+   RECOMMENDED TOUR IMAGE
+   ========================================================= */
+
+.thafari-image-recommended {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: #e8eee5;
+}
+
+.thafari-image-recommended img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.45s ease;
+}
+
+.thafari-image-recommended:hover img {
+    transform: scale(1.04);
+}
+
+
+/* =========================================================
+   ACCOMMODATION IMAGE
+   ========================================================= */
+
+.thafari-image-accommodation {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: 16px;
+    background: #e8eee5;
+}
+
+.thafari-image-accommodation img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+
+/* =========================================================
+   THUMBNAIL
+   ========================================================= */
+
+.thafari-image-thumbnail {
+    width: 84px;
+    height: 64px;
+    overflow: hidden;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: #e8eee5;
+}
+
+.thafari-image-thumbnail img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+
+/* =========================================================
+   SMALL CARD IMAGE
+   ========================================================= */
+
+.thafari-image-small {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #e8eee5;
+}
+
+.thafari-image-small img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+
+/* =========================================================
+   IMAGE PLACEHOLDER
+   ========================================================= */
+
+.thafari-image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    height: 100%;
+    min-height: 160px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #edf3ed,
+            #dce7dc
+        );
+
+    color: #5d765f;
+    font-size: 3rem;
+}
+
+
+/* =========================================================
+   IMAGE PLACEHOLDER WITH LABEL
+   ========================================================= */
+
+.thafari-image-placeholder-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    padding: 24px;
+
+    text-align: center;
+}
+
+.thafari-image-placeholder-content span {
+    font-size: 2.5rem;
+}
+
+.thafari-image-placeholder-content small {
+    color: #718071;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+
+/* =========================================================
+   IMAGE OVERLAY
+   ========================================================= */
+
+.thafari-image-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            to top,
+            rgba(15, 30, 21, 0.55),
+            rgba(15, 30, 21, 0.02) 65%
+        );
+}
+
+
+/* =========================================================
+   IMAGE BADGE
+   ========================================================= */
+
+.thafari-image-badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 2;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 7px 11px;
+
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 999px;
+
+    background: rgba(20, 40, 28, 0.72);
+    color: #ffffff;
+
+    font-size: 0.72rem;
+    font-weight: 750;
+    letter-spacing: 0.04em;
+
+    backdrop-filter: blur(8px);
+}
+
+
+/* =========================================================
+   IMAGE GRADIENT BOTTOM
+   ========================================================= */
+
+.thafari-image-bottom-gradient {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    height: 45%;
+
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            to top,
+            rgba(15, 30, 21, 0.55),
+            transparent
+        );
+}
+
+
+/* =========================================================
+   BROKEN / INVALID IMAGE STATE
+   ========================================================= */
+
+.thafari-image-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    height: 100%;
+    min-height: 160px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #eef2ec,
+            #e1e8e0
+        );
+
+    color: #68766b;
+
+    text-align: center;
+}
+
+
+/* =========================================================
+   IMAGE FADE-IN
+   ========================================================= */
+
+.thafari-image-loaded {
+    animation: thafariImageFadeIn 0.35s ease both;
+}
+
+@keyframes thafariImageFadeIn {
+
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+
+/* =========================================================
+   UNIVERSAL IMAGE RATIO HELPERS
+   ========================================================= */
+
+.thafari-ratio-square {
+    aspect-ratio: 1 / 1;
+}
+
+.thafari-ratio-landscape {
+    aspect-ratio: 16 / 10;
+}
+
+.thafari-ratio-wide {
+    aspect-ratio: 16 / 9;
+}
+
+.thafari-ratio-portrait {
+    aspect-ratio: 4 / 5;
+}
+
+
+/* =========================================================
+   IMAGE POSITION HELPERS
+   =========================================================
+
+   Useful when a safari image has the important subject near
+   the top, bottom, left or right.
+   ========================================================= */
+
+.thafari-image-position-center {
+    object-position: center;
+}
+
+.thafari-image-position-top {
+    object-position: center top;
+}
+
+.thafari-image-position-bottom {
+    object-position: center bottom;
+}
+
+.thafari-image-position-left {
+    object-position: left center;
+}
+
+.thafari-image-position-right {
+    object-position: right center;
+}
+
+
+/* =========================================================
+   IMAGE CARD FOUNDATION
+   ========================================================= */
+
+.thafari-image-card {
+    position: relative;
+    overflow: hidden;
+
+    width: 100%;
+
+    border-radius: 18px;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 8px 28px rgba(31, 48, 38, 0.08);
+}
+
+
+/* =========================================================
+   IMAGE CARD IMAGE
+   ========================================================= */
+
+.thafari-image-card > img {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+    object-position: center;
+}
+
+
+/* =========================================================
+   RESPONSIVE IMAGE BEHAVIOUR
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    .thafari-image-tour-cover {
+        aspect-ratio: 16 / 10;
+    }
+
+    .thafari-image-recommended {
+        aspect-ratio: 16 / 10;
+    }
+
+    .thafari-image-gallery {
+        aspect-ratio: 16 / 11;
+    }
+
+    .thafari-image-gallery-main {
+        aspect-ratio: 16 / 10;
+    }
+
+    .thafari-image-accommodation {
+        aspect-ratio: 16 / 10;
+    }
+
+    .thafari-image-thumbnail {
+        width: 72px;
+        height: 56px;
+    }
+
+    .thafari-image-placeholder {
+        min-height: 130px;
+        font-size: 2.4rem;
+    }
+
+}
+
+
+/* =========================================================
+   SMALL MOBILE DEVICES
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+    .thafari-image-tour-cover {
+        aspect-ratio: 4 / 3;
+    }
+
+    .thafari-image-recommended {
+        aspect-ratio: 4 / 3;
+    }
+
+    .thafari-image-gallery {
+        aspect-ratio: 4 / 3;
+        border-radius: 12px;
+    }
+
+    .thafari-image-gallery-main {
+        aspect-ratio: 4 / 3;
+        border-radius: 14px;
+    }
+
+    .thafari-image-accommodation {
+        aspect-ratio: 4 / 3;
+        border-radius: 12px;
+    }
+
+    .thafari-image-thumbnail {
+        width: 64px;
+        height: 52px;
+    }
+
+    .thafari-image-placeholder {
+        min-height: 110px;
+        font-size: 2rem;
+    }
+
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .thafari-image-tour-cover img,
+    .thafari-image-gallery img,
+    .thafari-image-recommended img {
+        transition: none;
+    }
+
+    .thafari-image-loaded {
+        animation: none;
+    }
+
+}

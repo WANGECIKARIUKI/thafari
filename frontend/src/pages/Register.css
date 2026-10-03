@@ -1,0 +1,412 @@
+/* =========================================================
+   THAFARI REGISTER PAGE
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   PAGE
+   --------------------------------------------------------- */
+
+.register-page {
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 4rem 6%;
+
+    background: #f8f6f1;
+}
+
+
+/* ---------------------------------------------------------
+   MAIN CONTAINER
+   --------------------------------------------------------- */
+
+.register-container {
+    width: 100%;
+    max-width: 1100px;
+
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+
+    overflow: hidden;
+
+    border-radius: 30px;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 20px 60px rgba(31, 42, 36, 0.12);
+}
+
+
+/* =========================================================
+   LEFT SIDE
+   ========================================================= */
+
+.register-intro {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    padding: 4rem;
+
+    background: #24382b;
+
+    color: #ffffff;
+}
+
+
+/* ---------------------------------------------------------
+   EYEBROW
+   --------------------------------------------------------- */
+
+.register-eyebrow {
+    margin-bottom: 1.2rem;
+
+    font-size: 0.75rem;
+    font-weight: 700;
+
+    letter-spacing: 3px;
+}
+
+
+/* ---------------------------------------------------------
+   TITLE
+   --------------------------------------------------------- */
+
+.register-intro h1 {
+    margin-bottom: 1.5rem;
+
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+
+    line-height: 1.02;
+}
+
+
+/* ---------------------------------------------------------
+   DESCRIPTION
+   --------------------------------------------------------- */
+
+.register-intro > p:last-child {
+    max-width: 450px;
+
+    color: #cbd2cc;
+
+    font-size: 1rem;
+
+    line-height: 1.8;
+}
+
+
+/* =========================================================
+   RIGHT SIDE
+   ========================================================= */
+
+.register-form-container {
+    padding: 4rem;
+}
+
+
+/* ---------------------------------------------------------
+   FORM HEADER
+   --------------------------------------------------------- */
+
+.register-form-header {
+    margin-bottom: 2rem;
+}
+
+
+.register-form-header .section-eyebrow {
+    margin-bottom: 0.7rem;
+
+    color: #61745f;
+
+    font-size: 0.75rem;
+    font-weight: 700;
+
+    letter-spacing: 2px;
+}
+
+
+.register-form-header h2 {
+    margin-bottom: 0.7rem;
+
+    font-size: 2.3rem;
+
+    color: #1f2a24;
+}
+
+
+.register-form-header p:last-child {
+    color: #718074;
+
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   FORM
+   ========================================================= */
+
+.register-form {
+    display: flex;
+    flex-direction: column;
+
+    gap: 1.2rem;
+}
+
+
+/* ---------------------------------------------------------
+   TWO-COLUMN ROW
+   --------------------------------------------------------- */
+
+.form-row {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 1rem;
+}
+
+
+/* ---------------------------------------------------------
+   FORM GROUP
+   --------------------------------------------------------- */
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+
+    gap: 0.45rem;
+}
+
+
+/* ---------------------------------------------------------
+   LABEL
+   --------------------------------------------------------- */
+
+.form-group label {
+    color: #344139;
+
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+
+.form-group label span {
+    color: #89938b;
+
+    font-weight: 400;
+}
+
+
+/* ---------------------------------------------------------
+   INPUT
+   --------------------------------------------------------- */
+
+.form-group input {
+    width: 100%;
+
+    padding: 0.9rem 1rem;
+
+    border: 1px solid #dcd9d1;
+
+    border-radius: 10px;
+
+    background: #ffffff;
+
+    color: #1f2a24;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.form-group input::placeholder {
+    color: #a3aaa4;
+}
+
+
+.form-group input:focus {
+    border-color: #61745f;
+
+    box-shadow:
+        0 0 0 3px rgba(97, 116, 95, 0.12);
+}
+
+
+/* ---------------------------------------------------------
+   PASSWORD HELP TEXT
+   --------------------------------------------------------- */
+
+.form-group small {
+    color: #89938b;
+
+    font-size: 0.75rem;
+
+    line-height: 1.4;
+}
+
+
+/* =========================================================
+   MESSAGES
+   ========================================================= */
+
+.register-message {
+    margin-bottom: 1.2rem;
+
+    padding: 0.9rem 1rem;
+
+    border-radius: 10px;
+
+    font-size: 0.9rem;
+}
+
+
+/* ---------------------------------------------------------
+   ERROR
+   --------------------------------------------------------- */
+
+.register-error {
+    background: #f4e8e5;
+
+    color: #8a4f43;
+
+    border: 1px solid #e5c9c2;
+}
+
+
+/* ---------------------------------------------------------
+   SUCCESS
+   --------------------------------------------------------- */
+
+.register-success {
+    background: #e8f0e9;
+
+    color: #3f6246;
+
+    border: 1px solid #cbdccc;
+}
+
+
+/* =========================================================
+   SUBMIT BUTTON
+   ========================================================= */
+
+.register-submit {
+    width: 100%;
+
+    margin-top: 0.5rem;
+
+    padding: 1rem;
+
+    border: none;
+
+    border-radius: 999px;
+
+    background: #24382b;
+
+    color: #ffffff;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        opacity 0.2s ease;
+}
+
+
+.register-submit:hover:not(:disabled) {
+    transform: translateY(-2px);
+
+    opacity: 0.9;
+}
+
+
+.register-submit:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.6;
+}
+
+
+/* =========================================================
+   LOGIN LINK
+   ========================================================= */
+
+.register-login {
+    margin-top: 1.5rem;
+
+    text-align: center;
+
+    color: #718074;
+
+    font-size: 0.9rem;
+}
+
+
+.register-login a {
+    color: #24382b;
+
+    font-weight: 700;
+}
+
+
+.register-login a:hover {
+    text-decoration: underline;
+}
+
+
+/* =========================================================
+   RESPONSIVE DESIGN
+   ========================================================= */
+
+@media (max-width: 850px) {
+
+    .register-container {
+        grid-template-columns: 1fr;
+    }
+
+    .register-intro {
+        padding: 3rem;
+    }
+
+    .register-intro h1 {
+        font-size: 3rem;
+    }
+
+    .register-form-container {
+        padding: 3rem;
+    }
+}
+
+
+@media (max-width: 550px) {
+
+    .register-page {
+        padding: 2rem 1rem;
+    }
+
+    .register-container {
+        border-radius: 20px;
+    }
+
+    .register-intro {
+        padding: 2.5rem 2rem;
+    }
+
+    .register-form-container {
+        padding: 2.5rem 2rem;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,945 @@
+/* =========================================================
+   THAFARI DIRECT PAYMENT REVIEW
+========================================================= */
+
+.direct-payments-page {
+    min-height: calc(100vh - 76px);
+
+    padding: 55px 6% 80px;
+
+    background-color: #f8f6f1;
+
+    color: #24382b;
+}
+
+
+/* =========================================================
+   PAGE HEADER
+========================================================= */
+
+.direct-payments-header {
+    max-width: 1300px;
+
+    margin: 0 auto 30px;
+
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+
+    gap: 30px;
+}
+
+
+.direct-payments-eyebrow {
+    margin: 0 0 10px;
+
+    color: #61745f;
+
+    font-size: 0.75rem;
+    font-weight: 800;
+
+    letter-spacing: 0.12em;
+}
+
+
+.direct-payments-header h1 {
+    margin: 0 0 10px;
+
+    color: #24382b;
+
+    font-size: clamp(2rem, 4vw, 3rem);
+}
+
+
+.direct-payments-header p:last-child {
+    max-width: 650px;
+
+    margin: 0;
+
+    color: #657067;
+
+    line-height: 1.7;
+}
+
+
+.direct-payments-role {
+    padding: 10px 15px;
+
+    background-color: #ffffff;
+
+    border: 1px solid #ddd8cc;
+    border-radius: 999px;
+
+    color: #61745f;
+
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   MESSAGES
+========================================================= */
+
+.direct-payments-message {
+    max-width: 1300px;
+
+    margin: 0 auto 20px;
+
+    padding: 14px 18px;
+
+    border-radius: 6px;
+
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+
+.direct-payments-message.error {
+    background-color: #fff1f0;
+
+    border: 1px solid #e7b8b3;
+
+    color: #8b3028;
+}
+
+
+.direct-payments-message.success {
+    background-color: #eff8f0;
+
+    border: 1px solid #b9d8bc;
+
+    color: #2e6534;
+}
+
+
+/* =========================================================
+   SUMMARY
+========================================================= */
+
+.direct-payments-summary {
+    max-width: 1300px;
+
+    margin: 0 auto 20px;
+
+    padding: 20px 24px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    background-color: #ffffff;
+
+    border: 1px solid #e5e1d8;
+    border-radius: 8px;
+}
+
+
+.direct-payments-summary div {
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+}
+
+
+.direct-payments-summary span {
+    color: #657067;
+
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+
+.direct-payments-summary strong {
+    min-width: 35px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 5px 9px;
+
+    background-color: #f8f6f1;
+
+    border-radius: 999px;
+
+    color: #24382b;
+
+    font-size: 0.85rem;
+}
+
+
+.direct-payments-refresh {
+    min-height: 40px;
+
+    padding: 0 15px;
+
+    background-color: #f8f6f1;
+    color: #24382b;
+
+    border: 1px solid #ddd8cc;
+    border-radius: 4px;
+
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+
+.direct-payments-refresh:hover {
+    background-color: #eeece5;
+}
+
+
+.direct-payments-refresh:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.6;
+}
+
+
+/* =========================================================
+   MAIN CARD
+========================================================= */
+
+.direct-payments-card {
+    max-width: 1300px;
+
+    margin: 0 auto;
+
+    overflow: hidden;
+
+    background-color: #ffffff;
+
+    border: 1px solid #e5e1d8;
+    border-radius: 8px;
+}
+
+
+.direct-payments-card-header {
+    padding: 26px 28px;
+
+    border-bottom: 1px solid #ece9e2;
+}
+
+
+.direct-payments-card-header p {
+    margin: 0 0 7px;
+
+    color: #61745f;
+
+    font-size: 0.72rem;
+    font-weight: 800;
+
+    letter-spacing: 0.1em;
+}
+
+
+.direct-payments-card-header h2 {
+    margin: 0;
+
+    color: #24382b;
+
+    font-size: 1.4rem;
+
+    text-transform: uppercase;
+}
+
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.direct-payments-table-wrapper {
+    width: 100%;
+
+    overflow-x: auto;
+}
+
+
+.direct-payments-table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    min-width: 900px;
+}
+
+
+.direct-payments-table th {
+    padding: 15px 20px;
+
+    background-color: #f8f6f1;
+
+    color: #657067;
+
+    font-size: 0.72rem;
+    font-weight: 800;
+
+    text-align: left;
+
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+
+.direct-payments-table td {
+    padding: 18px 20px;
+
+    border-top: 1px solid #ece9e2;
+
+    vertical-align: middle;
+
+    color: #3d493f;
+
+    font-size: 0.85rem;
+}
+
+
+.direct-payments-table tbody tr:hover {
+    background-color: #fcfbf8;
+}
+
+
+.direct-payments-table td strong {
+    display: block;
+
+    margin-bottom: 4px;
+
+    color: #24382b;
+
+    font-size: 0.85rem;
+}
+
+
+.direct-payments-table td small {
+    display: block;
+
+    color: #7a827c;
+
+    font-size: 0.72rem;
+}
+
+
+.payment-id {
+    margin-bottom: 7px;
+
+    color: #24382b;
+
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+
+.payment-method {
+    display: inline-flex;
+
+    padding: 4px 8px;
+
+    border-radius: 999px;
+
+    font-size: 0.68rem;
+    font-weight: 800;
+}
+
+
+.payment-method.mpesa {
+    background-color: #edf6ef;
+    color: #2e6534;
+}
+
+
+.payment-method.airtel_money {
+    background-color: #fff1f0;
+    color: #8b3028;
+}
+
+
+.direct-payments-view-button {
+    min-height: 38px;
+
+    padding: 0 14px;
+
+    background-color: #24382b;
+    color: #ffffff;
+
+    border: 1px solid #24382b;
+    border-radius: 4px;
+
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+
+.direct-payments-view-button:hover {
+    background-color: #17221b;
+
+    border-color: #17221b;
+}
+
+
+.direct-payments-view-button:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.6;
+}
+
+
+/* =========================================================
+   EMPTY / LOADING
+========================================================= */
+
+.direct-payments-empty,
+.direct-payments-loading {
+    max-width: 1300px;
+
+    margin: 0 auto;
+
+    padding: 70px 30px;
+
+    text-align: center;
+
+    color: #657067;
+}
+
+
+.direct-payments-empty-icon {
+    width: 62px;
+    height: 62px;
+
+    margin: 0 auto 18px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: #edf6ef;
+
+    border-radius: 50%;
+
+    color: #2e6534;
+
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+
+.direct-payments-empty h3 {
+    margin: 0 0 8px;
+
+    color: #24382b;
+
+    font-size: 1.25rem;
+}
+
+
+.direct-payments-empty p {
+    margin: 0;
+
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   MODAL OVERLAY
+========================================================= */
+
+.direct-payments-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 30px;
+
+    background-color: rgba(20, 28, 22, 0.58);
+}
+
+
+.direct-payments-modal {
+    width: min(850px, 100%);
+
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    background-color: #ffffff;
+
+    border-radius: 10px;
+
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+
+/* =========================================================
+   MODAL HEADER
+========================================================= */
+
+.direct-payments-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 25px 28px;
+
+    border-bottom: 1px solid #ece9e2;
+}
+
+
+.direct-payments-modal-header p {
+    margin: 0 0 7px;
+
+    color: #61745f;
+
+    font-size: 0.7rem;
+    font-weight: 800;
+
+    letter-spacing: 0.1em;
+}
+
+
+.direct-payments-modal-header h2 {
+    margin: 0;
+
+    color: #24382b;
+
+    font-size: 1.5rem;
+}
+
+
+.direct-payments-close {
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: #f8f6f1;
+    color: #24382b;
+
+    border: 1px solid #ddd8cc;
+    border-radius: 50%;
+
+    font-size: 1.4rem;
+
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+
+.direct-payments-close:hover {
+    background-color: #eeece5;
+}
+
+
+.direct-payments-close:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.6;
+}
+
+
+/* =========================================================
+   DETAIL GRID
+========================================================= */
+
+.direct-payments-detail-grid,
+.direct-payments-info-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 16px;
+}
+
+
+.direct-payments-detail-grid {
+    padding: 24px 28px;
+}
+
+
+.detail-block,
+.direct-payments-info-grid > div {
+    padding: 15px;
+
+    background-color: #f8f6f1;
+
+    border-radius: 6px;
+}
+
+
+.detail-block span,
+.direct-payments-info-grid span,
+.direct-payments-reference span {
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: #7a827c;
+
+    font-size: 0.7rem;
+    font-weight: 700;
+
+    text-transform: uppercase;
+}
+
+
+.detail-block strong,
+.direct-payments-info-grid strong {
+    color: #24382b;
+
+    font-size: 0.88rem;
+}
+
+
+.pending-text {
+    color: #9a6a13 !important;
+
+    text-transform: capitalize;
+}
+
+
+/* =========================================================
+   TRANSACTION REFERENCE
+========================================================= */
+
+.direct-payments-reference {
+    margin: 0 28px 24px;
+
+    padding: 16px;
+
+    background-color: #fbfaf7;
+
+    border: 1px dashed #cfc9bc;
+    border-radius: 6px;
+}
+
+
+.direct-payments-reference strong {
+    color: #24382b;
+
+    font-size: 0.9rem;
+
+    word-break: break-all;
+}
+
+
+/* =========================================================
+   DETAIL SECTIONS
+========================================================= */
+
+.direct-payments-section {
+    padding: 24px 28px;
+
+    border-top: 1px solid #ece9e2;
+}
+
+
+.direct-payments-section h3 {
+    margin: 0 0 15px;
+
+    color: #24382b;
+
+    font-size: 1rem;
+}
+
+
+/* =========================================================
+   MODAL ACTIONS
+========================================================= */
+
+.direct-payments-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    padding: 20px 28px;
+
+    border-top: 1px solid #ece9e2;
+}
+
+
+.direct-payments-reject-button,
+.direct-payments-verify-button {
+    min-height: 44px;
+
+    padding: 0 18px;
+
+    border-radius: 4px;
+
+    font-family: inherit;
+
+    font-size: 0.82rem;
+    font-weight: 800;
+
+    cursor: pointer;
+}
+
+
+.direct-payments-reject-button {
+    background-color: #ffffff;
+    color: #8b3028;
+
+    border: 1px solid #d7a39e;
+}
+
+
+.direct-payments-reject-button:hover {
+    background-color: #fff1f0;
+}
+
+
+.direct-payments-verify-button {
+    background-color: #24382b;
+    color: #ffffff;
+
+    border: 1px solid #24382b;
+}
+
+
+.direct-payments-verify-button:hover {
+    background-color: #17221b;
+}
+
+
+.direct-payments-reject-button:disabled,
+.direct-payments-verify-button:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.6;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 800px) {
+
+    .direct-payments-page {
+        padding: 40px 5% 60px;
+    }
+
+
+    .direct-payments-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+
+    .direct-payments-summary {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+
+    .direct-payments-refresh {
+        width: 100%;
+    }
+
+
+    .direct-payments-overlay {
+        padding: 15px;
+    }
+
+
+    .direct-payments-modal {
+        max-height: 94vh;
+    }
+
+
+    .direct-payments-detail-grid,
+    .direct-payments-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .direct-payments-modal-actions {
+        flex-direction: column-reverse;
+    }
+
+
+    .direct-payments-reject-button,
+    .direct-payments-verify-button {
+        width: 100%;
+    }
+}
+
+/* =========================================================
+   PAYMENT FILTERS
+========================================================= */
+
+.direct-payments-filters {
+    max-width: 1300px;
+
+    margin: 0 auto 24px;
+
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    gap: 14px;
+}
+
+
+.direct-payments-filter-button {
+    min-height: 82px;
+
+    padding: 14px 18px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+
+    gap: 6px;
+
+    background-color: #ffffff;
+    color: #657067;
+
+    border: 1px solid #e2ded4;
+    border-radius: 12px;
+
+    box-shadow: 0 2px 8px rgba(36, 56, 43, 0.04);
+
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+.direct-payments-filter-button:hover {
+    border-color: #bfc8bd;
+
+    box-shadow: 0 6px 18px rgba(36, 56, 43, 0.08);
+
+    transform: translateY(-2px);
+}
+
+
+.direct-payments-filter-button.active {
+    background-color: #24382b;
+    color: #ffffff;
+
+    border-color: #24382b;
+
+    box-shadow: 0 8px 20px rgba(36, 56, 43, 0.16);
+}
+
+
+.direct-payments-filter-button strong {
+    min-width: 0;
+    height: auto;
+
+    display: block;
+
+    padding: 0;
+
+    background: transparent;
+    color: #24382b;
+
+    border-radius: 0;
+
+    font-size: 1.8rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.03em;
+}
+
+
+.direct-payments-filter-button.active strong {
+    background: transparent;
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   PAYMENT STATUS BADGES
+========================================================= */
+
+.payment-status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 82px;
+
+    padding: 6px 10px;
+
+    border-radius: 999px;
+
+    font-size: 0.68rem;
+    font-weight: 800;
+
+    text-transform: capitalize;
+}
+
+
+.payment-status-badge.pending {
+    background-color: #fff6df;
+    color: #946613;
+}
+
+
+.payment-status-badge.successful {
+    background-color: #edf6ef;
+    color: #2e6534;
+}
+
+
+.payment-status-badge.rejected {
+    background-color: #fff1f0;
+    color: #8b3028;
+}
+
+
+@media (max-width: 1000px) {
+
+    .direct-payments-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+
+@media (max-width: 520px) {
+
+    .direct-payments-filters {
+        grid-template-columns: 1fr;
+    }
+
+
+    .direct-payments-filter-button {
+        min-height: 82px;
+    }
+}

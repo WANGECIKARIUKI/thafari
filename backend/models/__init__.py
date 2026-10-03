@@ -14,3 +14,5 @@ from models.password_reset_token import PasswordResetToken
 from models.tour_itinerary import TourItinerary
 from models.tour_accommodation import TourAccommodation
 from models.tour_faq import TourFAQ
+from models.payment_setting import PaymentSetting
+from models.cancellation_request import CancellationRequest

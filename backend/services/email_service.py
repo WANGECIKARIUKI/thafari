@@ -1,48 +1,43 @@
 from flask import current_app
 from flask_mail import Message
+
 from extensions import mail
 
 
-# ---------------------------------------------------------
+# ============================================================
 # SEND EMAIL
-# ---------------------------------------------------------
+# ============================================================
 
 def send_email(to, subject, body):
     """
-    Send a plain-text email.
+    Send a plain-text email using Flask-Mail.
 
-    Keeping email sending in one service means our routes
-    don't need to know how Flask-Mail works.
-
-    Later, we can reuse this function for:
-    - booking emails
-    - payment emails
-    - refund emails
-    - account emails
-    - notifications
+    Keeping email sending in one reusable function means
+    the rest of the application does not need to know how
+    Flask-Mail works.
     """
 
     # Create the email message.
     message = Message(
         subject=subject,
 
-        # The sender comes from our Flask configuration.
+        # Get the sender from the Flask configuration.
         sender=current_app.config["MAIL_DEFAULT_SENDER"],
 
-        # 'to' can be one email address or a list of addresses.
+        # Flask-Mail expects recipients as a list.
         recipients=[to] if isinstance(to, str) else to,
 
-        # Plain-text email body.
+        # Email content.
         body=body
     )
 
-    # Send the email through Flask-Mail.
+    # Send the email.
     mail.send(message)
 
 
-# ---------------------------------------------------------
+# ============================================================
 # BOOKING CREATED EMAIL
-# ---------------------------------------------------------
+# ============================================================
 
 def send_booking_created_email(user, booking):
     """
@@ -76,13 +71,14 @@ The Thafari Team
     )
 
 
-# ---------------------------------------------------------
+# ============================================================
 # PAYMENT SUCCESS EMAIL
-# ---------------------------------------------------------
+# ============================================================
 
 def send_payment_success_email(user, payment, booking):
     """
-    Notify the customer that a payment was successfully received.
+    Notify a customer that their payment was successfully
+    received and verified.
     """
 
     subject = "Thafari Payment Successful"
@@ -90,7 +86,7 @@ def send_payment_success_email(user, payment, booking):
     body = f"""
 Hello {user.first_name},
 
-We have successfully received your payment.
+We have successfully received and verified your payment.
 
 Payment ID: {payment.id}
 Booking ID: {booking.id}
@@ -110,13 +106,55 @@ The Thafari Team
     )
 
 
-# ---------------------------------------------------------
+# ============================================================
+# PAYMENT REJECTED EMAIL
+# ============================================================
+
+def send_payment_rejected_email(user, payment, booking):
+    """
+    Notify a customer that their direct payment was rejected.
+
+    This email is sent when an administrator or tour operator
+    reviews a pending direct payment and rejects it.
+    """
+
+    subject = "Thafari Payment Rejected"
+
+    body = f"""
+Hello {user.first_name},
+
+Unfortunately, your payment could not be verified and has been rejected.
+
+Payment ID: {payment.id}
+Booking ID: {booking.id}
+Amount submitted: KES {payment.amount}
+Payment method: {payment.payment_method}
+Transaction reference: {payment.transaction_reference}
+
+Your booking is still pending payment.
+
+If you believe you made this payment successfully, please contact
+Thafari support for assistance.
+
+Thank you,
+
+The Thafari Team
+"""
+
+    send_email(
+        to=user.email,
+        subject=subject,
+        body=body
+    )
+
+
+# ============================================================
 # BOOKING CONFIRMED EMAIL
-# ---------------------------------------------------------
+# ============================================================
 
 def send_booking_confirmed_email(user, booking):
     """
-    Notify the customer that their booking has been fully paid
+    Notify a customer that their booking has been fully paid
     and confirmed.
     """
 
@@ -145,13 +183,13 @@ The Thafari Team
     )
 
 
-# ---------------------------------------------------------
+# ============================================================
 # REFUND SUCCESS EMAIL
-# ---------------------------------------------------------
+# ============================================================
 
 def send_refund_success_email(user, refund, payment):
     """
-    Notify the customer that their refund was successfully processed.
+    Notify a customer that their refund was successfully processed.
     """
 
     subject = "Thafari Refund Successful"

@@ -1,0 +1,709 @@
+/* =========================================================
+   THAFARI CONVERSATIONS PAGE
+========================================================= */
+
+.conversations-page {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 50px 32px 80px;
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   WELCOME SECTION
+========================================================= */
+
+.conversations-welcome {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+
+    width: 100%;
+
+    padding: 38px 42px;
+    margin-bottom: 42px;
+
+    border-radius: 24px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #eef6f0 0%,
+            #f7f3e8 100%
+        );
+
+    border: 1px solid #dce9df;
+
+    box-sizing: border-box;
+}
+
+
+.conversations-welcome-content {
+    max-width: 760px;
+}
+
+
+.conversations-welcome-eyebrow {
+    display: inline-block;
+
+    margin-bottom: 10px;
+
+    font-size: 12px;
+    font-weight: 800;
+
+    letter-spacing: 1.5px;
+
+    color: #4f765d;
+}
+
+
+.conversations-welcome h1 {
+    margin: 0 0 12px;
+
+    font-size: 42px;
+    line-height: 1.1;
+
+    font-weight: 800;
+
+    color: #17241c;
+}
+
+
+.conversations-welcome p {
+    margin: 0;
+
+    max-width: 700px;
+
+    font-size: 17px;
+    line-height: 1.7;
+
+    color: #557060;
+}
+
+
+.conversations-welcome-icon {
+    flex-shrink: 0;
+
+    width: 82px;
+    height: 82px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #214b35;
+
+    font-size: 38px;
+
+    box-shadow:
+        0 12px 28px rgba(33, 75, 53, 0.18);
+}
+
+
+/* =========================================================
+   PAGE HEADER
+========================================================= */
+
+.conversations-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+
+    margin-bottom: 22px;
+}
+
+
+.conversations-header h2 {
+    margin: 0 0 6px;
+
+    font-size: 28px;
+    line-height: 1.2;
+
+    font-weight: 800;
+
+    color: #17241c;
+}
+
+
+.conversations-header p {
+    margin: 0;
+
+    font-size: 15px;
+    line-height: 1.6;
+
+    color: #66756c;
+}
+
+
+/* =========================================================
+   CONVERSATION LIST
+========================================================= */
+
+.conversation-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+
+    width: 100%;
+}
+
+
+/* =========================================================
+   CONVERSATION CARD
+========================================================= */
+
+.conversation-card {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+
+    gap: 18px;
+
+    padding: 20px 22px;
+
+    border: 1px solid #e2e8e3;
+    border-radius: 18px;
+
+    background: #ffffff;
+
+    text-align: left;
+
+    cursor: pointer;
+
+    box-sizing: border-box;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+
+.conversation-card:hover {
+    transform: translateY(-2px);
+
+    border-color: #bfd4c5;
+
+    background: #fbfdfb;
+
+    box-shadow:
+        0 10px 28px rgba(24, 55, 38, 0.08);
+}
+
+
+.conversation-card:focus-visible {
+    outline: 3px solid rgba(33, 75, 53, 0.25);
+    outline-offset: 3px;
+}
+
+
+/* =========================================================
+   UNREAD CONVERSATION
+========================================================= */
+
+.conversation-card.has-unread {
+    border-color: #b9d1bf;
+
+    background: #f7fbf8;
+}
+
+
+/* =========================================================
+   AVATAR
+========================================================= */
+
+.conversation-avatar {
+    flex-shrink: 0;
+
+    width: 54px;
+    height: 54px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #e8f1ea;
+
+    color: #214b35;
+
+    font-size: 20px;
+    font-weight: 800;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   CONVERSATION CONTENT
+========================================================= */
+
+.conversation-content {
+    flex: 1;
+    min-width: 0;
+}
+
+
+.conversation-top-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    margin-bottom: 7px;
+}
+
+
+.conversation-top-row h3 {
+    margin: 0 0 3px;
+
+    font-size: 17px;
+    line-height: 1.3;
+
+    font-weight: 800;
+
+    color: #17241c;
+}
+
+
+.conversation-top-row span {
+    font-size: 13px;
+
+    color: #718078;
+}
+
+
+.conversation-top-row time {
+    flex-shrink: 0;
+
+    font-size: 12px;
+
+    color: #8a968e;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   MESSAGE PREVIEW
+========================================================= */
+
+.conversation-bottom-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+}
+
+
+.conversation-bottom-row p {
+    flex: 1;
+    min-width: 0;
+
+    margin: 0;
+
+    overflow: hidden;
+
+    font-size: 14px;
+    line-height: 1.5;
+
+    color: #637168;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   UNREAD BADGE
+========================================================= */
+
+.conversation-unread-badge {
+    flex-shrink: 0;
+
+    min-width: 24px;
+    height: 24px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 7px;
+
+    border-radius: 999px;
+
+    background: #214b35;
+
+    color: #ffffff;
+
+    font-size: 11px;
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+.conversations-error {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 24px;
+
+    margin-bottom: 24px;
+    padding: 20px 24px;
+
+    border: 1px solid #f0c9c2;
+    border-radius: 16px;
+
+    background: #fff7f5;
+
+    box-sizing: border-box;
+}
+
+
+.conversations-error strong {
+    display: block;
+
+    margin-bottom: 5px;
+
+    font-size: 15px;
+
+    color: #8f3327;
+}
+
+
+.conversations-error p {
+    margin: 0;
+
+    font-size: 14px;
+    line-height: 1.5;
+
+    color: #a14b3d;
+}
+
+
+.conversations-error button {
+    flex-shrink: 0;
+
+    padding: 12px 20px;
+
+    border: none;
+    border-radius: 8px;
+
+    background: #214b35;
+
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+.conversations-error button:hover {
+    background: #183b29;
+
+    transform: translateY(-1px);
+}
+
+
+.conversations-error button:disabled {
+    opacity: 0.6;
+
+    cursor: not-allowed;
+
+    transform: none;
+}
+
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.conversations-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 180px;
+
+    padding: 30px;
+
+    border: 1px solid #e3e9e4;
+    border-radius: 18px;
+
+    background: #ffffff;
+
+    box-sizing: border-box;
+}
+
+
+.conversations-loading p {
+    margin: 0;
+
+    font-size: 15px;
+
+    color: #65746b;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.conversations-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 300px;
+
+    padding: 50px 30px;
+
+    border: 1px solid #e3e9e4;
+    border-radius: 20px;
+
+    background: #ffffff;
+
+    text-align: center;
+
+    box-sizing: border-box;
+}
+
+
+.conversations-empty-icon {
+    width: 68px;
+    height: 68px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 18px;
+
+    border-radius: 50%;
+
+    background: #edf5ef;
+
+    font-size: 30px;
+}
+
+
+.conversations-empty h2 {
+    margin: 0 0 10px;
+
+    font-size: 23px;
+
+    color: #17241c;
+}
+
+
+.conversations-empty p {
+    max-width: 540px;
+
+    margin: 0;
+
+    font-size: 15px;
+    line-height: 1.7;
+
+    color: #6b786f;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 768px) {
+
+    .conversations-page {
+        padding: 35px 20px 60px;
+    }
+
+
+    .conversations-welcome {
+        padding: 30px;
+
+        border-radius: 20px;
+    }
+
+
+    .conversations-welcome h1 {
+        font-size: 34px;
+    }
+
+
+    .conversations-welcome p {
+        font-size: 15px;
+    }
+
+
+    .conversations-welcome-icon {
+        width: 68px;
+        height: 68px;
+
+        font-size: 30px;
+    }
+
+
+    .conversations-header h2 {
+        font-size: 25px;
+    }
+
+
+    .conversation-card {
+        padding: 17px;
+    }
+
+
+    .conversation-top-row {
+        gap: 12px;
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 560px) {
+
+    .conversations-page {
+        padding: 25px 15px 50px;
+    }
+
+
+    .conversations-welcome {
+        flex-direction: column;
+        align-items: flex-start;
+
+        padding: 27px 24px;
+
+        margin-bottom: 32px;
+    }
+
+
+    .conversations-welcome h1 {
+        font-size: 30px;
+    }
+
+
+    .conversations-welcome p {
+        font-size: 14px;
+        line-height: 1.65;
+    }
+
+
+    .conversations-welcome-icon {
+        width: 58px;
+        height: 58px;
+
+        font-size: 26px;
+    }
+
+
+    .conversations-header {
+        margin-bottom: 17px;
+    }
+
+
+    .conversations-header h2 {
+        font-size: 23px;
+    }
+
+
+    .conversations-header p {
+        font-size: 14px;
+    }
+
+
+    .conversation-card {
+        align-items: flex-start;
+
+        gap: 13px;
+
+        padding: 16px;
+    }
+
+
+    .conversation-avatar {
+        width: 45px;
+        height: 45px;
+
+        font-size: 17px;
+    }
+
+
+    .conversation-top-row {
+        display: block;
+
+        margin-bottom: 6px;
+    }
+
+
+    .conversation-top-row h3 {
+        font-size: 15px;
+    }
+
+
+    .conversation-top-row time {
+        display: block;
+
+        margin-top: 4px;
+
+        font-size: 11px;
+    }
+
+
+    .conversation-bottom-row p {
+        font-size: 13px;
+    }
+
+
+    .conversations-error {
+        flex-direction: column;
+        align-items: stretch;
+
+        gap: 15px;
+    }
+
+
+    .conversations-error button {
+        width: 100%;
+    }
+
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .conversation-card,
+    .conversations-error button {
+        transition: none;
+    }
+
+}

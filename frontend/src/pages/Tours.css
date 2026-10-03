@@ -1,0 +1,210 @@
+/* ============================================================
+   TOURS PAGE
+   ============================================================ */
+
+.tours-page {
+    min-height: 100vh;
+    padding: 60px 7%;
+    background: #f8f9f6;
+}
+
+
+/* ============================================================
+   PAGE HEADER
+   ============================================================ */
+
+.tours-header {
+    max-width: 750px;
+    margin: 0 auto 50px;
+    text-align: center;
+}
+
+.tours-eyebrow {
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.tours-header h1 {
+    margin: 0 0 15px;
+    font-size: 2.8rem;
+}
+
+.tours-header > p:last-child {
+    margin: 0;
+    color: #666;
+    font-size: 1.05rem;
+    line-height: 1.7;
+}
+
+
+/* ============================================================
+   TOURS CONTAINER
+   ============================================================ */
+
+.tours-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+
+/* ============================================================
+   TOURS GRID
+   ============================================================ */
+
+.tours-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+}
+
+
+/* ============================================================
+   TOUR CARD
+   ============================================================ */
+
+.tour-card {
+    overflow: hidden;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tour-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.12);
+}
+
+
+/* ============================================================
+   IMAGE PLACEHOLDER
+   ============================================================ */
+
+.tour-image {
+    height: 210px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e8eee5;
+    font-size: 4rem;
+}
+
+
+/* ============================================================
+   CARD CONTENT
+   ============================================================ */
+
+.tour-card-content {
+    padding: 25px;
+}
+
+.tour-destination {
+    margin: 0 0 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.tour-card h2 {
+    margin: 0 0 20px;
+    font-size: 1.4rem;
+}
+
+
+/* ============================================================
+   PRICE
+   ============================================================ */
+
+.tour-price {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 20px;
+}
+
+.tour-price span {
+    color: #777;
+    font-size: 0.85rem;
+}
+
+.tour-price strong {
+    font-size: 1.25rem;
+}
+
+
+/* ============================================================
+   VIEW TOUR BUTTON
+   ============================================================ */
+
+.view-tour-button {
+    width: 100%;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 8px;
+    background: #222;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.view-tour-button:hover {
+    opacity: 0.85;
+}
+
+
+/* ============================================================
+   LOADING / ERROR / EMPTY STATES
+   ============================================================ */
+
+.tours-message {
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.error-message p {
+    margin-bottom: 20px;
+}
+
+.error-message button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #222;
+    color: white;
+    cursor: pointer;
+}
+
+
+/* ============================================================
+   RESPONSIVE DESIGN
+   ============================================================ */
+
+@media (max-width: 900px) {
+
+    .tours-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .tours-page {
+        padding: 40px 20px;
+    }
+
+    .tours-header h1 {
+        font-size: 2.1rem;
+    }
+
+    .tours-grid {
+        grid-template-columns: 1fr;
+    }
+
+}

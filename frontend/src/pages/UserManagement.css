@@ -1,0 +1,751 @@
+/* =========================================================
+   THAFARI USER MANAGEMENT
+   ========================================================= */
+
+.user-management-page {
+    min-height: 100vh;
+    padding: 120px 24px 80px;
+    background:
+        radial-gradient(circle at top left, rgba(47, 143, 91, 0.08), transparent 32%),
+        linear-gradient(180deg, #f7faf8 0%, #ffffff 48%, #f7faf8 100%);
+    color: #18352a;
+}
+
+.user-management-container {
+    width: min(1400px, 100%);
+    margin: 0 auto;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.user-management-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    margin-bottom: 30px;
+}
+
+.user-management-eyebrow,
+.user-management-section-eyebrow {
+    margin: 0 0 8px;
+    color: #2f8f5b;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+}
+
+.user-management-header h1 {
+    margin: 0;
+    color: #173c2b;
+    font-size: clamp(2rem, 4vw, 3.25rem);
+    line-height: 1.05;
+    font-weight: 800;
+}
+
+.user-management-intro {
+    max-width: 700px;
+    margin: 14px 0 0;
+    color: #6b7d74;
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+.user-management-summary {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 180px;
+    padding: 18px 22px;
+    border: 1px solid #dcebe2;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 10px 30px rgba(24, 53, 42, 0.06);
+}
+
+.user-management-summary > span {
+    display: grid;
+    width: 46px;
+    height: 46px;
+    place-items: center;
+    border-radius: 14px;
+    background: #eaf6ee;
+    font-size: 1.35rem;
+}
+
+.user-management-summary strong {
+    display: block;
+    color: #173c2b;
+    font-size: 1.35rem;
+    line-height: 1.1;
+}
+
+.user-management-summary small {
+    display: block;
+    margin-top: 4px;
+    color: #7a8b83;
+    font-size: 0.78rem;
+}
+
+/* =========================================================
+   ALERTS
+   ========================================================= */
+
+.user-management-alert {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid transparent;
+}
+
+.user-management-alert > span {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    place-items: center;
+    border-radius: 50%;
+    font-weight: 800;
+}
+
+.user-management-alert p {
+    flex: 1;
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+.user-management-alert button {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: 1.25rem;
+    line-height: 1;
+    opacity: 0.7;
+}
+
+.user-management-alert button:hover {
+    opacity: 1;
+}
+
+.user-management-success {
+    background: #edf9f1;
+    border-color: #ccebd6;
+    color: #23663c;
+}
+
+.user-management-success > span {
+    background: #d8f0df;
+}
+
+.user-management-error {
+    background: #fff3f2;
+    border-color: #f2d1ce;
+    color: #a53d35;
+}
+
+.user-management-error > span {
+    background: #f9deda;
+}
+
+/* =========================================================
+   MAIN CARD
+   ========================================================= */
+
+.user-management-card {
+    overflow: hidden;
+    border: 1px solid #deebe3;
+    border-radius: 22px;
+    background: #ffffff;
+    box-shadow: 0 18px 45px rgba(24, 53, 42, 0.08);
+}
+
+.user-management-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 24px 26px;
+    border-bottom: 1px solid #edf2ee;
+}
+
+.user-management-card-header h2 {
+    margin: 0;
+    color: #1b4030;
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+
+.user-management-count {
+    padding: 8px 13px;
+    border-radius: 999px;
+    background: #eef7f1;
+    color: #2f8f5b;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+.user-management-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.user-management-table {
+    width: 100%;
+    min-width: 850px;
+    border-collapse: collapse;
+}
+
+.user-management-table th {
+    padding: 15px 22px;
+    background: #f8fbf9;
+    color: #73847b;
+    border-bottom: 1px solid #e8efeb;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.user-management-table td {
+    padding: 18px 22px;
+    border-bottom: 1px solid #edf2ee;
+    vertical-align: middle;
+}
+
+.user-management-table tbody tr {
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.user-management-table tbody tr:hover {
+    background: #fbfdfc;
+}
+
+.user-management-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+/* =========================================================
+   USER CELL
+   ========================================================= */
+
+.user-management-user {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    min-width: 210px;
+}
+
+.user-management-avatar {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    place-items: center;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #2f8f5b, #68b17f);
+    color: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 800;
+    box-shadow: 0 7px 18px rgba(47, 143, 91, 0.2);
+}
+
+.user-management-user strong {
+    display: block;
+    color: #254436;
+    font-size: 0.91rem;
+    line-height: 1.35;
+}
+
+.user-management-user span {
+    display: block;
+    margin-top: 3px;
+    color: #87958e;
+    font-size: 0.76rem;
+}
+
+.user-management-email {
+    color: #60736a;
+    font-size: 0.84rem;
+    white-space: nowrap;
+}
+
+/* =========================================================
+   ROLE BADGES
+   ========================================================= */
+
+.user-management-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 11px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.user-management-role.customer {
+    background: #f0f4ff;
+    border-color: #dfe7fb;
+    color: #536b9d;
+}
+
+.user-management-role.operator {
+    background: #eef8f1;
+    border-color: #d7ecdd;
+    color: #34734b;
+}
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+.user-management-status {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #63756c;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.status-dot.active {
+    background: #3eae68;
+    box-shadow: 0 0 0 4px rgba(62, 174, 104, 0.12);
+}
+
+.status-dot.inactive {
+    background: #a7b0ab;
+    box-shadow: 0 0 0 4px rgba(167, 176, 171, 0.12);
+}
+
+.user-management-verified {
+    display: inline-grid;
+    width: 18px;
+    height: 18px;
+    margin-left: 3px;
+    place-items: center;
+    border-radius: 50%;
+    background: #e8f6ed;
+    color: #2f8f5b;
+    font-size: 0.68rem;
+    font-weight: 900;
+}
+
+/* =========================================================
+   ROLE CHANGE BUTTON
+   ========================================================= */
+
+.user-management-role-button {
+    min-width: 175px;
+    padding: 9px 13px;
+    border: 1px solid #cfe3d6;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #2f8f5b;
+    cursor: pointer;
+    font-size: 0.76rem;
+    font-weight: 800;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.user-management-role-button:hover {
+    border-color: #2f8f5b;
+    background: #2f8f5b;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 7px 18px rgba(47, 143, 91, 0.18);
+}
+
+.user-management-role-button:active {
+    transform: translateY(0);
+}
+
+.user-management-role-button:focus-visible,
+.user-management-cancel-button:focus-visible,
+.user-management-confirm-button:focus-visible {
+    outline: 3px solid rgba(47, 143, 91, 0.2);
+    outline-offset: 2px;
+}
+
+/* =========================================================
+   LOADING
+   ========================================================= */
+
+.user-management-loading {
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 40px;
+    color: #72847a;
+}
+
+.user-management-spinner,
+.user-management-button-spinner {
+    border: 3px solid #dcebe2;
+    border-top-color: #2f8f5b;
+    border-radius: 50%;
+    animation: user-management-spin 0.8s linear infinite;
+}
+
+.user-management-spinner {
+    width: 38px;
+    height: 38px;
+}
+
+.user-management-loading p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+@keyframes user-management-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.user-management-empty {
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 24px;
+    text-align: center;
+}
+
+.user-management-empty-icon {
+    display: grid;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+    place-items: center;
+    border-radius: 20px;
+    background: #eef7f1;
+    font-size: 1.7rem;
+}
+
+.user-management-empty h2,
+.user-management-empty h3 {
+    margin: 0;
+    color: #254436;
+}
+
+.user-management-empty p {
+    max-width: 500px;
+    margin: 9px 0 0;
+    color: #7a8b83;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+/* =========================================================
+   INFO SECTION
+   ========================================================= */
+
+.user-management-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-top: 20px;
+    padding: 18px 20px;
+    border: 1px solid #dcebe2;
+    border-radius: 17px;
+    background: #f3faf5;
+}
+
+.user-management-info-icon {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    place-items: center;
+    border-radius: 10px;
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(24, 53, 42, 0.06);
+}
+
+.user-management-info strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #315542;
+    font-size: 0.86rem;
+}
+
+.user-management-info p {
+    margin: 0;
+    color: #6c7e75;
+    font-size: 0.8rem;
+    line-height: 1.6;
+}
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+
+.user-management-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(18, 39, 30, 0.52);
+    backdrop-filter: blur(5px);
+}
+
+.user-management-modal {
+    width: min(470px, 100%);
+    padding: 30px;
+    border: 1px solid #e0ebe4;
+    border-radius: 24px;
+    background: #ffffff;
+    box-shadow: 0 30px 80px rgba(18, 39, 30, 0.2);
+    animation: user-management-modal-in 0.2s ease-out;
+}
+
+@keyframes user-management-modal-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.user-management-modal-icon {
+    display: grid;
+    width: 54px;
+    height: 54px;
+    margin-bottom: 17px;
+    place-items: center;
+    border-radius: 16px;
+    background: #eef8f1;
+    font-size: 1.35rem;
+}
+
+.user-management-modal h2 {
+    margin: 0;
+    color: #1d4030;
+    font-size: 1.35rem;
+}
+
+.user-management-modal > p {
+    margin: 12px 0 18px;
+    color: #687b71;
+    font-size: 0.9rem;
+    line-height: 1.7;
+}
+
+.user-management-modal > p strong {
+    color: #294a39;
+}
+
+.user-management-modal-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 24px;
+    padding: 13px 14px;
+    border: 1px solid #f1dfb8;
+    border-radius: 12px;
+    background: #fffaf0;
+}
+
+.user-management-modal-warning span {
+    flex: 0 0 auto;
+}
+
+.user-management-modal-warning p {
+    margin: 0;
+    color: #806b43;
+    font-size: 0.78rem;
+    line-height: 1.55;
+}
+
+.user-management-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.user-management-cancel-button,
+.user-management-confirm-button {
+    min-height: 42px;
+    padding: 10px 17px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 800;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.user-management-cancel-button {
+    border: 1px solid #d8e4dd;
+    background: #ffffff;
+    color: #64766d;
+}
+
+.user-management-cancel-button:hover:not(:disabled) {
+    background: #f7faf8;
+    border-color: #c8d8cf;
+}
+
+.user-management-confirm-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid #2f8f5b;
+    background: #2f8f5b;
+    color: #ffffff;
+    box-shadow: 0 7px 18px rgba(47, 143, 91, 0.18);
+}
+
+.user-management-confirm-button:hover:not(:disabled) {
+    background: #267a4d;
+    border-color: #267a4d;
+    transform: translateY(-1px);
+}
+
+.user-management-cancel-button:disabled,
+.user-management-confirm-button:disabled,
+.user-management-role-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.user-management-button-spinner {
+    width: 15px;
+    height: 15px;
+    border-width: 2px;
+    border-top-color: #ffffff;
+    border-left-color: rgba(255, 255, 255, 0.45);
+    border-bottom-color: rgba(255, 255, 255, 0.45);
+    border-right-color: rgba(255, 255, 255, 0.45);
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 900px) {
+    .user-management-page {
+        padding: 105px 18px 60px;
+    }
+
+    .user-management-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .user-management-summary {
+        width: fit-content;
+    }
+}
+
+@media (max-width: 640px) {
+    .user-management-page {
+        padding: 95px 14px 50px;
+    }
+
+    .user-management-header h1 {
+        font-size: 2rem;
+    }
+
+    .user-management-intro {
+        font-size: 0.9rem;
+    }
+
+    .user-management-card {
+        border-radius: 17px;
+    }
+
+    .user-management-card-header {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 20px;
+    }
+
+    .user-management-table th,
+    .user-management-table td {
+        padding: 14px 16px;
+    }
+
+    .user-management-info {
+        padding: 15px;
+    }
+
+    .user-management-modal-backdrop {
+        padding: 15px;
+    }
+
+    .user-management-modal {
+        padding: 24px 20px;
+        border-radius: 19px;
+    }
+
+    .user-management-modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .user-management-cancel-button,
+    .user-management-confirm-button {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .user-management-spinner,
+    .user-management-button-spinner,
+    .user-management-modal {
+        animation: none;
+    }
+
+    .user-management-role-button,
+    .user-management-cancel-button,
+    .user-management-confirm-button {
+        transition: none;
+    }
+}

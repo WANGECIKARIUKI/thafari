@@ -12,89 +12,157 @@ from services.notification_service import (
 
 def send_upcoming_departure_reminders():
     """
-    Send notifications to customers whose bookings are
-    associated with departures starting in 3 days.
+    Send departure reminder notifications to customers
+    with confirmed bookings.
 
-    Only pending and confirmed bookings are considered.
+    Reminders are sent:
+        - 3 days before departure
+        - 1 day before departure
 
-    The function is designed to be idempotent:
-    if the same departure reminder has already been
-    created for the customer, another notification
-    will not be created.
+    Only confirmed bookings receive departure reminders.
+
+    Cancelled, expired, pending, and completed bookings
+    do not receive departure reminders.
+
+    The function is idempotent:
+    if a reminder for the same booking and reminder stage
+    has already been created, another notification will
+    not be created.
+
+    Returns:
+        int: Number of new notifications created.
     """
 
     today = date.today()
 
-    # We want to find departures that start exactly
-    # 3 days from today.
-    reminder_date = today + timedelta(days=3)
+    # ---------------------------------------------------------
+    # Reminder dates
+    # ---------------------------------------------------------
 
-    # Find active departures starting on the reminder date.
-    departures = Departure.query.filter(
-        Departure.start_date == reminder_date,
-        Departure.is_active == True
-    ).all()
+    reminder_dates = {
+        today + timedelta(days=3): 3,
+        today + timedelta(days=1): 1
+    }
 
     notifications_to_emit = []
 
-    for departure in departures:
+    # ---------------------------------------------------------
+    # Process each reminder date
+    # ---------------------------------------------------------
 
-        # Find bookings that are still relevant.
-        #
-        # Cancelled, expired and completed bookings
-        # should not receive departure reminders.
-        bookings = Booking.query.filter(
-            Booking.departure_id == departure.id,
-            Booking.status.in_(["pending", "confirmed"])
+    for reminder_date, days_until_departure in reminder_dates.items():
+
+        # Find active departures happening on this reminder date.
+        departures = Departure.query.filter(
+            Departure.start_date == reminder_date,
+            Departure.is_active == True
         ).all()
 
-        for booking in bookings:
+        # -----------------------------------------------------
+        # Process departures
+        # -----------------------------------------------------
 
-            # Build the exact notification message.
-            days_until_departure = (
-                departure.start_date - today
-            ).days
+        for departure in departures:
 
-            message = (
-                f"Your safari departure starts in"
-                f"{days_until_departure} day(s)",
-                f"on {departure.start_date.isoformat()}."
-            )
+            # -------------------------------------------------
+            # Only confirmed bookings receive reminders.
+            # -------------------------------------------------
 
-            # Check whether this exact departure reminder
-            # has already been sent to this customer.
-            existing_notification = Notification.query.filter(
-                Notification.user_id == booking.user_id,
-                Notification.notification_type == "departure",
-                Notification.message == message
-            ).first()
+            bookings = Booking.query.filter(
+                Booking.departure_id == departure.id,
+                Booking.status == "confirmed"
+            ).all()
 
-            # If it already exists, do not send it again.
-            if existing_notification:
-                continue
+            # -------------------------------------------------
+            # Process confirmed bookings
+            # -------------------------------------------------
 
-            # Create the notification inside the current
-            # database transaction.
-            notification = create_notification(
-                user_id=booking.user_id,
-                title="Upcoming Departure",
-                message=message,
-                notification_type="departure"
-            )
+            for booking in bookings:
 
-            notifications_to_emit.append(notification)
+                # -------------------------------------------------
+                # Build reminder-specific notification content.
+                # -------------------------------------------------
 
-    # Save all newly created notifications together.
-    db.session.commit()
+                if days_until_departure == 3:
+                    title = "Departure in 3 Days"
 
-    # Only emit Socket.IO notifications AFTER the database
-    # transaction has successfully committed.
+                    message = (
+                        f"Your safari departure is in 3 days, "
+                        f"on {departure.start_date.isoformat()}."
+                    )
+
+                else:
+                    title = "Departure Tomorrow"
+
+                    message = (
+                        f"Your safari departure is tomorrow, "
+                        f"on {departure.start_date.isoformat()}."
+                    )
+
+                # -------------------------------------------------
+                # Link directly to the booking.
+                # -------------------------------------------------
+
+                link = f"/booking/view/{booking.id}"
+
+                # -------------------------------------------------
+                # Prevent duplicate reminders.
+                #
+                # The combination of:
+                #   user_id
+                #   notification_type
+                #   title
+                #   link
+                #
+                # uniquely identifies this reminder stage for
+                # this booking.
+                # -------------------------------------------------
+
+                existing_notification = Notification.query.filter(
+                    Notification.user_id == booking.user_id,
+                    Notification.notification_type == "departure",
+                    Notification.title == title,
+                    Notification.link == link
+                ).first()
+
+                if existing_notification:
+                    continue
+
+                # -------------------------------------------------
+                # Create notification.
+                # -------------------------------------------------
+
+                notification = create_notification(
+                    user_id=booking.user_id,
+                    title=title,
+                    message=message,
+                    notification_type="departure",
+                    link=link
+                )
+
+                notifications_to_emit.append(notification)
+
+    # ---------------------------------------------------------
+    # Save all notifications together.
+    # ---------------------------------------------------------
+
+    if notifications_to_emit:
+        db.session.commit()
+
+    # ---------------------------------------------------------
+    # Emit Socket.IO notifications only after successful
+    # database commit.
+    # ---------------------------------------------------------
+
     for notification in notifications_to_emit:
+
         try:
             emit_notification(notification)
+
         except Exception as e:
-            # A Socket.IO delivery problem should not undo
-            # the database transaction.
+            # Socket.IO delivery failure should not undo
+            # the successfully committed notification.
+
             print(
                 f"Departure notification could not be delivered: {e}"
             )

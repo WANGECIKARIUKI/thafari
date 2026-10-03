@@ -1,0 +1,1150 @@
+/* =========================================================
+   THAFARI CANCELLATION REQUEST REVIEW
+========================================================= */
+
+.cancellation-requests-page {
+    min-height: calc(100vh - 76px);
+
+    padding: 55px 6% 80px;
+
+    background-color: #f8f6f1;
+
+    color: #24382b;
+}
+
+
+/* =========================================================
+   PAGE HEADER
+========================================================= */
+
+.cancellation-requests-header {
+    max-width: 1300px;
+
+    margin: 0 auto 30px;
+
+    display: flex;
+
+    align-items: flex-end;
+
+    justify-content: space-between;
+
+    gap: 30px;
+}
+
+
+.cancellation-requests-eyebrow {
+    margin: 0 0 10px;
+
+    color: #61745f;
+
+    font-size: 0.75rem;
+
+    font-weight: 800;
+
+    letter-spacing: 0.12em;
+}
+
+
+.cancellation-requests-header h1 {
+    margin: 0 0 10px;
+
+    color: #24382b;
+
+    font-size: clamp(2rem, 4vw, 3rem);
+}
+
+
+.cancellation-requests-header p:last-child {
+    max-width: 700px;
+
+    margin: 0;
+
+    color: #657067;
+
+    line-height: 1.7;
+}
+
+
+.cancellation-requests-role {
+    padding: 10px 15px;
+
+    background-color: #ffffff;
+
+    border: 1px solid #ddd8cc;
+
+    border-radius: 999px;
+
+    color: #61745f;
+
+    font-size: 0.8rem;
+
+    font-weight: 800;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   MESSAGES
+========================================================= */
+
+.cancellation-requests-message {
+    max-width: 1300px;
+
+    margin: 0 auto 20px;
+
+    padding: 14px 18px;
+
+    border-radius: 6px;
+
+    font-size: 0.9rem;
+
+    font-weight: 600;
+}
+
+
+.cancellation-requests-message.error {
+    background-color: #fff1f0;
+
+    border: 1px solid #e7b8b3;
+
+    color: #8b3028;
+}
+
+
+.cancellation-requests-message.success {
+    background-color: #eff8f0;
+
+    border: 1px solid #b9d8bc;
+
+    color: #2e6534;
+}
+
+
+/* =========================================================
+   SUMMARY
+========================================================= */
+
+.cancellation-requests-summary {
+    max-width: 1300px;
+
+    margin: 0 auto 20px;
+
+    padding: 20px 24px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    background-color: #ffffff;
+
+    border: 1px solid #e5e1d8;
+
+    border-radius: 8px;
+}
+
+
+.cancellation-requests-summary div {
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+}
+
+
+.cancellation-requests-summary span {
+    color: #657067;
+
+    font-size: 0.88rem;
+
+    font-weight: 600;
+}
+
+
+.cancellation-requests-summary strong {
+    min-width: 35px;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 5px 9px;
+
+    background-color: #f8f6f1;
+
+    border-radius: 999px;
+
+    color: #24382b;
+
+    font-size: 0.85rem;
+}
+
+
+.cancellation-requests-refresh {
+    min-height: 40px;
+
+    padding: 0 15px;
+
+    background-color: #f8f6f1;
+
+    color: #24382b;
+
+    border: 1px solid #ddd8cc;
+
+    border-radius: 4px;
+
+    font-family: inherit;
+
+    font-size: 0.82rem;
+
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+
+.cancellation-requests-refresh:hover {
+    background-color: #eeece5;
+}
+
+
+.cancellation-requests-refresh:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.6;
+}
+
+
+/* =========================================================
+   FILTERS
+========================================================= */
+
+.cancellation-requests-filters {
+    max-width: 1300px;
+
+    margin: 0 auto 24px;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 14px;
+}
+
+
+.cancellation-requests-filter-button {
+    min-height: 82px;
+
+    padding: 14px 18px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    justify-content: center;
+
+    gap: 6px;
+
+    background-color: #ffffff;
+
+    color: #657067;
+
+    border: 1px solid #e2ded4;
+
+    border-radius: 12px;
+
+    box-shadow:
+        0 2px 8px
+        rgba(36, 56, 43, 0.04);
+
+    font-family: inherit;
+
+    font-size: 0.78rem;
+
+    font-weight: 800;
+
+    letter-spacing: 0.05em;
+
+    text-transform: uppercase;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+.cancellation-requests-filter-button:hover {
+    border-color: #bfc8bd;
+
+    box-shadow:
+        0 6px 18px
+        rgba(36, 56, 43, 0.08);
+
+    transform: translateY(-2px);
+}
+
+
+.cancellation-requests-filter-button.active {
+    background-color: #24382b;
+
+    color: #ffffff;
+
+    border-color: #24382b;
+
+    box-shadow:
+        0 8px 20px
+        rgba(36, 56, 43, 0.16);
+}
+
+
+.cancellation-requests-filter-button strong {
+    min-width: 0;
+
+    height: auto;
+
+    display: block;
+
+    padding: 0;
+
+    background: transparent;
+
+    color: #24382b;
+
+    border-radius: 0;
+
+    font-size: 1.8rem;
+
+    font-weight: 900;
+
+    line-height: 1;
+
+    letter-spacing: -0.03em;
+}
+
+
+.cancellation-requests-filter-button.active strong {
+    background: transparent;
+
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   MAIN CARD
+========================================================= */
+
+.cancellation-requests-card {
+    max-width: 1300px;
+
+    margin: 0 auto;
+
+    overflow: hidden;
+
+    background-color: #ffffff;
+
+    border: 1px solid #e5e1d8;
+
+    border-radius: 8px;
+}
+
+
+.cancellation-requests-card-header {
+    padding: 26px 28px;
+
+    border-bottom: 1px solid #ece9e2;
+}
+
+
+.cancellation-requests-card-header p {
+    margin: 0 0 7px;
+
+    color: #61745f;
+
+    font-size: 0.72rem;
+
+    font-weight: 800;
+
+    letter-spacing: 0.1em;
+}
+
+
+.cancellation-requests-card-header h2 {
+    margin: 0;
+
+    color: #24382b;
+
+    font-size: 1.4rem;
+
+    text-transform: uppercase;
+}
+
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.cancellation-requests-table-wrapper {
+    width: 100%;
+
+    overflow-x: auto;
+}
+
+
+.cancellation-requests-table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    min-width: 1000px;
+}
+
+
+.cancellation-requests-table th {
+    padding: 15px 20px;
+
+    background-color: #f8f6f1;
+
+    color: #657067;
+
+    font-size: 0.72rem;
+
+    font-weight: 800;
+
+    text-align: left;
+
+    letter-spacing: 0.05em;
+
+    text-transform: uppercase;
+}
+
+
+.cancellation-requests-table td {
+    padding: 18px 20px;
+
+    border-top: 1px solid #ece9e2;
+
+    vertical-align: middle;
+
+    color: #3d493f;
+
+    font-size: 0.85rem;
+}
+
+
+.cancellation-requests-table tbody tr:hover {
+    background-color: #fcfbf8;
+}
+
+
+.cancellation-requests-table td strong {
+    display: block;
+
+    margin-bottom: 4px;
+
+    color: #24382b;
+
+    font-size: 0.85rem;
+}
+
+
+.cancellation-requests-table td small {
+    display: block;
+
+    color: #7a827c;
+
+    font-size: 0.72rem;
+}
+
+
+/* =========================================================
+   REQUEST ID
+========================================================= */
+
+.cancellation-request-id {
+    margin-bottom: 7px;
+
+    color: #24382b;
+
+    font-size: 0.82rem;
+
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   VIEW / REVIEW BUTTON
+========================================================= */
+
+.cancellation-requests-view-button {
+    min-height: 38px;
+
+    padding: 0 14px;
+
+    background-color: #24382b;
+
+    color: #ffffff;
+
+    border: 1px solid #24382b;
+
+    border-radius: 4px;
+
+    font-family: inherit;
+
+    font-size: 0.78rem;
+
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+
+.cancellation-requests-view-button:hover {
+    background-color: #17221b;
+
+    border-color: #17221b;
+}
+
+
+.cancellation-requests-view-button:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.6;
+}
+
+
+/* =========================================================
+   STATUS BADGES
+========================================================= */
+
+.cancellation-status-badge {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-width: 82px;
+
+    padding: 6px 10px;
+
+    border-radius: 999px;
+
+    font-size: 0.68rem;
+
+    font-weight: 800;
+
+    text-transform: capitalize;
+}
+
+
+.cancellation-status-badge.pending {
+    background-color: #fff6df;
+
+    color: #946613;
+}
+
+
+.cancellation-status-badge.approved {
+    background-color: #edf6ef;
+
+    color: #2e6534;
+}
+
+
+.cancellation-status-badge.denied {
+    background-color: #fff1f0;
+
+    color: #8b3028;
+}
+
+
+/* =========================================================
+   EMPTY / LOADING
+========================================================= */
+
+.cancellation-requests-empty,
+.cancellation-requests-loading {
+    max-width: 1300px;
+
+    margin: 0 auto;
+
+    padding: 70px 30px;
+
+    text-align: center;
+
+    color: #657067;
+}
+
+
+.cancellation-requests-empty-icon {
+    width: 62px;
+
+    height: 62px;
+
+    margin: 0 auto 18px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background-color: #edf6ef;
+
+    border-radius: 50%;
+
+    color: #2e6534;
+
+    font-size: 1.5rem;
+
+    font-weight: 800;
+}
+
+
+.cancellation-requests-empty h3 {
+    margin: 0 0 8px;
+
+    color: #24382b;
+
+    font-size: 1.25rem;
+}
+
+
+.cancellation-requests-empty p {
+    margin: 0;
+
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   MODAL OVERLAY
+========================================================= */
+
+.cancellation-requests-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 1000;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 30px;
+
+    background-color:
+        rgba(20, 28, 22, 0.58);
+}
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+.cancellation-requests-modal {
+    width: min(850px, 100%);
+
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    background-color: #ffffff;
+
+    border-radius: 10px;
+
+    box-shadow:
+        0 20px 60px
+        rgba(0, 0, 0, 0.2);
+}
+
+
+/* =========================================================
+   MODAL HEADER
+========================================================= */
+
+.cancellation-requests-modal-header {
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 25px 28px;
+
+    border-bottom: 1px solid #ece9e2;
+}
+
+
+.cancellation-requests-modal-header p {
+    margin: 0 0 7px;
+
+    color: #61745f;
+
+    font-size: 0.7rem;
+
+    font-weight: 800;
+
+    letter-spacing: 0.1em;
+}
+
+
+.cancellation-requests-modal-header h2 {
+    margin: 0;
+
+    color: #24382b;
+
+    font-size: 1.5rem;
+}
+
+
+/* =========================================================
+   CLOSE BUTTON
+========================================================= */
+
+.cancellation-requests-close {
+    width: 38px;
+
+    height: 38px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background-color: #f8f6f1;
+
+    color: #24382b;
+
+    border: 1px solid #ddd8cc;
+
+    border-radius: 50%;
+
+    font-size: 1.4rem;
+
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+
+.cancellation-requests-close:hover {
+    background-color: #eeece5;
+}
+
+
+.cancellation-requests-close:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.6;
+}
+
+
+/* =========================================================
+   DETAIL GRID
+========================================================= */
+
+.cancellation-requests-detail-grid,
+.cancellation-requests-info-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 16px;
+}
+
+
+.cancellation-requests-detail-grid {
+    padding: 24px 28px;
+}
+
+
+.detail-block,
+.cancellation-requests-info-grid > div {
+    padding: 15px;
+
+    background-color: #f8f6f1;
+
+    border-radius: 6px;
+}
+
+
+.detail-block span,
+.cancellation-requests-info-grid span {
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: #7a827c;
+
+    font-size: 0.7rem;
+
+    font-weight: 700;
+
+    text-transform: uppercase;
+}
+
+
+.detail-block strong,
+.cancellation-requests-info-grid strong {
+    color: #24382b;
+
+    font-size: 0.88rem;
+}
+
+
+/* =========================================================
+   BOOKING STATUS
+========================================================= */
+
+.booking-status-text {
+    text-transform: capitalize;
+}
+
+
+/* =========================================================
+   DETAIL SECTIONS
+========================================================= */
+
+.cancellation-requests-section {
+    padding: 24px 28px;
+
+    border-top: 1px solid #ece9e2;
+}
+
+
+.cancellation-requests-section h3 {
+    margin: 0 0 15px;
+
+    color: #24382b;
+
+    font-size: 1rem;
+}
+
+
+/* =========================================================
+   CANCELLATION REASON
+========================================================= */
+
+.cancellation-reason-box {
+    padding: 18px;
+
+    background-color: #fbfaf7;
+
+    border: 1px solid #e2ded4;
+
+    border-radius: 6px;
+}
+
+
+.cancellation-reason-box p {
+    margin: 0;
+
+    color: #4c574f;
+
+    font-size: 0.9rem;
+
+    line-height: 1.7;
+
+    white-space: pre-wrap;
+}
+
+
+/* =========================================================
+   DENIAL HELP TEXT
+========================================================= */
+
+.cancellation-denial-help {
+    margin: -4px 0 14px;
+
+    color: #7a827c;
+
+    font-size: 0.82rem;
+
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   DENIAL TEXTAREA
+========================================================= */
+
+.cancellation-denial-textarea {
+    width: 100%;
+
+    min-height: 120px;
+
+    padding: 14px;
+
+    resize: vertical;
+
+    background-color: #ffffff;
+
+    color: #24382b;
+
+    border: 1px solid #d8d4ca;
+
+    border-radius: 6px;
+
+    outline: none;
+
+    font-family: inherit;
+
+    font-size: 0.85rem;
+
+    line-height: 1.6;
+
+    box-sizing: border-box;
+}
+
+
+.cancellation-denial-textarea:focus {
+    border-color: #61745f;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(97, 116, 95, 0.12);
+}
+
+
+.cancellation-denial-textarea:disabled {
+    background-color: #f5f3ee;
+
+    cursor: not-allowed;
+
+    opacity: 0.7;
+}
+
+
+/* =========================================================
+   MODAL ACTIONS
+========================================================= */
+
+.cancellation-requests-modal-actions {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    padding: 20px 28px;
+
+    border-top: 1px solid #ece9e2;
+}
+
+
+.cancellation-requests-deny-button,
+.cancellation-requests-approve-button {
+    min-height: 44px;
+
+    padding: 0 18px;
+
+    border-radius: 4px;
+
+    font-family: inherit;
+
+    font-size: 0.82rem;
+
+    font-weight: 800;
+
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   DENY BUTTON
+========================================================= */
+
+.cancellation-requests-deny-button {
+    background-color: #ffffff;
+
+    color: #8b3028;
+
+    border: 1px solid #d7a39e;
+}
+
+
+.cancellation-requests-deny-button:hover {
+    background-color: #fff1f0;
+}
+
+
+/* =========================================================
+   APPROVE BUTTON
+========================================================= */
+
+.cancellation-requests-approve-button {
+    background-color: #24382b;
+
+    color: #ffffff;
+
+    border: 1px solid #24382b;
+}
+
+
+.cancellation-requests-approve-button:hover {
+    background-color: #17221b;
+}
+
+
+/* =========================================================
+   DISABLED ACTION BUTTONS
+========================================================= */
+
+.cancellation-requests-deny-button:disabled,
+.cancellation-requests-approve-button:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.6;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 800px) {
+
+    .cancellation-requests-page {
+        padding: 40px 5% 60px;
+    }
+
+
+    .cancellation-requests-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+
+    .cancellation-requests-role {
+        white-space: normal;
+    }
+
+
+    .cancellation-requests-summary {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+
+    .cancellation-requests-refresh {
+        width: 100%;
+    }
+
+
+    .cancellation-requests-filters {
+        grid-template-columns: 1fr;
+    }
+
+
+    .cancellation-requests-overlay {
+        padding: 15px;
+    }
+
+
+    .cancellation-requests-modal {
+        max-height: 94vh;
+    }
+
+
+    .cancellation-requests-detail-grid,
+    .cancellation-requests-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .cancellation-requests-modal-actions {
+        flex-direction: column-reverse;
+    }
+
+
+    .cancellation-requests-deny-button,
+    .cancellation-requests-approve-button {
+        width: 100%;
+    }
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1000px) {
+
+    .cancellation-requests-table {
+        min-width: 900px;
+    }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 520px) {
+
+    .cancellation-requests-page {
+        padding-left: 4%;
+
+        padding-right: 4%;
+    }
+
+
+    .cancellation-requests-header h1 {
+        font-size: 2rem;
+    }
+
+
+    .cancellation-requests-summary {
+        padding: 18px;
+    }
+
+
+    .cancellation-requests-card-header {
+        padding: 22px;
+    }
+
+
+    .cancellation-requests-section {
+        padding: 20px;
+    }
+
+
+    .cancellation-requests-detail-grid {
+        padding: 20px;
+    }
+
+
+    .cancellation-requests-modal-header {
+        padding: 20px;
+    }
+
+
+    .cancellation-requests-modal-actions {
+        padding: 18px 20px;
+    }
+}

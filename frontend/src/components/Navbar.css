@@ -1,0 +1,405 @@
+/* =========================================================
+   THAFARI NAVBAR
+========================================================= */
+
+.navbar {
+    width: 100%;
+    min-height: 76px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 6%;
+
+    background-color: #ffffff;
+
+    border-bottom: 1px solid #e8e5de;
+
+    position: relative;
+    z-index: 100;
+}
+
+
+/* =========================================================
+   BRAND
+========================================================= */
+
+.navbar-brand {
+    color: #24382b;
+
+    text-decoration: none;
+
+    font-size: 1.5rem;
+    font-weight: 800;
+
+    letter-spacing: 0.12em;
+}
+
+
+/* =========================================================
+   MAIN NAVIGATION
+========================================================= */
+
+.navbar-links {
+    display: flex;
+    align-items: center;
+
+    gap: 32px;
+}
+
+
+.navbar-links a {
+    color: #3d493f;
+
+    text-decoration: none;
+
+    font-size: 0.95rem;
+    font-weight: 500;
+
+    transition:
+        color 0.2s ease;
+}
+
+
+.navbar-links a:hover {
+    color: #24382b;
+}
+
+
+/* =========================================================
+   NAVBAR ACTIONS
+========================================================= */
+
+.navbar-actions {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+}
+
+
+/* =========================================================
+   NOTIFICATION BELL
+========================================================= */
+
+.navbar-notification {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    position: relative;
+
+    background-color: #f8f6f1;
+
+    border: 1px solid #e2ded4;
+    border-radius: 50%;
+
+    color: #24382b;
+
+    text-decoration: none;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+.navbar-notification:hover {
+    background-color: #eeece5;
+
+    border-color: #bca878;
+
+    transform: translateY(-1px);
+}
+
+
+.notification-bell {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    font-size: 1.05rem;
+
+    line-height: 1;
+}
+
+
+/* =========================================================
+   NOTIFICATION BADGE
+========================================================= */
+
+.notification-badge {
+    position: absolute;
+
+    top: -5px;
+    right: -5px;
+
+    min-width: 18px;
+    height: 18px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 4px;
+
+    background-color: #24382b;
+    color: #ffffff;
+
+    border: 2px solid #ffffff;
+    border-radius: 999px;
+
+    font-size: 0.62rem;
+    font-weight: 800;
+
+    line-height: 1;
+}
+
+
+/* =========================================================
+   WELCOME MESSAGE
+========================================================= */
+
+.navbar-welcome {
+    color: #61745f;
+
+    font-size: 0.9rem;
+    font-weight: 600;
+
+    margin-right: 4px;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+.navbar-login {
+    color: #24382b;
+
+    text-decoration: none;
+
+    font-size: 0.9rem;
+    font-weight: 600;
+
+    padding: 10px 14px;
+
+    transition:
+        color 0.2s ease;
+}
+
+
+.navbar-login:hover {
+    color: #61745f;
+}
+
+
+/* =========================================================
+   GET STARTED
+========================================================= */
+
+.navbar-register {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-height: 42px;
+
+    padding: 0 18px;
+
+    background-color: #24382b;
+    color: #ffffff;
+
+    text-decoration: none;
+
+    border-radius: 4px;
+
+    font-size: 0.9rem;
+    font-weight: 600;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+.navbar-register:hover {
+    background-color: #17221b;
+
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+.navbar-dashboard {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-height: 40px;
+
+    padding: 0 15px;
+
+    background-color: #f8f6f1;
+    color: #24382b;
+
+    border: 1px solid #ddd8cc;
+    border-radius: 4px;
+
+    text-decoration: none;
+
+    font-size: 0.88rem;
+    font-weight: 600;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+
+.navbar-dashboard:hover {
+    background-color: #eeece5;
+
+    border-color: #bca878;
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+.navbar-logout {
+    min-height: 40px;
+
+    padding: 0 15px;
+
+    background-color: transparent;
+    color: #61745f;
+
+    border: 1px solid #d8dcd7;
+    border-radius: 4px;
+
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+
+.navbar-logout:hover {
+    background-color: #24382b;
+    color: #ffffff;
+
+    border-color: #24382b;
+}
+
+
+/* =========================================================
+   RESPONSIVE NAVBAR
+========================================================= */
+
+@media (max-width: 1100px) {
+
+    .navbar {
+        padding: 0 4%;
+    }
+
+
+    .navbar-links {
+        gap: 18px;
+    }
+
+
+    .navbar-welcome {
+        display: none;
+    }
+}
+
+
+@media (max-width: 800px) {
+
+    .navbar {
+        flex-wrap: wrap;
+
+        gap: 14px;
+
+        padding: 18px 5%;
+    }
+
+
+    .navbar-links {
+        order: 3;
+
+        width: 100%;
+
+        justify-content: center;
+
+        gap: 20px;
+    }
+
+
+    .navbar-actions {
+        margin-left: auto;
+    }
+}
+
+
+@media (max-width: 500px) {
+
+    .navbar {
+        padding: 16px 5%;
+    }
+
+
+    .navbar-links {
+        gap: 14px;
+    }
+
+
+    .navbar-links a {
+        font-size: 0.82rem;
+    }
+
+
+    .navbar-notification {
+        width: 38px;
+        height: 38px;
+    }
+
+
+    .navbar-dashboard,
+    .navbar-logout,
+    .navbar-register {
+        min-height: 38px;
+
+        padding: 0 11px;
+
+        font-size: 0.8rem;
+    }
+
+
+    .navbar-login {
+        padding: 8px;
+    }
+}

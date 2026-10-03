@@ -12,6 +12,7 @@
 # 6. Refreshing access tokens
 # 7. Logging out
 # 8. Retrieving the currently authenticated user
+# 9. Admin role management
 #
 # Authentication answers:
 # "Who are you?"
@@ -78,6 +79,12 @@ from models.revoked_token import RevokedToken
 from models.password_reset_token import PasswordResetToken
 
 from services.email_service import send_email
+
+# Authorization decorator.
+#
+# This is used when an endpoint should only be accessible
+# to users with specific roles.
+from decorators.auth_decorator import roles_required
 
 
 # ---------------------------------------------------------
@@ -395,6 +402,278 @@ def login():
 
 
 # =========================================================
+# ADMIN - GET MANAGEABLE USERS
+# =========================================================
+#
+# GET /api/auth/users
+#
+# Only administrators can use this endpoint.
+#
+# Returns:
+#
+# - Customers
+# - Tour operators
+#
+# Admin accounts are deliberately excluded from the list.
+# =========================================================
+
+@auth_bp.route(
+    "/users",
+    methods=["GET"]
+)
+@jwt_required()
+@roles_required("admin")
+def get_users():
+
+    # -----------------------------------------------------
+    # GET CUSTOMERS AND TOUR OPERATORS
+    # -----------------------------------------------------
+
+    users = User.query.filter(
+        User.role.in_([
+            "customer",
+            "tour_operator"
+        ])
+    ).order_by(
+        User.id.desc()
+    ).all()
+
+    # -----------------------------------------------------
+    # BUILD SAFE RESPONSE
+    # -----------------------------------------------------
+    #
+    # Password hashes and other sensitive fields are never
+    # returned to the frontend.
+    # -----------------------------------------------------
+
+    user_list = []
+
+    for user in users:
+
+        user_list.append({
+            "id": user.id,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "username": user.username,
+            "email": user.email,
+            "role": user.role,
+            "is_active": user.is_active,
+            "is_verified": user.is_verified
+        })
+
+    return jsonify({
+        "users": user_list
+    }), 200
+
+
+# =========================================================
+# ADMIN - CHANGE USER ROLE
+# =========================================================
+#
+# PATCH /api/auth/users/<user_id>/role
+#
+# Only administrators can use this endpoint.
+#
+# This allows an admin to:
+#
+# - Promote a customer to tour_operator
+# - Change a tour_operator back to customer
+#
+# Public registration still always creates customers.
+#
+# IMPORTANT:
+#
+# We deliberately do NOT allow this endpoint to assign
+# the "admin" role.
+#
+# This prevents an administrator from accidentally or
+# unnecessarily creating additional admin accounts through
+# a normal user-management endpoint.
+# =========================================================
+
+@auth_bp.route(
+    "/users/<int:user_id>/role",
+    methods=["PATCH"]
+)
+@jwt_required()
+@roles_required("admin")
+def update_user_role(user_id):
+
+    # -----------------------------------------------------
+    # GET CURRENT ADMIN
+    # -----------------------------------------------------
+    #
+    # The roles_required decorator already ensures that the
+    # authenticated user has the admin role.
+    #
+    # We still retrieve the user ID here for clarity and
+    # future auditing purposes.
+    # -----------------------------------------------------
+
+    current_admin_id = int(
+        get_jwt_identity()
+    )
+
+    # -----------------------------------------------------
+    # FIND TARGET USER
+    # -----------------------------------------------------
+
+    user = User.query.filter_by(
+        id=user_id
+    ).first()
+
+    if not user:
+        return jsonify({
+            "message": "User not found."
+        }), 404
+
+    # -----------------------------------------------------
+    # RECEIVE REQUEST DATA
+    # -----------------------------------------------------
+
+    data = request.get_json(silent=True)
+
+    if not data:
+        return jsonify({
+            "message": "Request body is required."
+        }), 400
+
+    # -----------------------------------------------------
+    # GET NEW ROLE
+    # -----------------------------------------------------
+
+    new_role = data.get("role")
+
+    if not isinstance(new_role, str):
+        return jsonify({
+            "message": "Role must be text."
+        }), 400
+
+    # Normalize the role so values such as:
+    #
+    # "Tour_Operator"
+    # "TOUR_OPERATOR"
+    #
+    # are converted into:
+    #
+    # "tour_operator"
+    new_role = new_role.strip().lower()
+
+    # -----------------------------------------------------
+    # ALLOWED ROLES
+    # -----------------------------------------------------
+    #
+    # Only customer and tour_operator can be assigned
+    # through this endpoint.
+    #
+    # Admin is intentionally excluded.
+    # -----------------------------------------------------
+
+    allowed_roles = {
+        "customer",
+        "tour_operator"
+    }
+
+    if new_role not in allowed_roles:
+        return jsonify({
+            "message": (
+                "Invalid role. The role must be either "
+                "'customer' or 'tour_operator'."
+            )
+        }), 400
+
+    # -----------------------------------------------------
+    # PREVENT UNNECESSARY SELF-ROLE CHANGES
+    # -----------------------------------------------------
+    #
+    # An administrator should not be able to change their
+    # own role through this endpoint.
+    #
+    # This protects the current admin account from being
+    # accidentally changed into a customer or operator.
+    # -----------------------------------------------------
+
+    if user.id == current_admin_id:
+        return jsonify({
+            "message": (
+                "Administrators cannot change their own role "
+                "through this endpoint."
+            )
+        }), 400
+
+    # -----------------------------------------------------
+    # CHECK WHETHER ROLE IS ALREADY SET
+    # -----------------------------------------------------
+
+    if user.role == new_role:
+        return jsonify({
+            "message": (
+                f"User is already assigned the "
+                f"'{new_role}' role."
+            ),
+            "user": {
+                "id": user.id,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "username": user.username,
+                "email": user.email,
+                "role": user.role
+            }
+        }), 200
+
+    # -----------------------------------------------------
+    # STORE OLD ROLE
+    # -----------------------------------------------------
+
+    old_role = user.role
+
+    # -----------------------------------------------------
+    # UPDATE ROLE
+    # -----------------------------------------------------
+
+    user.role = new_role
+
+    # -----------------------------------------------------
+    # SAVE CHANGES
+    # -----------------------------------------------------
+
+    try:
+
+        db.session.commit()
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        print(
+            f"User role update error: {e}"
+        )
+
+        return jsonify({
+            "message": "User role could not be updated."
+        }), 500
+
+    # -----------------------------------------------------
+    # RETURN UPDATED USER
+    # -----------------------------------------------------
+
+    return jsonify({
+        "message": (
+            f"User role changed from '{old_role}' "
+            f"to '{new_role}'."
+        ),
+        "user": {
+            "id": user.id,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "username": user.username,
+            "email": user.email,
+            "role": user.role
+        }
+    }), 200
+
+
+# =========================================================
 # CHANGE PASSWORD
 # =========================================================
 
@@ -564,10 +843,6 @@ def forgot_password():
     # -----------------------------------------------------
     # GENERIC RESPONSE
     # -----------------------------------------------------
-    #
-    # We use this response regardless of whether the account
-    # exists.
-    # -----------------------------------------------------
 
     generic_response = {
         "message": (
@@ -599,20 +874,12 @@ def forgot_password():
     # -----------------------------------------------------
     # DO NOT CREATE RESET LINKS FOR INACTIVE ACCOUNTS
     # -----------------------------------------------------
-    #
-    # We still return the generic response so that the caller
-    # cannot determine whether the account exists.
-    # -----------------------------------------------------
 
     if not user.is_active:
         return jsonify(generic_response), 200
 
     # -----------------------------------------------------
     # INVALIDATE PREVIOUS UNUSED RESET TOKENS
-    # -----------------------------------------------------
-    #
-    # If the user requests another reset link, previous
-    # unused reset tokens should no longer be valid.
     # -----------------------------------------------------
 
     previous_tokens = PasswordResetToken.query.filter_by(
@@ -629,25 +896,11 @@ def forgot_password():
     # -----------------------------------------------------
     # GENERATE SECURE RANDOM TOKEN
     # -----------------------------------------------------
-    #
-    # secrets.token_urlsafe() uses Python's cryptographically
-    # secure random number generator.
-    #
-    # This raw token will be sent through the email.
-    # -----------------------------------------------------
 
     raw_token = secrets.token_urlsafe(48)
 
     # -----------------------------------------------------
     # HASH TOKEN
-    # -----------------------------------------------------
-    #
-    # IMPORTANT:
-    #
-    # We store ONLY the hash in MySQL.
-    #
-    # The raw token exists only long enough to create the
-    # email link.
     # -----------------------------------------------------
 
     token_hash = hashlib.sha256(
@@ -656,9 +909,6 @@ def forgot_password():
 
     # -----------------------------------------------------
     # SET EXPIRATION
-    # -----------------------------------------------------
-    #
-    # Reset links are valid for 30 minutes.
     # -----------------------------------------------------
 
     expires_at = datetime.utcnow() + timedelta(
@@ -739,13 +989,6 @@ The Thafari Team
 
     # -----------------------------------------------------
     # SEND EMAIL
-    # -----------------------------------------------------
-    #
-    # If email delivery fails, we log the problem but still
-    # return the generic response.
-    #
-    # This prevents account-existence information from
-    # leaking through different API responses.
     # -----------------------------------------------------
 
     try:
@@ -839,9 +1082,6 @@ def reset_password():
     # -----------------------------------------------------
     # HASH SUPPLIED TOKEN
     # -----------------------------------------------------
-    #
-    # We never search the database using the raw token.
-    # -----------------------------------------------------
 
     token_hash = hashlib.sha256(
         raw_token.encode("utf-8")
@@ -919,9 +1159,6 @@ def reset_password():
 
     # -----------------------------------------------------
     # INVALIDATE RESET TOKEN
-    # -----------------------------------------------------
-    #
-    # This makes the token single-use.
     # -----------------------------------------------------
 
     reset_token.used_at = datetime.utcnow()

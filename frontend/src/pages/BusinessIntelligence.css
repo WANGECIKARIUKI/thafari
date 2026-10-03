@@ -1,0 +1,1211 @@
+
+/* =========================================================
+   THAFARI BUSINESS INTELLIGENCE
+   Premium admin analytics UI
+   ========================================================= */
+
+.business-intelligence-page {
+    width: 100%;
+    max-width: 1480px;
+    margin: 0 auto;
+    padding: 28px 28px 64px;
+    box-sizing: border-box;
+    color: #173b2a;
+}
+
+
+/* =========================================================
+   PAGE HEADER
+   ========================================================= */
+
+.bi-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 36px;
+    min-height: 250px;
+    padding: 42px 48px;
+    margin-bottom: 28px;
+    border: 1px solid #d9e8dd;
+    border-radius: 28px;
+    background:
+        radial-gradient(circle at 92% 18%, rgba(201, 231, 209, 0.78), transparent 34%),
+        radial-gradient(circle at 72% 100%, rgba(232, 244, 235, 0.9), transparent 36%),
+        linear-gradient(135deg, #f9fcf9 0%, #eef7f0 100%);
+    box-shadow: 0 18px 45px rgba(24, 59, 42, 0.075);
+}
+
+.bi-header-content {
+    max-width: 760px;
+}
+
+.bi-eyebrow,
+.bi-section-eyebrow {
+    display: inline-block;
+    margin-bottom: 9px;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    color: #317455;
+}
+
+.bi-header-content h1 {
+    margin: 0;
+    color: #143e2b;
+    font-size: clamp(2.25rem, 4vw, 4rem);
+    font-weight: 800;
+    line-height: 0.98;
+    letter-spacing: -0.055em;
+}
+
+.bi-header-content p {
+    max-width: 700px;
+    margin: 17px 0 0;
+    color: #60746a;
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+.bi-period-selector {
+    width: min(330px, 100%);
+    flex: 0 0 auto;
+}
+
+.bi-period-selector label {
+    display: block;
+    margin-bottom: 9px;
+    color: #405c4d;
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.bi-period-selector select {
+    width: 100%;
+    min-height: 54px;
+    padding: 0 42px 0 17px;
+    border: 1px solid #cdded2;
+    border-radius: 15px;
+    outline: none;
+    background: #ffffff;
+    color: #193d2c;
+    font: inherit;
+    font-size: 0.92rem;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(24, 59, 42, 0.045);
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+.bi-period-selector select:hover {
+    border-color: #abcbb6;
+}
+
+.bi-period-selector select:focus {
+    border-color: #4c8968;
+    box-shadow: 0 0 0 4px rgba(76, 137, 104, 0.13);
+}
+
+
+/* =========================================================
+   ALERT / PERIOD SUMMARY / LOADING
+   ========================================================= */
+
+.bi-alert {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 22px;
+    padding: 15px 18px;
+    border: 1px solid #ead7b5;
+    border-radius: 14px;
+    background: #fffaf0;
+    color: #735b32;
+}
+
+.bi-alert strong {
+    font-size: 0.85rem;
+}
+
+.bi-alert span {
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+.bi-period-summary {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 0 0 20px;
+    border: 1px solid #e1e9e3;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 5px 18px rgba(24, 59, 42, 0.035);
+}
+
+.bi-period-summary > div {
+    flex: 1;
+    min-width: 0;
+    padding: 15px 19px;
+}
+
+.bi-period-summary > div + div {
+    border-left: 1px solid #e5ece7;
+}
+
+.bi-period-summary span {
+    display: block;
+    margin-bottom: 5px;
+    color: #75857c;
+    font-size: 0.66rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+}
+
+.bi-period-summary strong {
+    display: block;
+    color: #214b35;
+    font-size: 0.92rem;
+    font-weight: 800;
+}
+
+.bi-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 11px;
+    min-height: 90px;
+    margin-bottom: 20px;
+    border: 1px solid #e1e9e3;
+    border-radius: 16px;
+    background: #ffffff;
+    color: #718078;
+    font-size: 0.84rem;
+}
+
+.bi-loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #dce9df;
+    border-top-color: #4d8664;
+    border-radius: 50%;
+    animation: bi-spin 0.8s linear infinite;
+}
+
+
+/* =========================================================
+   KPI CARDS
+   ========================================================= */
+
+.bi-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 38px;
+}
+
+.bi-kpi-card {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    min-width: 0;
+    min-height: 142px;
+    padding: 23px;
+    overflow: hidden;
+    border: 1px solid #dfe9e2;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 9px 28px rgba(28, 66, 47, 0.055);
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.bi-kpi-card::after {
+    position: absolute;
+    right: -30px;
+    bottom: -45px;
+    width: 105px;
+    height: 105px;
+    border-radius: 50%;
+    background: #f0f8f2;
+    content: "";
+    pointer-events: none;
+}
+
+.bi-kpi-card:hover {
+    transform: translateY(-3px);
+    border-color: #c9ddcf;
+    box-shadow: 0 15px 34px rgba(28, 66, 47, 0.09);
+}
+
+.bi-kpi-icon {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    border: 1px solid #dcebe0;
+    border-radius: 14px;
+    background: #edf7ef;
+    font-size: 1.35rem;
+}
+
+.bi-kpi-content {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+}
+
+.bi-kpi-content span {
+    display: block;
+    margin-bottom: 8px;
+    color: #718178;
+    font-size: 0.77rem;
+    font-weight: 800;
+}
+
+.bi-kpi-content strong {
+    display: block;
+    overflow: hidden;
+    color: #16462f;
+    font-size: clamp(1.35rem, 2vw, 1.75rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.035em;
+    text-overflow: ellipsis;
+}
+
+.bi-kpi-content small {
+    display: block;
+    margin-top: 8px;
+    color: #87958d;
+    font-size: 0.71rem;
+    line-height: 1.45;
+}
+
+
+/* =========================================================
+   GENERAL SECTIONS
+   ========================================================= */
+
+.bi-section {
+    margin-bottom: 34px;
+}
+
+.bi-section-header {
+    margin-bottom: 17px;
+}
+
+.bi-section-header h2,
+.bi-chart-header h2 {
+    margin: 0;
+    color: #194b33;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+}
+
+.bi-section-header p,
+.bi-chart-header p {
+    margin: 7px 0 0;
+    color: #738279;
+    font-size: 0.88rem;
+    line-height: 1.55;
+}
+
+
+/* =========================================================
+   OVERVIEW METRICS
+   ========================================================= */
+
+.bi-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.bi-metric-card {
+    min-width: 0;
+    min-height: 190px;
+    padding: 22px;
+    border: 1px solid #e0e9e3;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 8px 25px rgba(28, 66, 47, 0.045);
+}
+
+.bi-metric-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 21px;
+}
+
+.bi-metric-card-header > span:first-child {
+    color: #53695d;
+    font-size: 0.84rem;
+    font-weight: 800;
+}
+
+.bi-metric-icon {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border: 1px solid #dfebe2;
+    border-radius: 10px;
+    background: #f0f7f2;
+    color: #397052;
+    font-size: 0.85rem;
+}
+
+.bi-metric-card > strong {
+    display: block;
+    color: #16462f;
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.045em;
+}
+
+.bi-metric-card > p {
+    max-width: 240px;
+    margin: 11px 0 0;
+    color: #819088;
+    font-size: 0.78rem;
+    line-height: 1.55;
+}
+
+
+/* =========================================================
+   CHART / CONTENT GRID
+   ========================================================= */
+
+.bi-chart-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(340px, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.bi-chart-card {
+    min-width: 0;
+    padding: 26px;
+    border: 1px solid #dfe8e2;
+    border-radius: 22px;
+    background: #ffffff;
+    box-shadow: 0 9px 28px rgba(28, 66, 47, 0.05);
+}
+
+.bi-chart-card-large {
+    min-height: 340px;
+}
+
+.bi-chart-header {
+    margin-bottom: 24px;
+}
+
+.bi-chart-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    min-height: 225px;
+    padding: 24px;
+    border: 1px dashed #cddbd1;
+    border-radius: 17px;
+    background: #fbfdfb;
+    text-align: center;
+}
+
+.bi-chart-placeholder span {
+    margin-bottom: 10px;
+    font-size: 2rem;
+}
+
+.bi-chart-placeholder p {
+    max-width: 310px;
+    margin: 0;
+    color: #89968e;
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   REVENUE BY TOUR
+   ========================================================= */
+
+.bi-revenue-bars {
+    display: grid;
+    gap: 18px;
+}
+
+.bi-revenue-row {
+    min-width: 0;
+}
+
+.bi-revenue-row-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.bi-revenue-row-label span {
+    min-width: 0;
+    overflow: hidden;
+    color: #52685c;
+    font-size: 0.82rem;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bi-revenue-row-label strong {
+    flex: 0 0 auto;
+    color: #23533a;
+    font-size: 0.81rem;
+    font-weight: 800;
+}
+
+.bi-revenue-track {
+    width: 100%;
+    height: 11px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #edf3ee;
+}
+
+.bi-revenue-fill {
+    height: 100%;
+    min-width: 3px;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #3e7d58, #76aa88);
+    box-shadow: 0 2px 7px rgba(63, 125, 88, 0.2);
+    transition: width 0.45s ease;
+}
+
+
+/* =========================================================
+   POPULAR TOUR
+   ========================================================= */
+
+.bi-featured-placeholder {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    min-height: 245px;
+    padding: 30px 24px;
+    overflow: hidden;
+    border: 1px solid #dce9df;
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 85% 20%, rgba(204, 232, 211, 0.85), transparent 30%),
+        linear-gradient(145deg, #f4faf5, #fbfdfb);
+    text-align: center;
+}
+
+.bi-featured-icon {
+    display: grid;
+    place-items: center;
+    width: 58px;
+    height: 58px;
+    margin-bottom: 12px;
+    border-radius: 17px;
+    background: #e8f4ea;
+    font-size: 1.9rem;
+}
+
+.bi-featured-label {
+    margin-bottom: 7px;
+    color: #4d8062;
+    font-size: 0.66rem;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+}
+
+.bi-featured-placeholder > strong {
+    color: #194b33;
+    font-size: 1.45rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.bi-featured-placeholder > p {
+    margin: 7px 0 15px;
+    color: #788980;
+    font-size: 0.82rem;
+}
+
+.bi-featured-stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 9px 15px;
+    border: 1px solid #dce9df;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.78);
+}
+
+.bi-featured-stat strong {
+    color: #1d5136;
+    font-size: 1.05rem;
+}
+
+.bi-featured-stat span {
+    color: #75857c;
+    font-size: 0.72rem;
+}
+
+
+/* =========================================================
+   BOOKING PERFORMANCE
+   ========================================================= */
+
+.bi-booking-status-list {
+    display: grid;
+    gap: 18px;
+}
+
+.bi-booking-status-item {
+    min-width: 0;
+}
+
+.bi-booking-status-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 7px;
+}
+
+.bi-booking-status-topline span {
+    color: #53695d;
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.bi-booking-status-topline strong {
+    color: #194b33;
+    font-size: 0.86rem;
+    font-weight: 800;
+}
+
+.bi-booking-status-track {
+    width: 100%;
+    height: 10px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #edf2ee;
+}
+
+.bi-booking-status-fill {
+    width: 0;
+    height: 100%;
+    min-width: 0;
+    border-radius: inherit;
+    background: #5d9973;
+    transition: width 0.45s ease;
+}
+
+.bi-booking-status-item small {
+    display: block;
+    margin-top: 6px;
+    color: #89968e;
+    font-size: 0.68rem;
+}
+
+.bi-booking-status-confirmed .bi-booking-status-fill {
+    background: #4d8a67;
+}
+
+.bi-booking-status-completed .bi-booking-status-fill {
+    background: #72a47e;
+}
+
+.bi-booking-status-cancelled .bi-booking-status-fill {
+    background: #bd7a69;
+}
+
+.bi-booking-status-expired .bi-booking-status-fill {
+    background: #9b9f86;
+}
+
+
+/* =========================================================
+   CUSTOMER INSIGHTS
+   ========================================================= */
+
+.bi-customer-metrics {
+    display: grid;
+    gap: 12px;
+}
+
+.bi-customer-metric-item {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid #e4ece6;
+    border-radius: 15px;
+    background: #fbfdfb;
+}
+
+.bi-customer-metric-icon {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: #edf7ef;
+    font-size: 1rem;
+}
+
+.bi-customer-metric-copy {
+    min-width: 0;
+}
+
+.bi-customer-metric-copy span {
+    display: block;
+    color: #53695d;
+    font-size: 0.81rem;
+    font-weight: 800;
+}
+
+.bi-customer-metric-copy small {
+    display: block;
+    margin-top: 4px;
+    overflow: hidden;
+    color: #8a9790;
+    font-size: 0.67rem;
+    line-height: 1.4;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bi-customer-metric-item > strong {
+    color: #1c4d34;
+    font-size: 0.94rem;
+    font-weight: 800;
+    text-align: right;
+}
+
+
+/* =========================================================
+   ADDITIONAL INSIGHTS
+   ========================================================= */
+
+.bi-insights-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.bi-insight-card {
+    min-width: 0;
+    min-height: 145px;
+    padding: 21px;
+    border: 1px solid #e0e9e3;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 7px 22px rgba(28, 66, 47, 0.045);
+}
+
+.bi-insight-card > span {
+    display: block;
+    min-height: 35px;
+    margin-bottom: 11px;
+    color: #596d61;
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1.4;
+}
+
+.bi-insight-card > strong {
+    display: block;
+    overflow: hidden;
+    color: #1c4b33;
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bi-insight-card > small {
+    display: block;
+    margin-top: 8px;
+    color: #89968e;
+    font-size: 0.69rem;
+    line-height: 1.45;
+}
+
+
+/* =========================================================
+   REVENUE TARGET
+   ========================================================= */
+
+.bi-target-card {
+    position: relative;
+    padding: 28px 30px;
+    margin-top: 4px;
+    border: 1px solid #d8e7dc;
+    border-radius: 22px;
+    background:
+        radial-gradient(circle at 95% 20%, rgba(208, 233, 214, 0.72), transparent 30%),
+        linear-gradient(145deg, #f6fbf7, #ffffff);
+    box-shadow: 0 10px 30px rgba(28, 66, 47, 0.045);
+}
+
+.bi-target-card h2 {
+    margin: 7px 0 0;
+    color: #17462f;
+    font-size: clamp(1.55rem, 3vw, 2.15rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+}
+
+.bi-target-card p {
+    margin: 6px 0 0;
+    color: #61736a;
+    font-size: 0.9rem;
+}
+
+.bi-target-progress {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    margin-top: 22px;
+}
+
+.bi-target-progress-track {
+    width: 100%;
+    height: 13px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e6eee8;
+}
+
+.bi-target-progress-fill {
+    width: 0;
+    height: 100%;
+    min-width: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #3f7d59, #79aa88);
+    box-shadow: 0 2px 7px rgba(63, 125, 89, 0.18);
+    transition: width 0.5s ease;
+}
+
+.bi-target-progress > strong {
+    min-width: 76px;
+    color: #205239;
+    font-size: 0.85rem;
+    font-weight: 900;
+    text-align: right;
+}
+
+
+/* =========================================================
+   ACCESSIBILITY / INTERACTION
+   ========================================================= */
+
+.bi-page-header select:focus-visible,
+.bi-chart-card button:focus-visible {
+    outline: 3px solid rgba(77, 138, 104, 0.22);
+    outline-offset: 3px;
+}
+
+.bi-kpi-card,
+.bi-metric-card,
+.bi-chart-card,
+.bi-insight-card {
+    transition:
+        box-shadow 0.2s ease,
+        transform 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.bi-metric-card:hover,
+.bi-insight-card:hover {
+    transform: translateY(-2px);
+    border-color: #cfdfd3;
+    box-shadow: 0 13px 30px rgba(28, 66, 47, 0.075);
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1200px) {
+    .business-intelligence-page {
+        max-width: 1180px;
+    }
+
+    .bi-kpi-grid,
+    .bi-overview-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .bi-insights-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .business-intelligence-page {
+        padding: 24px 18px 48px;
+    }
+
+    .bi-page-header {
+        align-items: stretch;
+        flex-direction: column;
+        min-height: auto;
+        padding: 30px;
+    }
+
+    .bi-period-selector {
+        width: 100%;
+    }
+
+    .bi-chart-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .business-intelligence-page {
+        padding: 17px 13px 38px;
+    }
+
+    .bi-page-header {
+        padding: 24px 20px;
+        border-radius: 20px;
+    }
+
+    .bi-header-content h1 {
+        font-size: 2.15rem;
+    }
+
+    .bi-header-content p {
+        font-size: 0.9rem;
+    }
+
+    .bi-period-selector select {
+        min-height: 50px;
+    }
+
+    .bi-period-summary {
+        flex-direction: column;
+    }
+
+    .bi-period-summary > div + div {
+        border-top: 1px solid #e5ece7;
+        border-left: 0;
+    }
+
+    .bi-kpi-grid,
+    .bi-overview-grid,
+    .bi-insights-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .bi-kpi-card {
+        min-height: 125px;
+    }
+
+    .bi-chart-card,
+    .bi-metric-card,
+    .bi-insight-card {
+        padding: 19px;
+        border-radius: 17px;
+    }
+
+    .bi-chart-grid {
+        gap: 16px;
+        margin-bottom: 22px;
+    }
+
+    .bi-chart-card-large {
+        min-height: 0;
+    }
+
+    .bi-featured-placeholder {
+        min-height: 210px;
+    }
+
+    .bi-customer-metric-item {
+        grid-template-columns: 38px minmax(0, 1fr);
+    }
+
+    .bi-customer-metric-icon {
+        width: 38px;
+        height: 38px;
+    }
+
+    .bi-customer-metric-item > strong {
+        grid-column: 2;
+        text-align: left;
+    }
+
+    .bi-customer-metric-copy small {
+        white-space: normal;
+    }
+
+    .bi-target-card {
+        padding: 23px 20px;
+    }
+
+    .bi-target-progress {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .bi-target-progress > strong {
+        text-align: left;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bi-kpi-card,
+    .bi-metric-card,
+    .bi-insight-card,
+    .bi-period-selector select,
+    .bi-revenue-fill,
+    .bi-booking-status-fill,
+    .bi-target-progress-fill {
+        transition: none;
+    }
+
+    .bi-loading-spinner {
+        animation: none;
+    }
+}
+
+
+/* =========================================================
+   ANIMATION
+   ========================================================= */
+
+@keyframes bi-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* =========================================================
+   CALENDAR-STYLE ANALYTICS PERIOD SELECTOR
+   ========================================================= */
+
+.bi-calendar-selector {
+    position: relative;
+    width: 100%;
+}
+
+.bi-calendar-trigger {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) 24px;
+    align-items: center;
+    width: 100%;
+    min-height: 68px;
+    padding: 10px 13px;
+    border: 1px solid #cdded2;
+    border-radius: 16px;
+    background: #ffffff;
+    color: #193d2c;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(24, 59, 42, 0.045);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bi-calendar-trigger:hover:not(:disabled),
+.bi-calendar-trigger[aria-expanded="true"] {
+    border-color: #9fc3ab;
+    box-shadow: 0 8px 20px rgba(24, 59, 42, 0.08);
+}
+
+.bi-calendar-trigger:focus-visible {
+    outline: 3px solid rgba(76, 137, 104, 0.15);
+    outline-offset: 2px;
+}
+
+.bi-calendar-trigger:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.bi-calendar-trigger-icon {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: #edf7ef;
+    font-size: 1rem;
+}
+
+.bi-calendar-trigger-copy {
+    min-width: 0;
+    padding: 0 8px;
+}
+
+.bi-calendar-trigger-copy strong {
+    display: block;
+    overflow: hidden;
+    color: #214b35;
+    font-size: 0.84rem;
+    font-weight: 800;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bi-calendar-trigger-copy small {
+    display: block;
+    margin-top: 3px;
+    color: #84928a;
+    font-size: 0.67rem;
+}
+
+.bi-calendar-chevron {
+    color: #557061;
+    font-size: 1rem;
+    text-align: center;
+    transition: transform 0.2s ease;
+}
+
+.bi-calendar-chevron.is-open {
+    transform: rotate(180deg);
+}
+
+.bi-calendar-dropdown {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 9px);
+    right: 0;
+    width: min(390px, calc(100vw - 36px));
+    max-height: 390px;
+    overflow: hidden;
+    border: 1px solid #d7e4da;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 20px 45px rgba(24, 59, 42, 0.14);
+}
+
+.bi-calendar-dropdown-header {
+    padding: 17px 18px 14px;
+    border-bottom: 1px solid #e6eee8;
+    background: #f8fbf8;
+}
+
+.bi-calendar-dropdown-header span {
+    display: block;
+    margin-bottom: 4px;
+    color: #4c8061;
+    font-size: 0.62rem;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+}
+
+.bi-calendar-dropdown-header strong {
+    color: #1d4a33;
+    font-size: 0.88rem;
+}
+
+.bi-calendar-period-list {
+    max-height: 305px;
+    padding: 7px;
+    overflow-y: auto;
+}
+
+.bi-calendar-period-option {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) 24px;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 62px;
+    padding: 9px 10px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.bi-calendar-period-option:hover {
+    background: #f3f8f4;
+}
+
+.bi-calendar-period-option.is-selected {
+    border-color: #d4e6d9;
+    background: #edf7ef;
+}
+
+.bi-calendar-option-icon {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #f0f6f1;
+    font-size: 0.9rem;
+}
+
+.bi-calendar-period-option.is-selected .bi-calendar-option-icon {
+    background: #dceedd;
+}
+
+.bi-calendar-option-copy {
+    min-width: 0;
+}
+
+.bi-calendar-option-copy strong {
+    display: block;
+    overflow: hidden;
+    color: #315340;
+    font-size: 0.77rem;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bi-calendar-option-copy small {
+    display: block;
+    margin-top: 4px;
+    color: #87958d;
+    font-size: 0.65rem;
+}
+
+.bi-calendar-option-check {
+    color: #3d7c58;
+    font-size: 1rem;
+    font-weight: 900;
+    text-align: center;
+}
+
+@media (max-width: 640px) {
+    .bi-calendar-dropdown {
+        right: 0;
+        width: min(390px, calc(100vw - 26px));
+    }
+}

@@ -66,6 +66,16 @@ class Booking(BaseModel):
         back_populates = "booking"
     )
 
+    # A booking can have cancellation requests.
+    #
+    # A customer can submit a cancellation request for a
+    # confirmed paid booking. The booking itself remains
+    # confirmed while the request is waiting for review.
+    cancellation_requests = db.relationship(
+        "CancellationRequest",
+        back_populates="booking"
+    )
+
     # A booking can have one conversation associated with it.
     conversation = db.relationship(
         "Conversation",
@@ -73,4 +83,3 @@ class Booking(BaseModel):
         uselist=False #one booking one main conversation
     )
 
-    
