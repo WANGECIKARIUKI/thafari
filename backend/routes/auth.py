@@ -402,6 +402,124 @@ def login():
 
 
 # =========================================================
+# CURRENT USER - UPDATE PROFILE
+# =========================================================
+#
+# PATCH /api/auth/me
+#
+# Allows an authenticated user to update their own:
+#
+# - first_name
+# - last_name
+# - username
+# - email
+# - phone_number
+#
+# Role, verification status, account status and password
+# are deliberately not changed by this endpoint.
+# =========================================================
+
+@auth_bp.route(
+    "/me",
+    methods=["PATCH"]
+)
+@jwt_required()
+def update_me():
+
+    current_user_id = int(
+        get_jwt_identity()
+    )
+
+    user = User.query.filter_by(
+        id=current_user_id
+    ).first()
+
+    if not user:
+        return jsonify({
+            "message": "User not found."
+        }), 404
+
+    data = request.get_json(silent=True)
+
+    if not data:
+        return jsonify({
+            "message": "Request body is required."
+        }), 400
+
+    first_name = str(data.get("first_name", "")).strip()
+    last_name = str(data.get("last_name", "")).strip()
+    username = str(data.get("username", "")).strip()
+    email = str(data.get("email", "")).strip().lower()
+    phone_number = str(data.get("phone_number", "")).strip()
+
+    if not first_name:
+        return jsonify({"message": "First name is required."}), 400
+
+    if not last_name:
+        return jsonify({"message": "Last name is required."}), 400
+
+    if not username:
+        return jsonify({"message": "Username is required."}), 400
+
+    if not email:
+        return jsonify({"message": "Email is required."}), 400
+
+    existing_username = User.query.filter(
+        User.username == username,
+        User.id != current_user_id
+    ).first()
+
+    if existing_username:
+        return jsonify({
+            "message": "Username already exists."
+        }), 400
+
+    existing_email = User.query.filter(
+        User.email == email,
+        User.id != current_user_id
+    ).first()
+
+    if existing_email:
+        return jsonify({
+            "message": "Email already exists."
+        }), 400
+
+    user.first_name = first_name
+    user.last_name = last_name
+    user.username = username
+    user.email = email
+    user.phone_number = phone_number or None
+
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({
+            "message": "Username or email already exists."
+        }), 400
+    except Exception as e:
+        db.session.rollback()
+        print(f"Profile update error: {e}")
+        return jsonify({
+            "message": "Your profile could not be updated."
+        }), 500
+
+    return jsonify({
+        "message": "Profile updated successfully.",
+        "user": {
+            "id": user.id,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "username": user.username,
+            "email": user.email,
+            "phone_number": user.phone_number,
+            "role": user.role,
+            "is_verified": user.is_verified
+        }
+    }), 200
+
+
+# =========================================================
 # ADMIN - GET MANAGEABLE USERS
 # =========================================================
 #
