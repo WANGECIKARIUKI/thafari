@@ -4,7 +4,7 @@
 //
 // Shared footer for the public-facing pages.
 // ---------------------------------------------------------
-import "./footer.css"
+import "./Footer.css"
 import "./Branding.css"
 
 
