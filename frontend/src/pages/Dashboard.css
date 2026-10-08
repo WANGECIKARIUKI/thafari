@@ -304,6 +304,138 @@
    BOOKING HISTORY
 ========================================================= */
 
+/* ---------------------------------------------------------
+   BOOKING HISTORY FILTERS
+   --------------------------------------------------------- */
+
+.dashboard-booking-history {
+    width: 100%;
+}
+
+.dashboard-booking-filters {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 28px 20px;
+    margin: 0;
+    border-bottom: 1px solid #e8e4db;
+}
+
+.dashboard-booking-filter {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 13px;
+    border: 1px solid #ddd8cc;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #657067;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+.dashboard-booking-filter:hover {
+    background: #f8f6f1;
+    border-color: #cfc8b8;
+    color: #24382b;
+    transform: translateY(-1px);
+}
+
+.dashboard-booking-filter.active {
+    background: #24382b;
+    border-color: #24382b;
+    color: #ffffff;
+    box-shadow: 0 7px 16px rgba(36, 56, 43, 0.12);
+}
+
+.dashboard-booking-filter:focus-visible {
+    outline: 3px solid rgba(97, 116, 95, 0.22);
+    outline-offset: 2px;
+}
+
+.dashboard-booking-filter-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #f1eee6;
+    color: #61745f;
+    font-size: 0.66rem;
+    font-weight: 800;
+    line-height: 1;
+    box-sizing: border-box;
+}
+
+.dashboard-booking-filter.active .dashboard-booking-filter-count {
+    background: rgba(255, 255, 255, 0.16);
+    color: #ffffff;
+}
+
+/* ---------------------------------------------------------
+   FILTER EMPTY STATE
+   --------------------------------------------------------- */
+
+.dashboard-filter-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 250px;
+    padding: 40px 28px;
+    text-align: center;
+}
+
+.dashboard-filter-empty-state h3 {
+    margin: 14px 0 8px;
+    color: #24382b;
+    font-size: 1.1rem;
+}
+
+.dashboard-filter-empty-state p {
+    max-width: 480px;
+    margin: 0 0 20px;
+    color: #657067;
+    font-size: 0.86rem;
+    line-height: 1.7;
+}
+
+/* ---------------------------------------------------------
+   BOOKING REVIEW ACTION
+   --------------------------------------------------------- */
+
+.dashboard-booking-review {
+    background: #faf6e8;
+    color: #6f5a25;
+    border: 1px solid #cdbf9b;
+}
+
+.dashboard-booking-review:hover {
+    background: #f5edcf;
+    border-color: #bca878;
+    color: #574718;
+    transform: translateY(-1px);
+}
+
+
 .dashboard-booking-list {
     display: flex;
     flex-direction: column;
@@ -445,51 +577,16 @@
     transform: translateY(-1px);
 }
 
-
-/* =========================================================
-   CANCELLATION BUTTONS
-========================================================= */
-
-/* Request Cancellation */
 .dashboard-booking-cancel {
-    background-color: #fffaf0;
-    color: #8a6428;
-    border: 1px solid #dcc38d;
+    background-color: #ffffff;
+    color: #754141;
+    border: 1px solid #d9bebe;
 }
 
 .dashboard-booking-cancel:hover {
-    background-color: #f8efd9;
-    border-color: #c8aa68;
-    transform: translateY(-1px);
-}
-
-/* Pending bookings keep the original red cancellation styling. */
-.dashboard-booking-item:has(.dashboard-booking-status.pending)
-    .dashboard-booking-cancel {
-    background-color: #ffffff;
-    color: #754141;
-    border-color: #d9bebe;
-}
-
-.dashboard-booking-item:has(.dashboard-booking-status.pending)
-    .dashboard-booking-cancel:hover {
     background-color: #f7eded;
     border-color: #c89d9d;
-}
-
-/* Cancellation Requested */
-.dashboard-booking-cancel:disabled {
-    background-color: #eef3f6;
-    color: #536b7b;
-    border-color: #c7d4dc;
-    cursor: not-allowed;
-    opacity: 1;
-}
-
-.dashboard-booking-cancel:disabled:hover {
-    background-color: #eef3f6;
-    border-color: #c7d4dc;
-    transform: none;
+    transform: translateY(-1px);
 }
 
 
@@ -798,6 +895,21 @@
 
 @media (max-width: 500px) {
 
+    .dashboard-booking-filters {
+        align-items: stretch;
+        padding: 0 18px 16px;
+    }
+
+    .dashboard-booking-filter {
+        flex: 1 1 calc(50% - 8px);
+        justify-content: space-between;
+    }
+
+    .dashboard-filter-empty-state {
+        min-height: 220px;
+        padding: 32px 18px;
+    }
+
     .dashboard-feedback-message {
         align-items: flex-start;
         margin: 0 18px 18px;
@@ -843,5 +955,372 @@
     .dashboard-booking-actions a,
     .dashboard-booking-actions button {
         width: 100%;
+    }
+}
+
+
+/* =========================================================
+   CUSTOMER REVIEW
+========================================================= */
+
+.dashboard-review-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0 13px;
+    border: 1px solid #cdbf9b;
+    border-radius: 6px;
+    background: #faf6e8;
+    color: #6f5a25;
+    font-size: 0.76rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.dashboard-review-trigger:hover {
+    background: #f5edcf;
+    border-color: #bca878;
+    color: #574718;
+    transform: translateY(-1px);
+    box-shadow: 0 7px 16px rgba(111, 90, 37, 0.10);
+}
+
+
+/* =========================================================
+   REVIEW MODAL
+========================================================= */
+
+.dashboard-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(15, 23, 18, 0.58);
+    backdrop-filter: blur(5px);
+    animation: dashboard-modal-fade 0.2s ease-out;
+}
+
+.dashboard-modal-card {
+    width: min(100%, 620px);
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    background: #ffffff;
+    border: 1px solid rgba(229, 225, 216, 0.96);
+    border-radius: 18px;
+    box-shadow: 0 30px 80px rgba(23, 34, 27, 0.24);
+    animation: dashboard-modal-up 0.25s ease-out;
+}
+
+.dashboard-review-modal {
+    padding: 0;
+}
+
+.dashboard-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 28px 30px 22px;
+    border-bottom: 1px solid #ece9e2;
+}
+
+.dashboard-modal-header h2 {
+    margin: 0 0 7px;
+    color: #24382b;
+    font-size: clamp(1.45rem, 3vw, 2rem);
+    line-height: 1.12;
+}
+
+.dashboard-modal-header p:last-child {
+    margin: 0;
+    color: #657067;
+    font-size: 0.84rem;
+}
+
+.dashboard-modal-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border: 1px solid #ddd8cc;
+    border-radius: 50%;
+    background: #f8f6f1;
+    color: #24382b;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.dashboard-modal-close:hover {
+    background: #eeece5;
+    border-color: #cfc6b6;
+    transform: rotate(4deg);
+}
+
+
+/* =========================================================
+   REVIEW FORM
+========================================================= */
+
+.dashboard-review-form {
+    padding: 26px 30px 30px;
+}
+
+.dashboard-review-rating-group,
+.dashboard-review-comment-group {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    margin-bottom: 24px;
+}
+
+.dashboard-review-rating-group > label,
+.dashboard-review-comment-group > label {
+    color: #24382b;
+    font-size: 0.88rem;
+    font-weight: 800;
+}
+
+.dashboard-review-stars {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 0 2px;
+}
+
+.dashboard-review-star {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border: 1px solid #ded8ca;
+    border-radius: 12px;
+    background: #f8f6f1;
+    color: #c7c0b2;
+    font-size: 1.45rem;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+        color 0.15s ease,
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.15s ease;
+}
+
+.dashboard-review-star:hover {
+    color: #a68f59;
+    background: #fbf7ea;
+    border-color: #cdbf9b;
+    transform: translateY(-1px);
+}
+
+.dashboard-review-star.active {
+    color: #b18e3f;
+    background: #fbf5df;
+    border-color: #d8c79e;
+}
+
+.dashboard-review-rating-group small,
+.dashboard-review-comment-group small {
+    color: #7b827d;
+    font-size: 0.75rem;
+}
+
+.dashboard-review-comment-group textarea {
+    width: 100%;
+    min-height: 150px;
+    resize: vertical;
+    padding: 13px 14px;
+    border: 1px solid #ddd8cc;
+    border-radius: 10px;
+    outline: none;
+    background: #fbfaf7;
+    color: #24382b;
+    font: inherit;
+    font-size: 0.9rem;
+    line-height: 1.65;
+    box-sizing: border-box;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.dashboard-review-comment-group textarea::placeholder {
+    color: #9a9f9a;
+}
+
+.dashboard-review-comment-group textarea:focus {
+    border-color: #8d9d89;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(97, 116, 95, 0.10);
+}
+
+.dashboard-review-comment-group textarea:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+
+/* =========================================================
+   REVIEW MODAL ACTIONS
+========================================================= */
+
+.dashboard-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 4px;
+}
+
+.dashboard-modal-actions .dashboard-primary-button,
+.dashboard-modal-actions .dashboard-secondary-button {
+    min-height: 44px;
+}
+
+.dashboard-modal-actions .dashboard-primary-button {
+    padding: 0 18px;
+}
+
+.dashboard-modal-actions .dashboard-secondary-button {
+    padding: 0 18px;
+}
+
+
+/* =========================================================
+   REVIEW LOADING STATE
+========================================================= */
+
+.dashboard-modal-loading {
+    min-height: 270px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 30px;
+    color: #657067;
+    text-align: center;
+}
+
+.dashboard-modal-loading span {
+    font-size: 2rem;
+}
+
+.dashboard-modal-loading p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+
+/* =========================================================
+   REVIEW ANIMATIONS
+========================================================= */
+
+@keyframes dashboard-modal-fade {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes dashboard-modal-up {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.985);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+/* =========================================================
+   REVIEW RESPONSIVE
+========================================================= */
+
+@media (max-width: 700px) {
+    .dashboard-modal-backdrop {
+        align-items: flex-end;
+        padding: 12px;
+    }
+
+    .dashboard-modal-card {
+        max-height: calc(100vh - 24px);
+        border-radius: 18px 18px 12px 12px;
+    }
+
+    .dashboard-modal-header {
+        padding: 22px 20px 18px;
+    }
+
+    .dashboard-review-form {
+        padding: 22px 20px 24px;
+    }
+
+    .dashboard-review-star {
+        width: 42px;
+        height: 42px;
+        font-size: 1.3rem;
+    }
+
+    .dashboard-modal-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .dashboard-modal-actions .dashboard-primary-button,
+    .dashboard-modal-actions .dashboard-secondary-button {
+        width: 100%;
+    }
+}
+
+
+@media (max-width: 500px) {
+    .dashboard-review-stars {
+        gap: 5px;
+    }
+
+    .dashboard-review-star {
+        flex: 1;
+        max-width: 56px;
+    }
+
+    .dashboard-modal-header h2 {
+        font-size: 1.35rem;
+    }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+    .dashboard-modal-backdrop,
+    .dashboard-modal-card,
+    .dashboard-review-trigger,
+    .dashboard-review-star,
+    .dashboard-modal-close {
+        animation: none;
+        transition: none;
     }
 }

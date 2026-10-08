@@ -608,6 +608,7 @@ def send_message(conversation_id):
         }
     }), 201
 
+
 # ---------------------------------------------------------
 # GET CONVERSATION MESSAGES
 # ---------------------------------------------------------
@@ -685,15 +686,27 @@ def get_messages(conversation_id):
         "messages": message_list
     }), 200
 
-# Mark all messages in a conversation as read for the current user
-@message_bp.route("/conversations/<int:conversation_id>/read", methods=["PATCH"])
+
+# ---------------------------------------------------------
+# MARK CONVERSATION AS READ
+# ---------------------------------------------------------
+# Marks the conversation as read only for the currently
+# authenticated user.
+#
+# A user must be a participant in the conversation.
+# ---------------------------------------------------------
+
+@message_bp.route(
+    "/conversations/<int:conversation_id>/read",
+    methods=["PATCH"]
+)
 @jwt_required()
 def mark_conversation_as_read(conversation_id):
 
-    # Get the currently authenticated user's ID from the JWT
+    # Get the currently authenticated user's ID from the JWT.
     current_user_id = int(get_jwt_identity())
 
-    # Find the conversation
+    # Find the conversation.
     conversation = Conversation.query.filter_by(
         id=conversation_id
     ).first()
@@ -703,20 +716,20 @@ def mark_conversation_as_read(conversation_id):
             "message": "Conversation not found."
         }), 404
 
-    # Find the current user's participation in this conversation
+    # Find the current user's participation in this conversation.
     participant = ConversationParticipant.query.filter_by(
         conversation_id=conversation_id,
         user_id=current_user_id
     ).first()
 
-    # Only participants can mark a conversation as read
+    # Only participants can mark a conversation as read.
     if not participant:
         return jsonify({
             "message": "You are not a participant in this conversation."
         }), 403
 
     try:
-        # Record the time when the user last read the conversation
+        # Record the time when the user last read the conversation.
         participant.last_read_at = datetime.utcnow()
 
         db.session.commit()
@@ -729,10 +742,15 @@ def mark_conversation_as_read(conversation_id):
         }), 200
 
     except Exception as e:
-        # Roll back the transaction if anything goes wrong
+        # Roll back the transaction if anything goes wrong.
         db.session.rollback()
 
+        # Log the detailed error on the server, but do not
+        # expose internal exception details to the client.
+        print(
+            f"Failed to mark conversation as read: {e}"
+        )
+
         return jsonify({
-            "message": "Failed to mark conversation as read.",
-            "error": str(e)
+            "message": "Failed to mark conversation as read."
         }), 500

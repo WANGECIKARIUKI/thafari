@@ -6,6 +6,7 @@ purpose:
 4. Load environment variables.
 """
 
+
 # Import the operating system module.
 # It allows us to read environment variables.
 from datetime import timedelta
@@ -43,14 +44,91 @@ class Config:
 
     # Access tokens are intentionally short-lived.
     # If an access token is stolen, its useful lifetime is limited.
-
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
 
-    # Refresh tokens live longer and are used to obtain new access tokens without requiring the user to log in again.
+    # Refresh tokens live longer and are used to obtain
+    # new access tokens without requiring the user to log in again.
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
 
-   # Explicitly tell Flask-JWT-Extended to look for access tokens in the Authorization header.
-    JWT_TOKEN_LOCATION = ["headers"]
+    # -----------------------------------------------------
+    # JWT COOKIE SECURITY
+    # -----------------------------------------------------
+
+    # Tell Flask-JWT-Extended to read JWTs from cookies
+    # instead of the Authorization header.
+    #
+    # The actual JWT cookies will be HttpOnly, meaning
+    # JavaScript cannot directly read the authentication token.
+    JWT_TOKEN_LOCATION = ["cookies"]
+
+    # The browser should only send authentication cookies
+    # over HTTPS when this is enabled.
+    #
+    # Keep this "false" for local HTTP development.
+    # Set JWT_COOKIE_SECURE=true in production.
+    JWT_COOKIE_SECURE = (
+        os.getenv(
+            "JWT_COOKIE_SECURE",
+            "false"
+        ).lower() == "true"
+    )
+
+    # Controls when cookies are sent in cross-site requests.
+    #
+    # Local development can use "Lax".
+    # Because our production frontend and backend are on
+    # different domains, production should use:
+    #
+    # JWT_COOKIE_SAMESITE=None
+    #
+    # When SameSite=None is used in production,
+    # JWT_COOKIE_SECURE must also be true.
+    JWT_COOKIE_SAMESITE = os.getenv(
+        "JWT_COOKIE_SAMESITE",
+        "Lax"
+    )
+
+    # Enable CSRF protection for JWT cookies.
+    #
+    # This is important because cookies are automatically
+    # attached by the browser to requests.
+    JWT_COOKIE_CSRF_PROTECT = True
+
+    # Store the CSRF double-submit token in a separate
+    # browser cookie that JavaScript can read and send
+    # back in the X-CSRF-TOKEN header.
+    JWT_CSRF_IN_COOKIES = True
+
+    # HTTP methods that require CSRF protection.
+    JWT_CSRF_METHODS = [
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE"
+    ]
+
+    # Authentication cookie names.
+    JWT_ACCESS_COOKIE_NAME = "thafari_access_cookie"
+    JWT_REFRESH_COOKIE_NAME = "thafari_refresh_cookie"
+
+    # Keep the access token available to the whole application.
+    JWT_ACCESS_COOKIE_PATH = "/"
+
+    # The refresh token is only needed by authentication
+    # routes, so restrict its cookie path.
+    JWT_REFRESH_COOKIE_PATH = "/api/auth"
+
+    # CSRF cookie names.
+    JWT_ACCESS_CSRF_COOKIE_NAME = "thafari_csrf_access"
+    JWT_REFRESH_CSRF_COOKIE_NAME = "thafari_csrf_refresh"
+
+    # CSRF header used by the frontend.
+    JWT_ACCESS_CSRF_HEADER_NAME = "X-CSRF-TOKEN"
+    JWT_REFRESH_CSRF_HEADER_NAME = "X-CSRF-TOKEN"
+
+    # -----------------------------------------------------
+    # WEBHOOK SECURITY
+    # -----------------------------------------------------
 
     # Secret used by our application for webhook verification.
     # This can remain for now if other parts of the project
@@ -89,11 +167,19 @@ class Config:
 
     # SMTP port.
     # 587 is commonly used with TLS.
-    MAIL_PORT = int(os.getenv("MAIL_PORT", 587))
+    MAIL_PORT = int(
+        os.getenv(
+            "MAIL_PORT",
+            587
+        )
+    )
 
     # Enable TLS encryption for the email connection.
     MAIL_USE_TLS = (
-        os.getenv("MAIL_USE_TLS", "True").lower() == "true"
+        os.getenv(
+            "MAIL_USE_TLS",
+            "True"
+        ).lower() == "true"
     )
 
     # Email account Thafari will use to send emails.
@@ -106,15 +192,28 @@ class Config:
     # Email address customers will see as the sender.
     MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER")
 
+
     # -----------------------------------------------------
     # WHATSAPP CONFIGURATION
     # -----------------------------------------------------
 
-    WHATSAPP_ACCESS_TOKEN = os.getenv("WHATSAPP_ACCESS_TOKEN")
-    WHATSAPP_PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_NUMBER_ID")
-    WHATSAPP_API_VERSION = os.getenv("WHATSAPP_API_VERSION")
+    WHATSAPP_ACCESS_TOKEN = os.getenv(
+        "WHATSAPP_ACCESS_TOKEN"
+    )
 
-    #FRONTEND URL
+    WHATSAPP_PHONE_NUMBER_ID = os.getenv(
+        "WHATSAPP_PHONE_NUMBER_ID"
+    )
+
+    WHATSAPP_API_VERSION = os.getenv(
+        "WHATSAPP_API_VERSION"
+    )
+
+
+    # -----------------------------------------------------
+    # FRONTEND URL
+    # -----------------------------------------------------
+
     FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 

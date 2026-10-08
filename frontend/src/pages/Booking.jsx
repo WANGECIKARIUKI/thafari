@@ -1727,7 +1727,8 @@ function Booking() {
                                         </div>
 
 
-                                        {paymentSettings?.mpesa?.paybill && (
+                                        {paymentSettings?.mpesa?.mode === "paybill" &&
+                                            paymentSettings?.mpesa?.paybill && (
 
                                             <div className="direct-detail-row">
 
@@ -1747,7 +1748,8 @@ function Booking() {
                                         )}
 
 
-                                        {paymentSettings?.mpesa?.till && (
+                                        {paymentSettings?.mpesa?.mode === "till" &&
+                                            paymentSettings?.mpesa?.till && (
 
                                             <div className="direct-detail-row">
 
@@ -1865,9 +1867,18 @@ function Booking() {
                                         }
                                     </strong>
 
-                                    <p>
-                                        Once you make the payment please be patient a few minutes for it to be verified.
-                                    </p>
+                                    <div className="direct-payment-verification-notice">
+                                        <strong>
+                                            PAYMENT VERIFICATION NOTICE
+                                        </strong>
+
+                                        <p>
+                                            Once you make the payment,
+                                            please be patient for a few
+                                            minutes while your payment is
+                                            being verified.
+                                        </p>
+                                    </div>
 
                                 </div>
 

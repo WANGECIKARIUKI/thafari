@@ -7,14 +7,14 @@
 // A departure is a specific scheduled trip belonging to a
 // tour.
 //
-// Example:
+// Authentication is handled automatically by api.js using
+// the HttpOnly authentication cookie.
 //
-// Tour:
-//     Maasai Mara Safari
+// The accessToken parameters are retained only for
+// compatibility with existing components.
 //
-// Departures:
-//     10 Oct → 12 Oct
-//     15 Nov → 17 Nov
+// They are NOT used as credentials.
+//
 // =========================================================
 
 import api from "./api"
@@ -56,6 +56,9 @@ export const getTourDepartures = async (
 //
 // Tour operator:
 //     Can access only their own tour.
+//
+// The backend is responsible for applying the correct
+// role and ownership checks.
 // =========================================================
 
 export const getManageableDepartures = async (
@@ -63,13 +66,12 @@ export const getManageableDepartures = async (
     tourId
 ) => {
 
+    // Compatibility only.
+    // Authentication is handled by the HttpOnly cookie.
+    void accessToken
+
     const response = await api.get(
-        `/tours/${tourId}/departures/manage`,
-        {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        }
+        `/tours/${tourId}/departures/manage`
     )
 
     return response.data
@@ -81,6 +83,9 @@ export const getManageableDepartures = async (
 // =========================================================
 //
 // POST /api/departure
+//
+// The backend is responsible for authentication,
+// authorization and tour ownership checks.
 // =========================================================
 
 export const createDeparture = async (
@@ -88,14 +93,13 @@ export const createDeparture = async (
     departureData
 ) => {
 
+    // Compatibility only.
+    // Authentication is handled by the HttpOnly cookie.
+    void accessToken
+
     const response = await api.post(
         "/departure",
-        departureData,
-        {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        }
+        departureData
     )
 
     return response.data
@@ -115,14 +119,13 @@ export const updateDeparture = async (
     departureData
 ) => {
 
+    // Compatibility only.
+    // Authentication is handled by the HttpOnly cookie.
+    void accessToken
+
     const response = await api.patch(
         `/departures/${departureId}`,
-        departureData,
-        {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        }
+        departureData
     )
 
     return response.data
@@ -143,13 +146,12 @@ export const deactivateDeparture = async (
     departureId
 ) => {
 
+    // Compatibility only.
+    // Authentication is handled by the HttpOnly cookie.
+    void accessToken
+
     const response = await api.delete(
-        `/departures/${departureId}`,
-        {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        }
+        `/departures/${departureId}`
     )
 
     return response.data
@@ -168,14 +170,13 @@ export const reactivateDeparture = async (
     departureId
 ) => {
 
+    // Compatibility only.
+    // Authentication is handled by the HttpOnly cookie.
+    void accessToken
+
     const response = await api.patch(
         `/departures/${departureId}/reactivate`,
-        {},
-        {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        }
+        {}
     )
 
     return response.data

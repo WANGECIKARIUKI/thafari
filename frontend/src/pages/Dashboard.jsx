@@ -33,6 +33,12 @@ import {
     requestCancellation,
 } from "../services/bookingService"
 
+import {
+    getBookingReview,
+    createReview,
+    updateReview,
+} from "../services/reviewService"
+
 import "./Dashboard.css"
 
 
@@ -69,6 +75,71 @@ function Dashboard() {
     const [bookingsLoading, setBookingsLoading] = useState(false)
 
     const [bookingsError, setBookingsError] = useState("")
+
+
+    // ---------------------------------------------------------
+    // SORT CUSTOMER BOOKINGS
+    // ---------------------------------------------------------
+    // Always show the newest booking first.
+    // created_at is the primary sort field, while booking_id
+    // provides a deterministic fallback for equal/missing dates.
+    // ---------------------------------------------------------
+
+    const sortBookingsNewestFirst = (bookingList = []) => {
+
+        return [...bookingList].sort((firstBooking, secondBooking) => {
+
+            const firstDate =
+                firstBooking?.created_at
+                    ? new Date(firstBooking.created_at).getTime()
+                    : 0
+
+            const secondDate =
+                secondBooking?.created_at
+                    ? new Date(secondBooking.created_at).getTime()
+                    : 0
+
+
+            if (secondDate !== firstDate) {
+                return secondDate - firstDate
+            }
+
+
+            return (
+                Number(secondBooking?.booking_id || 0) -
+                Number(firstBooking?.booking_id || 0)
+            )
+        })
+    }
+
+    // ---------------------------------------------------------
+    // CUSTOMER BOOKING HISTORY FILTER
+    // ---------------------------------------------------------
+    // Customers can switch between all bookings and individual
+    // booking statuses without leaving the dashboard.
+    // ---------------------------------------------------------
+
+    const [bookingFilter, setBookingFilter] = useState("all")
+
+    // ---------------------------------------------------------
+    // CUSTOMER REVIEW STATE
+    // ---------------------------------------------------------
+
+    const [reviewBooking, setReviewBooking] = useState(null)
+
+    const [existingReview, setExistingReview] = useState(null)
+
+    const [reviewRating, setReviewRating] = useState(0)
+
+    const [reviewComment, setReviewComment] = useState("")
+
+    const [reviewLoading, setReviewLoading] = useState(false)
+
+    const [reviewSaving, setReviewSaving] = useState(false)
+
+    const [reviewError, setReviewError] = useState("")
+
+    const [reviewMessage, setReviewMessage] = useState("")
 
     const [cancellingBookingId, setCancellingBookingId] = useState(null)
 
@@ -194,7 +265,11 @@ function Dashboard() {
 
                 const data = await getBookings(accessToken)
 
-                setBookings(data.bookings || [])
+                setBookings(
+                    sortBookingsNewestFirst(
+                        data.bookings || []
+                    )
+                )
 
             } catch (error) {
 
@@ -218,6 +293,171 @@ function Dashboard() {
         loadBookings()
 
     }, [accessToken, isAuthenticated, user?.role])
+
+
+    // ---------------------------------------------------------
+    // OPEN CUSTOMER REVIEW MODAL
+    // ---------------------------------------------------------
+
+    const openReviewModal = async (booking) => {
+
+        if (booking.status !== "completed") {
+            return
+        }
+
+        setReviewBooking(booking)
+        setExistingReview(null)
+        setReviewRating(0)
+        setReviewComment("")
+        setReviewError("")
+        setReviewMessage("")
+        setReviewLoading(true)
+
+        try {
+
+            const data = await getBookingReview(
+                booking.booking_id,
+                accessToken
+            )
+
+            const review = data.review || null
+
+            setExistingReview(review)
+
+            if (review) {
+                setReviewRating(review.rating || 0)
+                setReviewComment(review.comment || "")
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Failed to load booking review:",
+                error
+            )
+
+            setReviewError(
+                error?.response?.data?.message ||
+                "We could not load this review right now. Please try again."
+            )
+
+        } finally {
+
+            setReviewLoading(false)
+        }
+    }
+
+
+    // ---------------------------------------------------------
+    // CLOSE CUSTOMER REVIEW MODAL
+    // ---------------------------------------------------------
+
+    const closeReviewModal = () => {
+
+        if (reviewSaving) {
+            return
+        }
+
+        setReviewBooking(null)
+        setExistingReview(null)
+        setReviewRating(0)
+        setReviewComment("")
+        setReviewLoading(false)
+        setReviewSaving(false)
+        setReviewError("")
+        setReviewMessage("")
+    }
+
+
+    // ---------------------------------------------------------
+    // SUBMIT CUSTOMER REVIEW
+    // ---------------------------------------------------------
+
+    const handleReviewSubmit = async (event) => {
+
+        event.preventDefault()
+
+        setReviewError("")
+        setReviewMessage("")
+
+        if (!reviewBooking) {
+            return
+        }
+
+        if (
+            !Number.isInteger(reviewRating) ||
+            reviewRating < 1 ||
+            reviewRating > 5
+        ) {
+            setReviewError(
+                "Please select a rating from 1 to 5 stars."
+            )
+            return
+        }
+
+        if (!reviewComment.trim()) {
+            setReviewError(
+                "Please write a review before submitting."
+            )
+            return
+        }
+
+        setReviewSaving(true)
+
+        try {
+
+            const payload = {
+                rating: reviewRating,
+                comment: reviewComment.trim(),
+            }
+
+            let response
+
+            if (existingReview?.review_id) {
+
+                response = await updateReview(
+                    existingReview.review_id,
+                    payload,
+                    accessToken
+                )
+
+            } else {
+
+                response = await createReview(
+                    {
+                        booking_id: reviewBooking.booking_id,
+                        ...payload,
+                    },
+                    accessToken
+                )
+            }
+
+            const savedReview = response.review || null
+
+            setExistingReview(savedReview)
+            setReviewMessage(
+                existingReview
+                    ? "Your review was updated successfully."
+                    : "Thank you for sharing your safari experience."
+            )
+
+        } catch (error) {
+
+            console.error(
+                "Failed to save customer review:",
+                error
+            )
+
+            setReviewError(
+                error?.response?.data?.message ||
+                "We could not save your review right now. Please try again."
+            )
+
+        } finally {
+
+            setReviewSaving(false)
+        }
+    }
 
 
     // ---------------------------------------------------------
@@ -347,12 +587,7 @@ function Dashboard() {
 
             const response = await api.patch(
                 `/admin/cancellation-requests/${requestId}/approve`,
-                {},
-                {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                }
+                {}
             )
 
             setReviewCancellationRequest((previous) => ({
@@ -416,11 +651,6 @@ function Dashboard() {
                 `/admin/cancellation-requests/${requestId}/deny`,
                 {
                     reason,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
                 }
             )
 
@@ -496,6 +726,42 @@ function Dashboard() {
             booking.status === "pending" ||
             booking.status === "confirmed"
     ).length
+
+
+    // ---------------------------------------------------------
+    // FILTERED CUSTOMER BOOKINGS
+    // ---------------------------------------------------------
+
+    const filteredBookings =
+        bookingFilter === "all"
+            ? bookings
+            : bookings.filter(
+                (booking) => booking.status === bookingFilter
+            )
+
+
+    // ---------------------------------------------------------
+    // BOOKING STATUS COUNTS
+    // ---------------------------------------------------------
+
+    const bookingStatusCounts = {
+        all: bookings.length,
+        pending: bookings.filter(
+            (booking) => booking.status === "pending"
+        ).length,
+        confirmed: bookings.filter(
+            (booking) => booking.status === "confirmed"
+        ).length,
+        completed: bookings.filter(
+            (booking) => booking.status === "completed"
+        ).length,
+        cancelled: bookings.filter(
+            (booking) => booking.status === "cancelled"
+        ).length,
+        expired: bookings.filter(
+            (booking) => booking.status === "expired"
+        ).length,
+    }
 
 
     // ---------------------------------------------------------
@@ -1178,6 +1444,92 @@ function Dashboard() {
 
 
                             {/* =================================================
+                                MANAGE SERVICES
+                            ================================================= */}
+
+                            <Link
+                                to="/admin/services"
+                                className="staff-management-card"
+                            >
+
+                                <span className="staff-management-icon">
+                                    🧭
+                                </span>
+
+                                <strong>
+                                    Manage Services
+                                </strong>
+
+                                <small>
+                                    Add, edit and manage the services offered by Thafari.
+                                </small>
+
+                                <span className="staff-management-arrow">
+                                    →
+                                </span>
+
+                            </Link>
+
+
+
+                            {/* =================================================
+                                MANAGE REVIEWS
+                            ================================================= */}
+
+                            <Link
+                                to="/admin/reviews"
+                                className="staff-management-card"
+                            >
+
+                                <span className="staff-management-icon">
+                                    ⭐
+                                </span>
+
+                                <strong>
+                                    Manage Reviews
+                                </strong>
+
+                                <small>
+                                    View, hide or delete customer reviews.
+                                </small>
+
+                                <span className="staff-management-arrow">
+                                    →
+                                </span>
+
+                            </Link>
+
+
+                            {/* =================================================
+                                CONTACT DETAILS
+                            ================================================= */}
+
+                            <Link
+                                to="/admin/contact"
+                                className="staff-management-card"
+                            >
+
+                                <span className="staff-management-icon">
+                                    📞
+                                </span>
+
+                                <strong>
+                                    Contact Details
+                                </strong>
+
+                                <small>
+                                    Update the WhatsApp number, email and phone
+                                    number customers use to reach Thafari.
+                                </small>
+
+                                <span className="staff-management-arrow">
+                                    →
+                                </span>
+
+                            </Link>
+
+
+                            {/* =================================================
                                 BUSINESS INTELLIGENCE
                             ================================================= */}
 
@@ -1225,6 +1577,34 @@ function Dashboard() {
 
                                 <small>
                                     Manage customers and tour-operator roles.
+                                </small>
+
+                                <span className="staff-management-arrow">
+                                    →
+                                </span>
+
+                            </Link>
+
+
+                            {/* =================================================
+                                PAYMENT SETTINGS
+                            ================================================= */}
+
+                            <Link
+                                to="/admin/payment-settings"
+                                className="staff-management-card"
+                            >
+
+                                <span className="staff-management-icon">
+                                    ⚙️
+                                </span>
+
+                                <strong>
+                                    Payment Settings
+                                </strong>
+
+                                <small>
+                                    Configure M-Pesa and Airtel payment options.
                                 </small>
 
                                 <span className="staff-management-arrow">
@@ -2187,7 +2567,51 @@ function Dashboard() {
 
                     ) : (
 
-                        <div className="dashboard-actions">
+                        <div className="dashboard-booking-history">
+
+                            <div
+                                className="dashboard-booking-filters"
+                                role="tablist"
+                                aria-label="Filter booking history"
+                            >
+
+                                {[
+                                    { key: "all", label: "All" },
+                                    { key: "pending", label: "Pending" },
+                                    { key: "confirmed", label: "Confirmed" },
+                                    { key: "completed", label: "Completed" },
+                                    { key: "cancelled", label: "Cancelled" },
+                                    { key: "expired", label: "Expired" },
+                                ].map((filter) => (
+
+                                    <button
+                                        key={filter.key}
+                                        type="button"
+                                        className={
+                                            `dashboard-booking-filter ${
+                                                bookingFilter === filter.key
+                                                    ? "active"
+                                                    : ""
+                                            }`
+                                        }
+                                        role="tab"
+                                        aria-selected={
+                                            bookingFilter === filter.key
+                                        }
+                                        onClick={() =>
+                                            setBookingFilter(filter.key)
+                                        }
+                                    >
+                                        <span>{filter.label}</span>
+                                        <span className="dashboard-booking-filter-count">
+                                            {bookingStatusCounts[filter.key]}
+                                        </span>
+                                    </button>
+
+                                ))}
+
+                            </div>
+
 
                             {cancellationMessage && (
 
@@ -2253,7 +2677,30 @@ function Dashboard() {
                             )}
 
 
-                            {bookings.map((booking) => (
+                            {filteredBookings.length === 0 ? (
+
+                                <div className="dashboard-filter-empty-state">
+                                    <div className="dashboard-empty-icon">🦁</div>
+                                    <h3>
+                                        No {bookingFilter} bookings
+                                    </h3>
+                                    <p>
+                                        You do not have any bookings in this status yet.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        className="dashboard-secondary-button"
+                                        onClick={() => setBookingFilter("all")}
+                                    >
+                                        View All Bookings
+                                    </button>
+                                </div>
+
+                            ) : (
+
+                            <div className="dashboard-actions">
+
+                            {filteredBookings.map((booking) => (
 
                                 <article
                                     key={booking.booking_id}
@@ -2321,6 +2768,21 @@ function Dashboard() {
                                             <span aria-hidden="true">→</span>
                                         </Link>
 
+                                        {booking.status === "completed" && (
+
+                                            <button
+                                                type="button"
+                                                className="dashboard-booking-review"
+                                                onClick={() =>
+                                                    openReviewModal(booking)
+                                                }
+                                            >
+                                                Leave a Review
+                                                <span aria-hidden="true">★</span>
+                                            </button>
+
+                                        )}
+
                                         {booking.status === "pending" && (
 
                                             <button
@@ -2359,7 +2821,9 @@ function Dashboard() {
                                                             )
 
                                                         setBookings(
-                                                            data.bookings || []
+                                                            sortBookingsNewestFirst(
+                                                                data.bookings || []
+                                                            )
                                                         )
 
                                                         setCancellationMessage(
@@ -2456,6 +2920,10 @@ function Dashboard() {
                                 </article>
 
                             ))}
+
+                            </div>
+
+                            )}
 
                         </div>
 
@@ -2565,6 +3033,224 @@ function Dashboard() {
                 </aside>
 
             </section>
+
+
+            {/* =================================================
+                CUSTOMER REVIEW PANEL
+            ================================================= */}
+
+            {reviewBooking && (
+
+                <div
+                    className="dashboard-modal-backdrop"
+                    role="presentation"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget) {
+                            closeReviewModal()
+                        }
+                    }}
+                >
+
+                    <div
+                        className="dashboard-modal-card dashboard-review-modal"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="review-modal-title"
+                    >
+
+                        <div className="dashboard-modal-header">
+
+                            <div>
+
+                                <p className="dashboard-section-eyebrow">
+                                    SHARE YOUR EXPERIENCE
+                                </p>
+
+                                <h2 id="review-modal-title">
+                                    {existingReview
+                                        ? "Edit Your Review"
+                                        : "Review Your Safari"}
+                                </h2>
+
+                                <p>
+                                    Booking #{reviewBooking.booking_id}
+                                </p>
+
+                            </div>
+
+                            <button
+                                type="button"
+                                className="dashboard-modal-close"
+                                onClick={closeReviewModal}
+                                disabled={reviewSaving}
+                                aria-label="Close review form"
+                            >
+                                ×
+                            </button>
+
+                        </div>
+
+
+                        {reviewLoading ? (
+
+                            <div className="dashboard-modal-loading">
+                                <span aria-hidden="true">⏳</span>
+                                <p>Loading your review...</p>
+                            </div>
+
+                        ) : (
+
+                            <form
+                                className="dashboard-review-form"
+                                onSubmit={handleReviewSubmit}
+                            >
+
+                                {reviewError && (
+
+                                    <div
+                                        className="dashboard-feedback-message dashboard-error-message"
+                                        role="alert"
+                                    >
+                                        <span
+                                            className="dashboard-feedback-icon"
+                                            aria-hidden="true"
+                                        >
+                                            !
+                                        </span>
+                                        <div className="dashboard-feedback-content">
+                                            <strong>Review not saved</strong>
+                                            <span>{reviewError}</span>
+                                        </div>
+                                    </div>
+
+                                )}
+
+
+                                {reviewMessage && (
+
+                                    <div
+                                        className="dashboard-feedback-message dashboard-success-message"
+                                        role="status"
+                                        aria-live="polite"
+                                    >
+                                        <span
+                                            className="dashboard-feedback-icon"
+                                            aria-hidden="true"
+                                        >
+                                            ✓
+                                        </span>
+                                        <div className="dashboard-feedback-content">
+                                            <strong>Review saved</strong>
+                                            <span>{reviewMessage}</span>
+                                        </div>
+                                    </div>
+
+                                )}
+
+
+                                <div className="dashboard-review-rating-group">
+
+                                    <label>
+                                        How would you rate your safari?
+                                    </label>
+
+                                    <div
+                                        className="dashboard-review-stars"
+                                        role="radiogroup"
+                                        aria-label="Safari rating"
+                                    >
+
+                                        {[1, 2, 3, 4, 5].map((star) => (
+
+                                            <button
+                                                key={star}
+                                                type="button"
+                                                className={
+                                                    `dashboard-review-star ${
+                                                        reviewRating >= star
+                                                            ? "active"
+                                                            : ""
+                                                    }`
+                                                }
+                                                onClick={() => setReviewRating(star)}
+                                                role="radio"
+                                                aria-checked={reviewRating === star}
+                                                aria-label={`${star} out of 5 stars`}
+                                            >
+                                                ★
+                                            </button>
+
+                                        ))}
+
+                                    </div>
+
+                                    <small>
+                                        {reviewRating > 0
+                                            ? `${reviewRating} out of 5 stars`
+                                            : "Select a rating"}
+                                    </small>
+
+                                </div>
+
+
+                                <div className="dashboard-review-comment-group">
+
+                                    <label htmlFor="review-comment">
+                                        Tell us about your experience
+                                    </label>
+
+                                    <textarea
+                                        id="review-comment"
+                                        value={reviewComment}
+                                        onChange={(event) =>
+                                            setReviewComment(event.target.value)
+                                        }
+                                        maxLength={2000}
+                                        rows={6}
+                                        placeholder="What did you enjoy about your safari?"
+                                        disabled={reviewSaving}
+                                    />
+
+                                    <small>
+                                        {reviewComment.length}/2000 characters
+                                    </small>
+
+                                </div>
+
+
+                                <div className="dashboard-modal-actions">
+
+                                    <button
+                                        type="button"
+                                        className="dashboard-secondary-button"
+                                        onClick={closeReviewModal}
+                                        disabled={reviewSaving}
+                                    >
+                                        Close
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        className="dashboard-primary-button"
+                                        disabled={reviewSaving}
+                                    >
+                                        {reviewSaving
+                                            ? "Saving..."
+                                            : existingReview
+                                                ? "Update Review"
+                                                : "Submit Review"}
+                                    </button>
+
+                                </div>
+
+                            </form>
+
+                        )}
+
+                    </div>
+
+                </div>
+            )}
 
 
             {/* =================================================

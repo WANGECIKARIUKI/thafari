@@ -1,0 +1,476 @@
+/* =========================================================
+   THAFARI ADMIN CONTACT DETAILS
+========================================================= */
+
+.admin-contact-page {
+    min-height: 100vh;
+    padding: 48px 24px 70px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #f7f5ef 0%,
+            #f4f1e8 100%
+        );
+
+    color: #24382b;
+}
+
+
+.admin-contact-container {
+    width: min(100%, 980px);
+    margin: 0 auto;
+}
+
+
+/* =========================================================
+   PAGE HEADER
+========================================================= */
+
+.admin-contact-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 30px;
+
+    margin-bottom: 30px;
+}
+
+
+.admin-contact-eyebrow {
+    margin: 0 0 8px;
+
+    color: #61745f;
+
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+
+.admin-contact-header h1 {
+    margin: 0;
+
+    color: #24382b;
+
+    font-size: clamp(
+        2rem,
+        4vw,
+        3rem
+    );
+
+    line-height: 1.1;
+}
+
+
+.admin-contact-intro {
+    max-width: 650px;
+
+    margin: 14px 0 0;
+
+    color: #657163;
+
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   BACK TO DASHBOARD BUTTON
+========================================================= */
+
+.admin-contact-back-button {
+    flex-shrink: 0;
+
+    border: 1px solid #d8d2c3;
+    border-radius: 12px;
+
+    padding: 12px 18px;
+
+    background: #ffffff;
+    color: #31533f;
+
+    font-family: inherit;
+    font-size: 0.92rem;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.admin-contact-back-button:hover {
+    border-color: #bca878;
+
+    background: #fffdf8;
+
+    box-shadow:
+        0 8px 20px
+        rgba(36, 56, 43, 0.08);
+
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   MAIN PANEL
+========================================================= */
+
+.admin-contact-panel {
+    overflow: hidden;
+
+    border: 1px solid #e1ddd2;
+    border-radius: 22px;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 18px 45px
+        rgba(36, 56, 43, 0.08);
+}
+
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.admin-contact-form {
+    padding: 34px;
+}
+
+
+.admin-contact-info-box {
+    margin-bottom: 30px;
+
+    padding: 20px 22px;
+
+    border: 1px solid #e5dfcf;
+    border-radius: 15px;
+
+    background: #faf8f1;
+}
+
+
+.admin-contact-info-box strong {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: #31533f;
+
+    font-size: 1rem;
+}
+
+
+.admin-contact-info-box p {
+    margin: 0;
+
+    color: #687466;
+
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   FORM FIELDS
+========================================================= */
+
+.admin-contact-field {
+    margin-bottom: 24px;
+}
+
+
+.admin-contact-field label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: #24382b;
+
+    font-size: 0.92rem;
+    font-weight: 800;
+}
+
+
+.admin-contact-field input {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    border: 1px solid #d9d6cc;
+    border-radius: 12px;
+
+    padding: 14px 15px;
+
+    background: #ffffff;
+    color: #24382b;
+
+    font-family: inherit;
+    font-size: 0.98rem;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+
+.admin-contact-field input::placeholder {
+    color: #a3a69f;
+}
+
+
+.admin-contact-field input:focus {
+    border-color: #61745f;
+
+    background: #fffefa;
+
+    box-shadow:
+        0 0 0 4px
+        rgba(97, 116, 95, 0.11);
+}
+
+
+.admin-contact-field small {
+    display: block;
+
+    margin-top: 7px;
+
+    color: #7a8178;
+
+    font-size: 0.8rem;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   MESSAGES
+========================================================= */
+
+.admin-contact-error,
+.admin-contact-success {
+    margin-top: 8px;
+
+    padding: 13px 15px;
+
+    border-radius: 11px;
+
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+
+.admin-contact-error {
+    border: 1px solid #e5bdb8;
+
+    background: #fff4f2;
+    color: #a33d34;
+}
+
+
+.admin-contact-success {
+    border: 1px solid #bfd5c3;
+
+    background: #f1f8f2;
+    color: #356540;
+}
+
+
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
+
+.admin-contact-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+
+    margin-top: 30px;
+    padding-top: 25px;
+
+    border-top: 1px solid #ebe7de;
+}
+
+
+.admin-contact-cancel-button,
+.admin-contact-save-button {
+    min-height: 46px;
+
+    border-radius: 11px;
+
+    padding: 12px 20px;
+
+    font-family: inherit;
+    font-size: 0.92rem;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+.admin-contact-cancel-button {
+    border: 1px solid #d8d3c8;
+
+    background: #ffffff;
+    color: #536054;
+}
+
+
+.admin-contact-cancel-button:hover:not(:disabled) {
+    border-color: #bca878;
+
+    background: #faf8f1;
+
+    transform: translateY(-1px);
+}
+
+
+.admin-contact-save-button {
+    border: 1px solid #31533f;
+
+    background: #31533f;
+    color: #ffffff;
+
+    box-shadow:
+        0 7px 18px
+        rgba(49, 83, 63, 0.15);
+}
+
+
+.admin-contact-save-button:hover:not(:disabled) {
+    background: #24382b;
+    border-color: #24382b;
+
+    box-shadow:
+        0 10px 22px
+        rgba(36, 56, 43, 0.2);
+
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   DISABLED BUTTONS
+========================================================= */
+
+.admin-contact-cancel-button:disabled,
+.admin-contact-save-button:disabled {
+    opacity: 0.6;
+
+    cursor: not-allowed;
+
+    transform: none;
+}
+
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.admin-contact-loading {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-height: 280px;
+
+    padding: 30px;
+
+    color: #667166;
+
+    font-size: 0.95rem;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 760px) {
+
+    .admin-contact-page {
+        padding: 34px 18px 55px;
+    }
+
+
+    .admin-contact-header {
+        flex-direction: column;
+        gap: 18px;
+    }
+
+
+    .admin-contact-back-button {
+        width: 100%;
+    }
+
+
+    .admin-contact-form {
+        padding: 26px 22px;
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 520px) {
+
+    .admin-contact-page {
+        padding: 26px 14px 45px;
+    }
+
+
+    .admin-contact-header h1 {
+        font-size: 2rem;
+    }
+
+
+    .admin-contact-intro {
+        font-size: 0.92rem;
+    }
+
+
+    .admin-contact-panel {
+        border-radius: 17px;
+    }
+
+
+    .admin-contact-form {
+        padding: 22px 17px;
+    }
+
+
+    .admin-contact-info-box {
+        padding: 17px;
+    }
+
+
+    .admin-contact-actions {
+        flex-direction: column-reverse;
+    }
+
+
+    .admin-contact-cancel-button,
+    .admin-contact-save-button {
+        width: 100%;
+    }
+
+}

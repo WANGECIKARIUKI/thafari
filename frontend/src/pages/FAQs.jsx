@@ -372,56 +372,118 @@ function FAQs() {
                     ============================================= */}
 
                     <div
-                        className="general-faq-categories"
-                        role="tablist"
+                        className="general-faq-category-marquee"
                         aria-label="FAQ categories"
                     >
 
-                        <button
-                            type="button"
-                            role="tab"
-                            aria-selected={activeCategory === "all"}
-                            className={
-                                activeCategory === "all"
-                                    ? "general-faq-category active"
-                                    : "general-faq-category"
-                            }
-                            onClick={() =>
-                                setActiveCategory("all")
-                            }
-                        >
-                            <span>✦</span>
-                            All Questions
-                        </button>
+                        <div className="general-faq-category-track">
 
-
-                        {FAQ_CATEGORIES.map(category => (
-
-                            <button
-                                key={category.id}
-                                type="button"
-                                role="tab"
-                                aria-selected={
-                                    activeCategory === category.id
-                                }
-                                className={
-                                    activeCategory === category.id
-                                        ? "general-faq-category active"
-                                        : "general-faq-category"
-                                }
-                                onClick={() =>
-                                    setActiveCategory(category.id)
-                                }
+                            <div
+                                className="general-faq-category-set"
+                                role="tablist"
+                                aria-label="FAQ categories"
                             >
-                                <span>
-                                    {category.icon}
-                                </span>
 
-                                {category.label}
+                                <button
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={activeCategory === "all"}
+                                    className={
+                                        activeCategory === "all"
+                                            ? "general-faq-category active"
+                                            : "general-faq-category"
+                                    }
+                                    onClick={() =>
+                                        setActiveCategory("all")
+                                    }
+                                >
+                                    <span>✦</span>
+                                    All Questions
+                                </button>
 
-                            </button>
 
-                        ))}
+                                {FAQ_CATEGORIES.map(category => (
+
+                                    <button
+                                        key={category.id}
+                                        type="button"
+                                        role="tab"
+                                        aria-selected={
+                                            activeCategory === category.id
+                                        }
+                                        className={
+                                            activeCategory === category.id
+                                                ? "general-faq-category active"
+                                                : "general-faq-category"
+                                        }
+                                        onClick={() =>
+                                            setActiveCategory(category.id)
+                                        }
+                                    >
+                                        <span>
+                                            {category.icon}
+                                        </span>
+
+                                        {category.label}
+
+                                    </button>
+
+                                ))}
+
+                            </div>
+
+
+                            {/* Duplicate set creates a seamless automatic loop. */}
+                            <div
+                                className="general-faq-category-set"
+                                aria-hidden="true"
+                            >
+
+                                <button
+                                    type="button"
+                                    tabIndex="-1"
+                                    className={
+                                        activeCategory === "all"
+                                            ? "general-faq-category active"
+                                            : "general-faq-category"
+                                    }
+                                    onClick={() =>
+                                        setActiveCategory("all")
+                                    }
+                                >
+                                    <span>✦</span>
+                                    All Questions
+                                </button>
+
+
+                                {FAQ_CATEGORIES.map(category => (
+
+                                    <button
+                                        key={`duplicate-${category.id}`}
+                                        type="button"
+                                        tabIndex="-1"
+                                        className={
+                                            activeCategory === category.id
+                                                ? "general-faq-category active"
+                                                : "general-faq-category"
+                                        }
+                                        onClick={() =>
+                                            setActiveCategory(category.id)
+                                        }
+                                    >
+                                        <span>
+                                            {category.icon}
+                                        </span>
+
+                                        {category.label}
+
+                                    </button>
+
+                                ))}
+
+                            </div>
+
+                        </div>
 
                     </div>
 

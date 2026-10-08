@@ -487,9 +487,14 @@ def approve_cancellation_request(request_id):
     # FIND CANCELLATION REQUEST
     # -----------------------------------------------------
 
-    cancellation_request = CancellationRequest.query.filter_by(
-        id=request_id
-    ).first()
+    # Lock the cancellation request so two admins/operators cannot
+    # approve or deny the same request at the same time.
+    cancellation_request = (
+        CancellationRequest.query
+        .filter_by(id=request_id)
+        .with_for_update()
+        .first()
+    )
 
     if not cancellation_request:
         return jsonify({
@@ -549,6 +554,29 @@ def approve_cancellation_request(request_id):
             }), 403
 
     # -----------------------------------------------------
+    # LOCK BOOKING
+    # -----------------------------------------------------
+    #
+    # Payment rows are locked first above.  We now lock the
+    # booking using the same Payment -> Booking order used by
+    # the refund webhook.  This prevents concurrent refund
+    # processing from calculating/storing an outdated booking
+    # state.
+    # -----------------------------------------------------
+
+    booking = (
+        Booking.query
+        .filter_by(id=booking.id)
+        .with_for_update()
+        .first()
+    )
+
+    if not booking:
+        return jsonify({
+            "message": "Booking associated with this request was not found."
+        }), 404
+
+    # -----------------------------------------------------
     # BOOKING MUST STILL BE CONFIRMED
     # -----------------------------------------------------
 
@@ -565,10 +593,22 @@ def approve_cancellation_request(request_id):
     # FIND SUCCESSFUL PAYMENTS
     # -----------------------------------------------------
 
-    successful_payments = Payment.query.filter_by(
-        booking_id=booking.id,
-        status="successful"
-    ).all()
+    # Lock all successful payment rows before calculating
+    # refundable balances.  This serializes cancellation approval
+    # with refund processing and keeps the lock order:
+    #
+    #     Payment -> Booking
+    #
+    # which matches the refund webhook.
+    successful_payments = (
+        Payment.query
+        .filter_by(
+            booking_id=booking.id,
+            status="successful"
+        )
+        .with_for_update()
+        .all()
+    )
 
     if not successful_payments:
         return jsonify({
@@ -753,9 +793,14 @@ def deny_cancellation_request(request_id):
             "message": "A denial reason is required."
         }), 400
 
-    cancellation_request = CancellationRequest.query.filter_by(
-        id=request_id
-    ).first()
+    # Lock the cancellation request so an approval and denial
+    # cannot race each other for the same request.
+    cancellation_request = (
+        CancellationRequest.query
+        .filter_by(id=request_id)
+        .with_for_update()
+        .first()
+    )
 
     if not cancellation_request:
         return jsonify({

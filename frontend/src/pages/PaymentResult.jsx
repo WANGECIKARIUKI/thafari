@@ -575,19 +575,6 @@ function PaymentResult() {
                 </div>
 
 
-                <div>
-
-                    <span>
-                        Transaction reference
-                    </span>
-
-                    <strong>
-                        {payment.transaction_reference}
-                    </strong>
-
-                </div>
-
-
                 {payment.paid_at && (
 
                     <div>

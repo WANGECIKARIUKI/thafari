@@ -51,6 +51,9 @@ from flask import (
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
+    set_access_cookies,
+    set_refresh_cookies,
+    unset_jwt_cookies,
     jwt_required,
     get_jwt_identity,
     get_jwt,
@@ -59,7 +62,7 @@ from flask_jwt_extended import (
 
 
 # ---------------------------------------------------------
-# SQLAlchemy IMPORTS
+# SQLALCHEMY IMPORTS
 # ---------------------------------------------------------
 
 from sqlalchemy import or_
@@ -70,7 +73,7 @@ from sqlalchemy.exc import IntegrityError
 # PROJECT IMPORTS
 # ---------------------------------------------------------
 
-from extensions import db
+from extensions import db, limiter
 
 from models.user import User
 
@@ -85,6 +88,10 @@ from services.email_service import send_email
 # This is used when an endpoint should only be accessible
 # to users with specific roles.
 from decorators.auth_decorator import roles_required
+
+# Shared Flask-Limiter instance configured in extensions.py.
+# Route-specific limits below protect sensitive authentication
+# endpoints from brute-force attempts, abuse, and request floods.
 
 
 # ---------------------------------------------------------
@@ -132,6 +139,7 @@ def validate_password(password):
 # =========================================================
 
 @auth_bp.route("/register", methods=["POST"])
+@limiter.limit("10 per hour")
 def register():
 
     # -----------------------------------------------------
@@ -301,6 +309,7 @@ def register():
 # =========================================================
 
 @auth_bp.route("/login", methods=["POST"])
+@limiter.limit("5 per minute")
 def login():
 
     # -----------------------------------------------------
@@ -386,10 +395,23 @@ def login():
         identity=str(user.id)
     )
 
-    return jsonify({
+    # -----------------------------------------------------
+    # CREATE SAFE LOGIN RESPONSE
+    # -----------------------------------------------------
+    #
+    # IMPORTANT SECURITY CHANGE:
+    #
+    # The JWTs are NOT returned in JSON anymore.
+    #
+    # Returning JWTs in JSON exposes them to JavaScript,
+    # which can lead to storage in localStorage and makes
+    # token theft easier if malicious JavaScript executes.
+    #
+    # Instead, the tokens are stored in HttpOnly cookies.
+    # -----------------------------------------------------
+
+    response = jsonify({
         "message": "Login successful!",
-        "access_token": access_token,
-        "refresh_token": refresh_token,
         "user": {
             "id": user.id,
             "first_name": user.first_name,
@@ -398,7 +420,26 @@ def login():
             "email": user.email,
             "role": user.role
         }
-    }), 200
+    })
+
+    # -----------------------------------------------------
+    # STORE JWTs IN SECURE COOKIES
+    # -----------------------------------------------------
+
+    # The access JWT is stored in the configured HttpOnly
+    # cookie. JavaScript cannot read this cookie.
+    set_access_cookies(
+        response,
+        access_token
+    )
+
+    # The refresh JWT is also stored in an HttpOnly cookie.
+    set_refresh_cookies(
+        response,
+        refresh_token
+    )
+
+    return response, 200
 
 
 # =========================================================
@@ -446,23 +487,45 @@ def update_me():
             "message": "Request body is required."
         }), 400
 
-    first_name = str(data.get("first_name", "")).strip()
-    last_name = str(data.get("last_name", "")).strip()
-    username = str(data.get("username", "")).strip()
-    email = str(data.get("email", "")).strip().lower()
-    phone_number = str(data.get("phone_number", "")).strip()
+    first_name = str(
+        data.get("first_name", "")
+    ).strip()
+
+    last_name = str(
+        data.get("last_name", "")
+    ).strip()
+
+    username = str(
+        data.get("username", "")
+    ).strip()
+
+    email = str(
+        data.get("email", "")
+    ).strip().lower()
+
+    phone_number = str(
+        data.get("phone_number", "")
+    ).strip()
 
     if not first_name:
-        return jsonify({"message": "First name is required."}), 400
+        return jsonify({
+            "message": "First name is required."
+        }), 400
 
     if not last_name:
-        return jsonify({"message": "Last name is required."}), 400
+        return jsonify({
+            "message": "Last name is required."
+        }), 400
 
     if not username:
-        return jsonify({"message": "Username is required."}), 400
+        return jsonify({
+            "message": "Username is required."
+        }), 400
 
     if not email:
-        return jsonify({"message": "Email is required."}), 400
+        return jsonify({
+            "message": "Email is required."
+        }), 400
 
     existing_username = User.query.filter(
         User.username == username,
@@ -491,15 +554,25 @@ def update_me():
     user.phone_number = phone_number or None
 
     try:
+
         db.session.commit()
+
     except IntegrityError:
+
         db.session.rollback()
+
         return jsonify({
             "message": "Username or email already exists."
         }), 400
+
     except Exception as e:
+
         db.session.rollback()
-        print(f"Profile update error: {e}")
+
+        print(
+            f"Profile update error: {e}"
+        )
+
         return jsonify({
             "message": "Your profile could not be updated."
         }), 500
@@ -675,6 +748,7 @@ def update_user_role(user_id):
     # are converted into:
     #
     # "tour_operator"
+
     new_role = new_role.strip().lower()
 
     # -----------------------------------------------------
@@ -795,7 +869,11 @@ def update_user_role(user_id):
 # CHANGE PASSWORD
 # =========================================================
 
-@auth_bp.route("/change-password", methods=["POST"])
+@auth_bp.route(
+    "/change-password",
+    methods=["POST"]
+)
+@limiter.limit("5 per hour")
 @jwt_required()
 def change_password():
 
@@ -933,7 +1011,11 @@ def change_password():
 # which email addresses have Thafari accounts.
 # =========================================================
 
-@auth_bp.route("/forgot-password", methods=["POST"])
+@auth_bp.route(
+    "/forgot-password",
+    methods=["POST"]
+)
+@limiter.limit("5 per 15 minutes")
 def forgot_password():
 
     # -----------------------------------------------------
@@ -1008,7 +1090,6 @@ def forgot_password():
     current_time = datetime.utcnow()
 
     for previous_token in previous_tokens:
-
         previous_token.used_at = current_time
 
     # -----------------------------------------------------
@@ -1141,7 +1222,11 @@ The Thafari Team
 # in MySQL.
 # =========================================================
 
-@auth_bp.route("/reset-password", methods=["POST"])
+@auth_bp.route(
+    "/reset-password",
+    methods=["POST"]
+)
+@limiter.limit("10 per 15 minutes")
 def reset_password():
 
     # -----------------------------------------------------
@@ -1313,7 +1398,11 @@ def reset_password():
 # REFRESH ACCESS TOKEN
 # =========================================================
 
-@auth_bp.route("/refresh", methods=["POST"])
+@auth_bp.route(
+    "/refresh",
+    methods=["POST"]
+)
+@limiter.limit("30 per minute")
 @jwt_required(refresh=True)
 def refresh():
 
@@ -1351,17 +1440,35 @@ def refresh():
         identity=str(user.id)
     )
 
-    return jsonify({
-        "message": "Access token refreshed successfully.",
-        "access_token": access_token
-    }), 200
+    # -----------------------------------------------------
+    # REPLACE ACCESS COOKIE
+    # -----------------------------------------------------
+    #
+    # The new access token is placed into the HttpOnly cookie.
+    # It is deliberately NOT returned in the JSON response.
+    # -----------------------------------------------------
+
+    response = jsonify({
+        "message": "Access token refreshed successfully."
+    })
+
+    set_access_cookies(
+        response,
+        access_token
+    )
+
+    return response, 200
 
 
 # =========================================================
 # LOGOUT
 # =========================================================
 
-@auth_bp.route("/logout", methods=["POST"])
+@auth_bp.route(
+    "/logout",
+    methods=["POST"]
+)
+@limiter.limit("20 per minute")
 @jwt_required()
 def logout():
 
@@ -1379,77 +1486,64 @@ def logout():
     )
 
     # -----------------------------------------------------
-    # GET REFRESH TOKEN
+    # GET REFRESH TOKEN FROM COOKIE
+    # -----------------------------------------------------
+    #
+    # The refresh token is HttpOnly, so JavaScript cannot read
+    # it or send it in a JSON request body anymore.
+    #
+    # Flask can safely read the cookie on the backend.
     # -----------------------------------------------------
 
-    data = request.get_json(silent=True) or {}
-
-    refresh_token = data.get("refresh_token")
-
-    if not refresh_token:
-        return jsonify({
-            "message": "Refresh token is required."
-        }), 400
-
-    # -----------------------------------------------------
-    # VALIDATE REFRESH TOKEN
-    # -----------------------------------------------------
-
-    try:
-
-        refresh_jwt = decode_token(
-            refresh_token
+    refresh_token = request.cookies.get(
+        current_app.config.get(
+            "JWT_REFRESH_COOKIE_NAME",
+            "refresh_token_cookie"
         )
-
-    except Exception:
-
-        return jsonify({
-            "message": "Invalid or expired refresh token."
-        }), 401
-
-    # -----------------------------------------------------
-    # VERIFY TOKEN TYPE
-    # -----------------------------------------------------
-
-    if refresh_jwt.get("type") != "refresh":
-        return jsonify({
-            "message": (
-                "The supplied token is not a refresh token."
-            )
-        }), 401
-
-    # -----------------------------------------------------
-    # GET REFRESH TOKEN USER
-    # -----------------------------------------------------
-
-    refresh_user_id = int(
-        refresh_jwt["sub"]
     )
 
+    refresh_jwt = None
+
     # -----------------------------------------------------
-    # VERIFY SAME USER
+    # DECODE REFRESH TOKEN WHEN PRESENT
     # -----------------------------------------------------
 
-    if refresh_user_id != current_user_id:
-        return jsonify({
-            "message": (
-                "Refresh token does not belong to "
-                "the authenticated user."
+    if refresh_token:
+
+        try:
+
+            refresh_jwt = decode_token(
+                refresh_token
             )
-        }), 403
 
-    refresh_jti = refresh_jwt["jti"]
+        except Exception:
+
+            # The access token is still revoked and the cookies
+            # are still cleared below. A bad refresh cookie
+            # should not prevent a user from logging out.
+            refresh_jwt = None
 
     # -----------------------------------------------------
-    # CHECK EXISTING REVOCATIONS
+    # CHECK REFRESH TOKEN BELONGS TO SAME USER
+    # -----------------------------------------------------
+
+    if refresh_jwt:
+
+        if refresh_jwt.get("type") != "refresh":
+            refresh_jwt = None
+
+        elif int(
+            refresh_jwt.get("sub")
+        ) != current_user_id:
+
+            refresh_jwt = None
+
+    # -----------------------------------------------------
+    # CHECK EXISTING ACCESS REVOCATION
     # -----------------------------------------------------
 
     existing_access_token = RevokedToken.query.filter_by(
         jti=access_jti
-    ).first()
-
-    existing_refresh_token = RevokedToken.query.filter_by(
-        jti=refresh_jti
     ).first()
 
     # -----------------------------------------------------
@@ -1477,22 +1571,30 @@ def logout():
     # REVOKE REFRESH TOKEN
     # -----------------------------------------------------
 
-    if not existing_refresh_token:
+    if refresh_jwt:
 
-        refresh_expires_at = datetime.fromtimestamp(
-            refresh_jwt["exp"]
-        )
+        refresh_jti = refresh_jwt["jti"]
 
-        revoked_refresh_token = RevokedToken(
-            jti=refresh_jti,
-            token_type="refresh",
-            user_id=current_user_id,
-            expires_at=refresh_expires_at
-        )
+        existing_refresh_token = RevokedToken.query.filter_by(
+            jti=refresh_jti
+        ).first()
 
-        db.session.add(
-            revoked_refresh_token
-        )
+        if not existing_refresh_token:
+
+            refresh_expires_at = datetime.fromtimestamp(
+                refresh_jwt["exp"]
+            )
+
+            revoked_refresh_token = RevokedToken(
+                jti=refresh_jti,
+                token_type="refresh",
+                user_id=current_user_id,
+                expires_at=refresh_expires_at
+            )
+
+            db.session.add(
+                revoked_refresh_token
+            )
 
     # -----------------------------------------------------
     # COMMIT
@@ -1514,19 +1616,33 @@ def logout():
             "message": "Logout could not be completed."
         }), 500
 
-    return jsonify({
+    # -----------------------------------------------------
+    # CLEAR JWT COOKIES
+    # -----------------------------------------------------
+
+    response = jsonify({
         "message": (
             "Logout successful. Access and refresh "
             "tokens have been revoked."
         )
-    }), 200
+    })
+
+    # Remove both JWT cookies and their CSRF cookies.
+    unset_jwt_cookies(
+        response
+    )
+
+    return response, 200
 
 
 # =========================================================
 # CURRENT USER
 # =========================================================
 
-@auth_bp.route("/me", methods=["GET"])
+@auth_bp.route(
+    "/me",
+    methods=["GET"]
+)
 @jwt_required()
 def get_me():
 

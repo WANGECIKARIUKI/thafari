@@ -16,3 +16,6 @@ from models.tour_accommodation import TourAccommodation
 from models.tour_faq import TourFAQ
 from models.payment_setting import PaymentSetting
 from models.cancellation_request import CancellationRequest
+from models.service import Service
+from models.contact import Contact
+from models.review import Review

@@ -1,40 +1,113 @@
-#create flask extensions
+# =========================================================
+# THAFARI FLASK EXTENSIONS
+# =========================================================
+#
+# Centralized extension instances used by the Flask
+# application.
+#
+# Keeping extension objects here avoids circular imports
+# and ensures the same instances are used throughout
+# Thafari.
+# =========================================================
 
-#create JWT manager
-#create Socketio services
-#create migration manager
-#create database instances 
-#create mail services
 
+# =========================================================
+# DATABASE
+# =========================================================
 
-#database ORM
 from flask_sqlalchemy import SQLAlchemy
 
-#migration tools
+
+# =========================================================
+# DATABASE MIGRATIONS
+# =========================================================
+
 from flask_migrate import Migrate
 
-#hash password
+
+# =========================================================
+# PASSWORD HASHING
+# =========================================================
+
 from flask_bcrypt import Bcrypt
 
-#JWT authentication
+
+# =========================================================
+# JWT AUTHENTICATION
+# =========================================================
+
 from flask_jwt_extended import JWTManager
 
-#support email
+
+# =========================================================
+# EMAIL
+# =========================================================
+
 from flask_mail import Mail
 
-#support real-time communication
+
+# =========================================================
+# SOCKET.IO
+# =========================================================
+
 from flask_socketio import SocketIO
 
-#support frontend communication
+
+# =========================================================
+# CORS
+# =========================================================
 
 from flask_cors import CORS
 
+
+# =========================================================
+# RATE LIMITING
+# =========================================================
+
+from flask_limiter import Limiter
+
+from flask_limiter.util import get_remote_address
+
+
+# =========================================================
+# EXTENSION INSTANCES
+# =========================================================
+
 db = SQLAlchemy()
-migrate= Migrate()
+
+migrate = Migrate()
+
 jwt = JWTManager()
+
 mail = Mail()
+
 bcrypt = Bcrypt()
+
 socketio = SocketIO()
+
 cors = CORS()
 
 
+# =========================================================
+# SHARED RATE LIMITER
+# =========================================================
+#
+# This is the ONE limiter used by the entire Thafari
+# application.
+#
+# app.py initializes this limiter with the Flask app.
+#
+# Individual route files can then apply stricter limits,
+# for example:
+#
+#     @limiter.limit("5 per minute")
+#
+# This prevents each route from accidentally creating
+# its own separate rate-limiter instance.
+#
+# The default key is the requesting client's IP address.
+# =========================================================
+
+limiter = Limiter(
+    key_func=get_remote_address
+)

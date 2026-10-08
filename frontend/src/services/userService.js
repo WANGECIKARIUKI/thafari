@@ -11,13 +11,20 @@
 // - Change customer -> tour operator
 // - Change tour operator -> customer
 //
-// Backend endpoints:
+// Authentication is handled automatically by api.js using
+// the HttpOnly authentication cookie.
 //
-// GET   /api/auth/users
-// PATCH /api/auth/users/<user_id>/role
+// The accessToken parameters are retained only for
+// compatibility with existing components.
 //
-// Only the backend can authorize the operation.
-// The frontend simply sends the authenticated admin token.
+// They are NOT used as credentials.
+//
+// The backend remains responsible for:
+// - Authentication
+// - Admin authorization
+// - User-role validation
+// - Permission checks
+//
 // =========================================================
 
 import api from "./api"
@@ -31,10 +38,11 @@ import api from "./api"
 // user-management page.
 //
 // Backend:
+//
 // GET /api/auth/users
 //
 // Because the api instance already uses the backend API
-// prefix, the frontend path here is simply:
+// prefix, the frontend path here is:
 //
 // /auth/users
 //
@@ -44,14 +52,12 @@ export const getManageableUsers = async (
     accessToken
 ) => {
 
+    // Compatibility only.
+    // Authentication is handled by the HttpOnly cookie.
+    void accessToken
+
     const response = await api.get(
-        "/auth/users",
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
-        }
+        "/auth/users"
     )
 
     return response.data
@@ -71,7 +77,11 @@ export const getManageableUsers = async (
 // tour_operator -> customer
 //
 // Backend:
+//
 // PATCH /api/auth/users/<user_id>/role
+//
+// The api.js request interceptor automatically adds the
+// CSRF token required for this PATCH request.
 //
 // =========================================================
 
@@ -81,16 +91,14 @@ export const updateUserRole = async (
     accessToken
 ) => {
 
+    // Compatibility only.
+    // Authentication is handled by the HttpOnly cookie.
+    void accessToken
+
     const response = await api.patch(
         `/auth/users/${userId}/role`,
         {
             role: role,
-        },
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
         }
     )
 

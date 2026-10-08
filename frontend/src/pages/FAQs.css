@@ -281,13 +281,86 @@
    CATEGORY NAVIGATION
    ========================================================= */
 
-.general-faq-categories {
-    display: flex;
-    gap: 10px;
+/* =========================================================
+   AUTO-MOVING CATEGORY MARQUEE
+   ========================================================= */
+
+.general-faq-category-marquee {
+    position: relative;
+    width: 100%;
     margin-bottom: 50px;
-    padding-bottom: 4px;
-    overflow-x: auto;
-    scrollbar-width: thin;
+    overflow: hidden;
+    padding: 4px 0 10px;
+    -webkit-mask-image: linear-gradient(
+        to right,
+        transparent,
+        #000 4%,
+        #000 96%,
+        transparent
+    );
+    mask-image: linear-gradient(
+        to right,
+        transparent,
+        #000 4%,
+        #000 96%,
+        transparent
+    );
+}
+
+.general-faq-category-track {
+    display: flex;
+    width: max-content;
+    animation: generalFaqCategoryScroll 28s linear infinite;
+    will-change: transform;
+}
+
+.general-faq-category-set {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+    padding-right: 10px;
+}
+
+@keyframes generalFaqCategoryScroll {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+/* Pause automatically while the user is selecting a category. */
+.general-faq-category-marquee:hover .general-faq-category-track,
+.general-faq-category-marquee:focus-within .general-faq-category-track {
+    animation-play-state: paused;
+}
+
+.general-faq-category {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 10px 16px;
+    border: 1px solid var(--faq-border);
+    border-radius: 999px;
+    background: #ffffff;
+    color: var(--faq-muted);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    white-space: nowrap;
+    transition:
+        color 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .general-faq-category {
@@ -715,6 +788,25 @@
 
 
 /* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .general-faq-category-track {
+        animation: none;
+        transform: none;
+    }
+
+    .general-faq-category-marquee {
+        overflow-x: auto;
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+}
+
+
+/* =========================================================
    ACCESSIBILITY
    ========================================================= */
 
@@ -826,8 +918,18 @@
         margin-left: 6px;
     }
 
-    .general-faq-categories {
+    .general-faq-category-marquee {
         margin-bottom: 38px;
+        padding: 3px 0 8px;
+    }
+
+    .general-faq-category-track {
+        animation-duration: 22s;
+    }
+
+    .general-faq-category-set {
+        gap: 8px;
+        padding-right: 8px;
     }
 
     .general-faq-category {
@@ -932,6 +1034,10 @@
    ========================================================= */
 
 @media (max-width: 420px) {
+
+    .general-faq-category-track {
+        animation-duration: 18s;
+    }
 
     .general-faq-hero h1 {
         font-size: 2.2rem;

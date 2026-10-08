@@ -11,33 +11,21 @@
 // Backend URL prefix:
 // /api
 //
-// All Business Intelligence endpoints are protected by JWT
-// authentication and require the admin role.
+// All Business Intelligence endpoints are protected by
+// backend authentication and require the admin role.
 //
+// IMPORTANT SECURITY CHANGE:
+//
+// Authentication is now handled by api.js using the
+// HttpOnly authentication cookie.
+//
+// The accessToken parameters are retained only for
+// compatibility with existing components.
+//
+// They are NOT used as credentials.
 // =========================================================
 
 import api from "./api"
-
-
-// =========================================================
-// AUTHORIZATION HEADER
-// =========================================================
-//
-// Keeps the authorization configuration consistent across
-// every BI request.
-//
-// =========================================================
-
-const authConfig = (accessToken) => {
-
-    return {
-        headers: {
-            Authorization:
-                `Bearer ${accessToken}`,
-        },
-    }
-
-}
 
 
 // =========================================================
@@ -55,13 +43,15 @@ export const getRevenueTargets = async (
     accessToken
 ) => {
 
+    // Compatibility only.
+    // Authentication is handled by the HttpOnly cookie.
+    void accessToken
+
     const response = await api.get(
-        "/revenue_targets",
-        authConfig(accessToken)
+        "/revenue_targets"
     )
 
     return response.data
-
 }
 
 
@@ -81,13 +71,13 @@ export const getTotalRevenue = async (
     accessToken
 ) => {
 
+    void accessToken
+
     const response = await api.get(
-        `/total_revenue/${targetId}`,
-        authConfig(accessToken)
+        `/total_revenue/${targetId}`
     )
 
     return response.data
-
 }
 
 
@@ -108,13 +98,13 @@ export const getPopularTour = async (
     accessToken
 ) => {
 
+    void accessToken
+
     const response = await api.get(
-        `/popular_tours/${targetId}`,
-        authConfig(accessToken)
+        `/popular_tours/${targetId}`
     )
 
     return response.data
-
 }
 
 
@@ -135,13 +125,13 @@ export const getTotalCustomers = async (
     accessToken
 ) => {
 
+    void accessToken
+
     const response = await api.get(
-        `/total_customers/${targetId}`,
-        authConfig(accessToken)
+        `/total_customers/${targetId}`
     )
 
     return response.data
-
 }
 
 
@@ -159,13 +149,13 @@ export const getConfirmedBookings = async (
     accessToken
 ) => {
 
+    void accessToken
+
     const response = await api.get(
-        `/confirmed_bookings/${targetId}`,
-        authConfig(accessToken)
+        `/confirmed_bookings/${targetId}`
     )
 
     return response.data
-
 }
 
 
@@ -183,13 +173,13 @@ export const getCompletedBookings = async (
     accessToken
 ) => {
 
+    void accessToken
+
     const response = await api.get(
-        `/completed_bookings/${targetId}`,
-        authConfig(accessToken)
+        `/completed_bookings/${targetId}`
     )
 
     return response.data
-
 }
 
 
@@ -207,13 +197,13 @@ export const getCancelledBookings = async (
     accessToken
 ) => {
 
+    void accessToken
+
     const response = await api.get(
-        `/cancelled_bookings/${targetId}`,
-        authConfig(accessToken)
+        `/cancelled_bookings/${targetId}`
     )
 
     return response.data
-
 }
 
 
@@ -231,13 +221,13 @@ export const getExpiredBookings = async (
     accessToken
 ) => {
 
+    void accessToken
+
     const response = await api.get(
-        `/expired_bookings/${targetId}`,
-        authConfig(accessToken)
+        `/expired_bookings/${targetId}`
     )
 
     return response.data
-
 }
 
 
@@ -255,13 +245,13 @@ export const getCompletionRate = async (
     accessToken
 ) => {
 
+    void accessToken
+
     const response = await api.get(
-        `/completion_rate/${targetId}`,
-        authConfig(accessToken)
+        `/completion_rate/${targetId}`
     )
 
     return response.data
-
 }
 
 
@@ -279,13 +269,13 @@ export const getCancellationRate = async (
     accessToken
 ) => {
 
+    void accessToken
+
     const response = await api.get(
-        `/cancellation_rate/${targetId}`,
-        authConfig(accessToken)
+        `/cancellation_rate/${targetId}`
     )
 
     return response.data
-
 }
 
 
@@ -305,13 +295,13 @@ export const getAverageBookingSize = async (
     accessToken
 ) => {
 
+    void accessToken
+
     const response = await api.get(
-        `/average_size/${targetId}`,
-        authConfig(accessToken)
+        `/average_size/${targetId}`
     )
 
     return response.data
-
 }
 
 
@@ -329,13 +319,13 @@ export const getAverageRevenue = async (
     accessToken
 ) => {
 
+    void accessToken
+
     const response = await api.get(
-        `/average_revenue/${targetId}`,
-        authConfig(accessToken)
+        `/average_revenue/${targetId}`
     )
 
     return response.data
-
 }
 
 
@@ -353,13 +343,13 @@ export const getTopRevenueTour = async (
     accessToken
 ) => {
 
+    void accessToken
+
     const response = await api.get(
-        `/top_revenue/${targetId}`,
-        authConfig(accessToken)
+        `/top_revenue/${targetId}`
     )
 
     return response.data
-
 }
 
 
@@ -377,13 +367,13 @@ export const getRevenuePerCustomer = async (
     accessToken
 ) => {
 
+    void accessToken
+
     const response = await api.get(
-        `/customer_revenue/${targetId}`,
-        authConfig(accessToken)
+        `/customer_revenue/${targetId}`
     )
 
     return response.data
-
 }
 
 
@@ -404,13 +394,13 @@ export const getCustomerRetention = async (
     accessToken
 ) => {
 
+    void accessToken
+
     const response = await api.get(
-        `/customer_booking/${targetId}`,
-        authConfig(accessToken)
+        `/customer_booking/${targetId}`
     )
 
     return response.data
-
 }
 
 
@@ -430,13 +420,13 @@ export const getOccupancyRate = async (
     accessToken
 ) => {
 
+    void accessToken
+
     const response = await api.get(
-        `/occupancy_rate/${targetId}`,
-        authConfig(accessToken)
+        `/occupancy_rate/${targetId}`
     )
 
     return response.data
-
 }
 
 
@@ -447,8 +437,8 @@ export const getOccupancyRate = async (
 // Backend:
 // GET /api/booking_growth/<target_id>
 //
-// Compares the selected period with the previous equal-length
-// period.
+// Compares the selected period with the previous
+// equal-length period.
 //
 // =========================================================
 
@@ -457,13 +447,13 @@ export const getBookingGrowth = async (
     accessToken
 ) => {
 
+    void accessToken
+
     const response = await api.get(
-        `/booking_growth/${targetId}`,
-        authConfig(accessToken)
+        `/booking_growth/${targetId}`
     )
 
     return response.data
-
 }
 
 
@@ -474,8 +464,8 @@ export const getBookingGrowth = async (
 // Backend:
 // GET /api/customer_growth/<target_id>
 //
-// Compares customer activity with the previous equal-length
-// period.
+// Compares customer activity with the previous
+// equal-length period.
 //
 // =========================================================
 
@@ -484,13 +474,13 @@ export const getCustomerGrowth = async (
     accessToken
 ) => {
 
+    void accessToken
+
     const response = await api.get(
-        `/customer_growth/${targetId}`,
-        authConfig(accessToken)
+        `/customer_growth/${targetId}`
     )
 
     return response.data
-
 }
 
 
@@ -510,13 +500,13 @@ export const getAverageTripDuration = async (
     accessToken
 ) => {
 
+    void accessToken
+
     const response = await api.get(
-        `/average_trip/${targetId}`,
-        authConfig(accessToken)
+        `/average_trip/${targetId}`
     )
 
     return response.data
-
 }
 
 
@@ -536,11 +526,11 @@ export const getRevenueByTour = async (
     accessToken
 ) => {
 
+    void accessToken
+
     const response = await api.get(
-        `/revenue_tour/${targetId}`,
-        authConfig(accessToken)
+        `/revenue_tour/${targetId}`
     )
 
     return response.data
-
 }

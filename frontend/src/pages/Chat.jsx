@@ -82,7 +82,6 @@ function Chat() {
     // -----------------------------------------------------
 
     const {
-        accessToken,
         isAuthenticated,
         authLoading,
         user,
@@ -441,10 +440,7 @@ function Chat() {
     const loadChat = useCallback(
         async () => {
 
-            if (
-                !accessToken ||
-                !conversationId
-            ) {
+            if (!conversationId) {
                 return
             }
 
@@ -463,12 +459,7 @@ function Chat() {
                 const conversationsResponse =
                     await api.get(
                         "/conversations",
-                        {
-                            headers: {
-                                Authorization:
-                                    `Bearer ${accessToken}`,
-                            },
-                        }
+
                     )
 
 
@@ -523,12 +514,7 @@ function Chat() {
                 const messagesResponse =
                     await api.get(
                         `/conversations/${conversationId}/messages`,
-                        {
-                            headers: {
-                                Authorization:
-                                    `Bearer ${accessToken}`,
-                            },
-                        }
+
                     )
 
 
@@ -585,12 +571,7 @@ function Chat() {
                     await api.patch(
                         `/conversations/${conversationId}/read`,
                         {},
-                        {
-                            headers: {
-                                Authorization:
-                                    `Bearer ${accessToken}`,
-                            },
-                        }
+
                     )
 
                 } catch (readError) {
@@ -642,7 +623,6 @@ function Chat() {
 
         },
         [
-            accessToken,
             conversationId,
         ]
     )
@@ -659,8 +639,7 @@ function Chat() {
 
         if (
             authLoading ||
-            !isAuthenticated ||
-            !accessToken
+            !isAuthenticated
         ) {
             return
         }
@@ -677,7 +656,6 @@ function Chat() {
     }, [
         authLoading,
         isAuthenticated,
-        accessToken,
         loadChat,
     ])
 
@@ -706,7 +684,6 @@ function Chat() {
         if (
             authLoading ||
             !isAuthenticated ||
-            !accessToken ||
             !conversationId
         ) {
             return
@@ -721,10 +698,15 @@ function Chat() {
             io(
                 getSocketUrl(),
                 {
-                    auth: {
-                        access_token:
-                            accessToken,
-                    },
+                    // Authentication is handled by the HttpOnly
+                    // access cookie. Do not send the JWT from
+                    // JavaScript.
+                    withCredentials: true,
+
+                    transports: [
+                        "websocket",
+                        "polling",
+                    ],
 
                     // We want Socket.IO to reconnect
                     // automatically when possible.
@@ -950,12 +932,7 @@ function Chat() {
                 api.patch(
                     `/conversations/${conversationId}/read`,
                     {},
-                    {
-                        headers: {
-                            Authorization:
-                                `Bearer ${accessToken}`,
-                        },
-                    }
+
                 ).catch(
                     readError => {
 
@@ -1017,7 +994,6 @@ function Chat() {
     }, [
         authLoading,
         isAuthenticated,
-        accessToken,
         conversationId,
     ])
 
@@ -1084,12 +1060,7 @@ function Chat() {
                     {
                         content,
                     },
-                    {
-                        headers: {
-                            Authorization:
-                                `Bearer ${accessToken}`,
-                        },
-                    }
+
                 )
 
 
@@ -1173,8 +1144,7 @@ function Chat() {
 
             if (
                 sending ||
-                !conversationId ||
-                !accessToken
+                !conversationId
             ) {
                 return
             }

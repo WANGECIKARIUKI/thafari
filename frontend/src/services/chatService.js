@@ -5,16 +5,20 @@
 // This file contains all API requests related to the
 // Thafari in-app messaging system.
 //
-// The backend supports:
+// Authentication is handled automatically by api.js using
+// the HttpOnly authentication cookie.
 //
-// - Creating a conversation from a booking
-// - Getting the user's conversations
-// - Getting messages inside a conversation
-// - Sending messages
-// - Marking a conversation as read
+// The accessToken parameters are retained only for
+// compatibility with existing components.
 //
-// Keeping these requests here means our React pages do not
-// need to know the exact backend API URLs.
+// They are NOT used as credentials.
+//
+// The backend remains responsible for:
+// - Authentication
+// - Conversation participant checks
+// - Booking ownership checks
+// - Message authorization
+// - Read-status authorization
 //
 // =========================================================
 
@@ -50,15 +54,14 @@ export const createConversation = async (
     accessToken
 ) => {
 
+    // Compatibility only.
+    // Authentication is handled by the HttpOnly cookie.
+    void accessToken
+
     const response = await api.post(
         "/conversations",
         {
             booking_id: bookingId,
-        },
-        {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
         }
     )
 
@@ -92,13 +95,12 @@ export const getConversations = async (
     accessToken
 ) => {
 
+    // Compatibility only.
+    // Authentication is handled by the HttpOnly cookie.
+    void accessToken
+
     const response = await api.get(
-        "/conversations",
-        {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        }
+        "/conversations"
     )
 
     return response.data
@@ -116,8 +118,8 @@ export const getConversations = async (
 // This loads the existing message history for a
 // conversation.
 //
-// The messages are returned in chronological order by
-// the backend.
+// The backend verifies that the authenticated user
+// is a participant in the conversation.
 //
 // =========================================================
 
@@ -126,13 +128,12 @@ export const getMessages = async (
     accessToken
 ) => {
 
+    // Compatibility only.
+    // Authentication is handled by the HttpOnly cookie.
+    void accessToken
+
     const response = await api.get(
-        `/conversations/${conversationId}/messages`,
-        {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        }
+        `/conversations/${conversationId}/messages`
     )
 
     return response.data
@@ -150,8 +151,11 @@ export const getMessages = async (
 // This function is useful as the REST fallback for sending
 // messages.
 //
-// Our main chat interface will eventually use Socket.IO
-// for real-time messaging.
+// Our main chat interface can use Socket.IO for real-time
+// messaging.
+//
+// The api.js interceptor automatically adds the CSRF token
+// for this POST request.
 //
 // =========================================================
 
@@ -161,15 +165,14 @@ export const sendMessage = async (
     accessToken
 ) => {
 
+    // Compatibility only.
+    // Authentication is handled by the HttpOnly cookie.
+    void accessToken
+
     const response = await api.post(
         `/conversations/${conversationId}/messages`,
         {
             content,
-        },
-        {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
         }
     )
 
@@ -188,8 +191,11 @@ export const sendMessage = async (
 // This tells the backend that the authenticated user has
 // read the messages in this conversation.
 //
-// This is important for keeping unread message counts
-// accurate.
+// The backend verifies that the authenticated user is
+// actually a participant.
+//
+// The api.js interceptor automatically adds the CSRF token
+// for this PATCH request.
 //
 // =========================================================
 
@@ -198,14 +204,13 @@ export const markConversationAsRead = async (
     accessToken
 ) => {
 
+    // Compatibility only.
+    // Authentication is handled by the HttpOnly cookie.
+    void accessToken
+
     const response = await api.patch(
         `/conversations/${conversationId}/read`,
-        {},
-        {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        }
+        {}
     )
 
     return response.data

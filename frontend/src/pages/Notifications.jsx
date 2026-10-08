@@ -38,8 +38,12 @@ import {
 } from "react"
 
 
+import { io } from "socket.io-client"
+
+
 import {
     Link,
+    Navigate,
     useNavigate,
 } from "react-router-dom"
 
@@ -57,6 +61,22 @@ import {
 
 
 import "./Notifications.css"
+
+
+const getSocketUrl = () => {
+
+    const apiUrl = import.meta.env.VITE_API_URL
+
+
+    if (apiUrl) {
+
+        return apiUrl.replace(/\/api\/?$/, "")
+
+    }
+
+
+    return window.location.origin
+}
 
 
 function Notifications() {
@@ -79,12 +99,12 @@ function Notifications() {
         )
     }
 
+
     // ---------------------------------------------------------
     // AUTHENTICATION
     // ---------------------------------------------------------
 
     const {
-        accessToken,
         isAuthenticated,
     } = useAuth()
 
@@ -138,11 +158,16 @@ function Notifications() {
 
     useEffect(() => {
 
-        if (!isAuthenticated || !accessToken) {
+        // -----------------------------------------------------
+        // Logged-out users are handled by the protected render
+        // below.
+        //
+        // Do not synchronously call setState here.
+        // React can treat those state updates inside the effect
+        // as cascading renders.
+        // -----------------------------------------------------
 
-            setNotifications([])
-
-            setLoading(false)
+        if (!isAuthenticated) {
 
             return
         }
@@ -158,9 +183,7 @@ function Notifications() {
 
 
                 const data =
-                    await getNotifications(
-                        accessToken
-                    )
+                    await getNotifications()
 
 
                 // -------------------------------------------------
@@ -214,7 +237,127 @@ function Notifications() {
         loadNotifications()
 
     }, [
-        accessToken,
+        isAuthenticated,
+    ])
+
+
+    // =========================================================
+    // REAL-TIME NOTIFICATION LISTENER
+    // =========================================================
+    //
+    // The backend emits "new_notification" to the logged-in
+    // user's private Socket.IO room whenever a new notification
+    // is created.
+    //
+    // When this page is already open, we fetch the latest list
+    // so the new notification appears immediately without the
+    // user needing to refresh the page.
+    // =========================================================
+
+    useEffect(() => {
+
+        if (!isAuthenticated) {
+
+            return
+        }
+
+
+        const socketUrl = getSocketUrl()
+
+
+        const socket = io(
+            socketUrl,
+            {
+                // Authentication is handled by the HttpOnly
+                // access cookie. We deliberately do not send a
+                // JWT from JavaScript.
+                withCredentials: true,
+                transports: ["websocket", "polling"],
+                reconnection: true,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 1000,
+            }
+        )
+
+
+        const refreshNotifications = async () => {
+
+            try {
+
+                const data = await getNotifications()
+
+
+                setNotifications(
+                    data.notifications || []
+                )
+
+
+                setError("")
+
+            } catch (error) {
+
+                console.error(
+                    "Failed to refresh notifications after a real-time update:",
+                    error
+                )
+
+            }
+        }
+
+
+        const handleNewNotification = (
+            notification
+        ) => {
+
+            console.log(
+                "New Thafari notification received:",
+                notification
+            )
+
+
+            // Refresh the complete list from the backend.
+            // This keeps ordering, read status and notification
+            // fields exactly in sync with the database.
+            refreshNotifications()
+
+
+            // Keep the Navbar unread badge synchronized too.
+            notifyNavbarOfUpdate()
+
+        }
+
+
+        socket.on(
+            "new_notification",
+            handleNewNotification
+        )
+
+
+        socket.on(
+            "connect_error",
+            (error) => {
+
+                console.warn(
+                    "Notification Socket.IO connection error:",
+                    error?.message || error
+                )
+
+            }
+        )
+
+
+        return () => {
+
+            socket.off(
+                "new_notification",
+                handleNewNotification
+            )
+
+            socket.disconnect()
+
+        }
+
+    }, [
         isAuthenticated,
     ])
 
@@ -230,7 +373,6 @@ function Notifications() {
         try {
 
             await markNotificationAsRead(
-                accessToken,
                 notificationId
             )
 
@@ -294,7 +436,6 @@ function Notifications() {
             if (!notification.is_read) {
 
                 await markNotificationAsRead(
-                    accessToken,
                     notification.id
                 )
 
@@ -332,7 +473,44 @@ function Notifications() {
 
             if (notification.link) {
 
-                navigate(notification.link)
+                // -------------------------------------------------
+                // BACKWARD-COMPATIBLE ADMIN PAYMENT LINKS
+                // -------------------------------------------------
+                // Older/newly-created payment notifications may use:
+                //
+                //     /admin/direct-payments/<payment_id>
+                //
+                // Thafari now uses the pending direct-payments page
+                // as the review workspace. The old URL does not have
+                // a matching React route, so navigating to it would
+                // produce a blank page.
+                //
+                // Send those links to the real review workspace.
+                // The payment ID is preserved in the query string so
+                // the payment workspace can identify the exact payment
+                // when it supports direct opening.
+                // -------------------------------------------------
+
+                const paymentLinkMatch =
+                    notification.link.match(
+                        /^\/admin\/direct-payments\/(\d+)(?:\?.*)?$/
+                    )
+
+
+                if (paymentLinkMatch) {
+
+                    const paymentId =
+                        paymentLinkMatch[1]
+
+                    navigate(
+                        `/admin/direct-payments/pending?paymentId=${paymentId}`
+                    )
+
+                } else {
+
+                    navigate(notification.link)
+
+                }
 
             }
 
@@ -358,9 +536,7 @@ function Notifications() {
             setMarkingAllRead(true)
 
 
-            await markAllNotificationsAsRead(
-                accessToken
-            )
+            await markAllNotificationsAsRead()
 
 
             // Refresh the Navbar unread badge immediately.
@@ -451,34 +627,18 @@ function Notifications() {
     // =========================================================
     // PROTECT PAGE
     // =========================================================
+    //
+    // Logged-out users are sent directly to the login page.
+    // There is no intermediate "Please sign in" screen.
+    // =========================================================
 
     if (!isAuthenticated) {
 
         return (
-            <div className="notifications-page">
-
-                <div className="notifications-login-state">
-
-                    <h1>
-                        Please sign in
-                    </h1>
-
-                    <p>
-                        You need to be logged in to view
-                        your notifications.
-                    </p>
-
-
-                    <Link
-                        to="/login"
-                        className="notifications-primary-button"
-                    >
-                        Sign In
-                    </Link>
-
-                </div>
-
-            </div>
+            <Navigate
+                to="/login"
+                replace
+            />
         )
     }
 
@@ -610,35 +770,35 @@ function Notifications() {
                 !error &&
                 notifications.length === 0 && (
 
-                    <div className="notifications-state">
+                <div className="notifications-state">
 
-                        <div className="notifications-state-icon">
-                            🌿
-                        </div>
-
-
-                        <h2>
-                            You're all caught up
-                        </h2>
-
-
-                        <p>
-                            You don't have any notifications
-                            yet. When something important
-                            happens, we'll let you know here.
-                        </p>
-
-
-                        <Link
-                            to="/dashboard"
-                            className="notifications-primary-button"
-                        >
-                            Back to Dashboard
-                        </Link>
-
+                    <div className="notifications-state-icon">
+                        🌿
                     </div>
 
-                )}
+
+                    <h2>
+                        You're all caught up
+                    </h2>
+
+
+                    <p>
+                        You don't have any notifications
+                        yet. When something important
+                        happens, we'll let you know here.
+                    </p>
+
+
+                    <Link
+                        to="/dashboard"
+                        className="notifications-primary-button"
+                    >
+                        Back to Dashboard
+                    </Link>
+
+                </div>
+
+            )}
 
 
             {/* =================================================
@@ -649,157 +809,157 @@ function Notifications() {
                 !error &&
                 notifications.length > 0 && (
 
-                    <section className="notifications-list">
+                <section className="notifications-list">
 
-                        {notifications.map(
-                            (notification) => (
+                    {notifications.map(
+                        (notification) => (
 
-                                <article
-                                    key={notification.id}
-                                    className={
-                                        notification.is_read
-                                            ? "notification-item"
-                                            : "notification-item notification-unread"
+                            <article
+                                key={notification.id}
+                                className={
+                                    notification.is_read
+                                        ? "notification-item"
+                                        : "notification-item notification-unread"
+                                }
+                            >
+
+                                {/* ---------------------------------
+                                    NOTIFICATION ICON
+                                --------------------------------- */}
+
+                                <div className="notification-icon">
+
+                                    {notification.notification_type === "booking"
+                                        ? "🏕️"
+                                        : notification.notification_type === "payment"
+                                            ? "💳"
+                                            : notification.notification_type === "refund"
+                                                ? "💰"
+                                                : notification.notification_type === "message"
+                                                    ? "💬"
+                                                    : notification.notification_type === "departure"
+                                                        ? "🧳"
+                                                        : "🔔"
                                     }
-                                >
 
-                                    {/* ---------------------------------
-                                        NOTIFICATION ICON
-                                    --------------------------------- */}
+                                </div>
 
-                                    <div className="notification-icon">
 
-                                        {notification.notification_type === "booking"
-                                            ? "🏕️"
-                                            : notification.notification_type === "payment"
-                                                ? "💳"
-                                                : notification.notification_type === "refund"
-                                                    ? "💰"
-                                                    : notification.notification_type === "message"
-                                                        ? "💬"
-                                                        : notification.notification_type === "departure"
-                                                            ? "🧳"
-                                                            : "🔔"
-                                        }
+                                {/* ---------------------------------
+                                    NOTIFICATION CONTENT
+                                --------------------------------- */}
+
+                                <div className="notification-content">
+
+                                    <div className="notification-title-row">
+
+                                        <h2>
+                                            {notification.title}
+                                        </h2>
+
+
+                                        {!notification.is_read && (
+
+                                            <span className="notification-unread-label">
+                                                New
+                                            </span>
+
+                                        )}
+
+                                    </div>
+
+
+                                    <p>
+                                        {notification.message}
+                                    </p>
+
+
+                                    <div className="notification-meta">
+
+                                        <span>
+                                            {notification.notification_type}
+                                        </span>
+
+
+                                        <span>
+                                            {notification.created_at
+                                                ? new Date(
+                                                    notification.created_at
+                                                ).toLocaleString()
+                                                : ""
+                                            }
+                                        </span>
 
                                     </div>
 
 
                                     {/* ---------------------------------
-                                        NOTIFICATION CONTENT
+                                        NOTIFICATION ACTIONS
+                                    ---------------------------------
+                                    
+                                    "Mark as read" does NOT navigate.
+
+                                    "View/Open" marks the notification
+                                    as read and then navigates to the
+                                    stored destination.
                                     --------------------------------- */}
 
-                                    <div className="notification-content">
+                                    <div className="notification-actions">
 
-                                        <div className="notification-title-row">
+                                        {!notification.is_read && (
 
-                                            <h2>
-                                                {notification.title}
-                                            </h2>
-
-
-                                            {!notification.is_read && (
-
-                                                <span className="notification-unread-label">
-                                                    New
-                                                </span>
-
-                                            )}
-
-                                        </div>
-
-
-                                        <p>
-                                            {notification.message}
-                                        </p>
-
-
-                                        <div className="notification-meta">
-
-                                            <span>
-                                                {notification.notification_type}
-                                            </span>
-
-
-                                            <span>
-                                                {notification.created_at
-                                                    ? new Date(
-                                                        notification.created_at
-                                                    ).toLocaleString()
-                                                    : ""
+                                            <button
+                                                type="button"
+                                                className="notification-read-button"
+                                                onClick={() =>
+                                                    handleMarkAsRead(
+                                                        notification.id
+                                                    )
                                                 }
-                                            </span>
+                                            >
+                                                Mark as read
+                                            </button>
 
-                                        </div>
+                                        )}
 
 
                                         {/* ---------------------------------
-                                            NOTIFICATION ACTIONS
-                                        ---------------------------------
-                                        
-                                        "Mark as read" does NOT navigate.
-
-                                        "View/Open" marks the notification
-                                        as read and then navigates to the
-                                        stored destination.
+                                            VIEW / OPEN BUTTON
+                                            
+                                            This only appears when the
+                                            backend has supplied a link.
                                         --------------------------------- */}
 
-                                        <div className="notification-actions">
+                                        {notification.link && (
 
-                                            {!notification.is_read && (
-
-                                                <button
-                                                    type="button"
-                                                    className="notification-read-button"
-                                                    onClick={() =>
-                                                        handleMarkAsRead(
-                                                            notification.id
-                                                        )
-                                                    }
-                                                >
-                                                    Mark as read
-                                                </button>
-
-                                            )}
-
-
-                                            {/* ---------------------------------
-                                                VIEW / OPEN BUTTON
-                                                
-                                                This only appears when the
-                                                backend has supplied a link.
-                                            --------------------------------- */}
-
-                                            {notification.link && (
-
-                                                <button
-                                                    type="button"
-                                                    className="notification-open-button"
-                                                    onClick={() =>
-                                                        handleOpenNotification(
-                                                            notification
-                                                        )
-                                                    }
-                                                >
-                                                    {getActionLabel(
+                                            <button
+                                                type="button"
+                                                className="notification-open-button"
+                                                onClick={() =>
+                                                    handleOpenNotification(
                                                         notification
-                                                    )}
-                                                </button>
+                                                    )
+                                                }
+                                            >
+                                                {getActionLabel(
+                                                    notification
+                                                )}
+                                            </button>
 
-                                            )}
-
-                                        </div>
+                                        )}
 
                                     </div>
 
-                                </article>
+                                </div>
 
-                            )
-                        )}
+                            </article>
 
-                    </section>
+                        )
+                    )}
 
-                )}
+                </section>
+
+            )}
 
         </div>
     )

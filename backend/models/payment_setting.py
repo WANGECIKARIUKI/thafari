@@ -63,6 +63,29 @@ class PaymentSetting(BaseModel):
     )
 
 
+    # =====================================================
+    # ACTIVE M-PESA PAYMENT MODE
+    # =====================================================
+    #
+    # This determines which M-Pesa payment option should
+    # currently be shown to customers.
+    #
+    # "paybill" = customers see the Paybill number
+    # "till"    = customers see the Till number
+    #
+    # We still keep BOTH numbers in the database so the
+    # admin can switch between them without deleting
+    # either payment destination.
+    #
+    # =====================================================
+
+    mpesa_mode = db.Column(
+        db.Enum("paybill", "till"),
+        nullable=False,
+        default="paybill"
+    )
+
+
     mpesa_paybill = db.Column(
         db.String(50),
         nullable=True

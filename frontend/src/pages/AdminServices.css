@@ -1,0 +1,1047 @@
+/* =========================================================
+   THAFARI ADMIN SERVICES
+   ========================================================= */
+
+/* =========================================================
+   PAGE
+   ========================================================= */
+
+.admin-services-page {
+    width: min(100% - 48px, 1200px);
+
+    margin: 0 auto;
+
+    padding-top: 45px;
+    padding-bottom: 70px;
+}
+
+
+/* =========================================================
+   HERO
+   ========================================================= */
+
+.admin-services-hero {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 30px;
+
+    margin-bottom: 30px;
+}
+
+.admin-services-hero-content {
+    min-width: 0;
+}
+
+.admin-services-breadcrumb {
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+
+    margin-bottom: 16px;
+
+    font-size: 14px;
+}
+
+.admin-services-breadcrumb a {
+    color: #31533f;
+
+    text-decoration: none;
+
+    font-weight: 600;
+}
+
+.admin-services-breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.admin-services-breadcrumb span {
+    color: #8a938d;
+}
+
+.admin-services-eyebrow {
+    margin: 0 0 8px;
+
+    color: #6b7d72;
+
+    font-size: 12px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.16em;
+}
+
+.admin-services-hero h1 {
+    margin: 0;
+
+    color: #1e2d25;
+
+    font-size: clamp(32px, 4vw, 48px);
+
+    line-height: 1.05;
+}
+
+.admin-services-subtitle {
+    max-width: 720px;
+
+    margin: 14px 0 0;
+
+    color: #68736c;
+
+    font-size: 16px;
+
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   ADD BUTTON
+   ========================================================= */
+
+.admin-add-service-button {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 9px;
+
+    flex-shrink: 0;
+
+    border: 0;
+
+    border-radius: 12px;
+
+    padding: 13px 20px;
+
+    background: #31533f;
+
+    color: #ffffff;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    box-shadow: 0 8px 20px rgba(49, 83, 63, 0.16);
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.admin-add-service-button span {
+    font-size: 21px;
+
+    line-height: 1;
+}
+
+.admin-add-service-button:hover {
+    background: #274534;
+
+    transform: translateY(-1px);
+
+    box-shadow: 0 10px 24px rgba(49, 83, 63, 0.22);
+}
+
+
+/* =========================================================
+   ALERTS
+   ========================================================= */
+
+.admin-service-alert {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    margin-bottom: 22px;
+
+    border-radius: 12px;
+
+    padding: 13px 15px;
+}
+
+.admin-service-alert p {
+    flex: 1;
+
+    margin: 0;
+
+    font-size: 14px;
+
+    line-height: 1.5;
+}
+
+.admin-service-alert > span {
+    display: grid;
+
+    place-items: center;
+
+    width: 28px;
+    height: 28px;
+
+    border-radius: 50%;
+
+    flex-shrink: 0;
+
+    font-weight: 800;
+}
+
+.admin-service-alert button {
+    border: 0;
+
+    background: transparent;
+
+    color: inherit;
+
+    font-size: 22px;
+
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+.admin-service-alert.success {
+    border: 1px solid #cfe6d6;
+
+    background: #f1faf4;
+
+    color: #267347;
+}
+
+.admin-service-alert.success > span {
+    background: #dcefe2;
+}
+
+.admin-service-alert.error {
+    border: 1px solid #ead5d2;
+
+    background: #fff8f7;
+
+    color: #a24a43;
+}
+
+.admin-service-alert.error > span {
+    background: #f6dfdc;
+}
+
+
+/* =========================================================
+   STATISTICS
+   ========================================================= */
+
+.admin-service-stats {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 16px;
+
+    margin-bottom: 28px;
+}
+
+.admin-service-stat {
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+
+    min-width: 0;
+
+    border: 1px solid #e4e9e5;
+
+    border-radius: 16px;
+
+    padding: 19px;
+
+    background: #ffffff;
+
+    box-shadow: 0 8px 24px rgba(35, 51, 42, 0.05);
+}
+
+.admin-service-stat-icon {
+    display: grid;
+
+    place-items: center;
+
+    width: 48px;
+    height: 48px;
+
+    border-radius: 12px;
+
+    flex-shrink: 0;
+
+    background: #eef5f0;
+
+    color: #31533f;
+
+    font-size: 21px;
+}
+
+.admin-service-stat-icon.active-icon {
+    background: #e6f3ea;
+
+    color: #267347;
+}
+
+.admin-service-stat-icon.inactive-icon {
+    background: #f0f2f1;
+
+    color: #6f7973;
+}
+
+.admin-service-stat span {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: #738078;
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.08em;
+}
+
+.admin-service-stat strong {
+    color: #1f3027;
+
+    font-size: 27px;
+
+    line-height: 1;
+}
+
+
+/* =========================================================
+   FORM PANEL
+   ========================================================= */
+
+.admin-services-form-panel {
+    margin-bottom: 30px;
+
+    overflow: hidden;
+
+    border: 1px solid #e0e7e2;
+
+    border-radius: 18px;
+
+    background: #ffffff;
+
+    box-shadow: 0 12px 28px rgba(35, 51, 42, 0.06);
+}
+
+.admin-services-form-header {
+    padding: 22px 24px;
+
+    border-bottom: 1px solid #e8ece9;
+
+    background: #f8faf8;
+}
+
+.admin-services-form-eyebrow {
+    margin: 0 0 6px;
+
+    color: #6b7d72;
+
+    font-size: 11px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.14em;
+}
+
+.admin-services-form-header h2 {
+    margin: 0;
+
+    color: #203027;
+
+    font-size: 24px;
+}
+
+.admin-services-form {
+    display: grid;
+
+    gap: 19px;
+
+    padding: 24px;
+}
+
+.admin-services-form-group {
+    display: grid;
+
+    gap: 8px;
+}
+
+.admin-services-form-group label {
+    color: #33443a;
+
+    font-size: 13px;
+
+    font-weight: 700;
+}
+
+.admin-services-form-group input,
+.admin-services-form-group textarea {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    border: 1px solid #d8e0da;
+
+    border-radius: 11px;
+
+    padding: 12px 14px;
+
+    background: #ffffff;
+
+    color: #24342b;
+
+    font: inherit;
+
+    font-size: 14px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.admin-services-form-group input {
+    min-height: 46px;
+}
+
+.admin-services-form-group textarea {
+    min-height: 125px;
+
+    resize: vertical;
+
+    line-height: 1.55;
+}
+
+.admin-services-form-group input:focus,
+.admin-services-form-group textarea:focus,
+.admin-services-search input:focus,
+.admin-services-filter select:focus {
+    border-color: #7d9c89;
+
+    box-shadow: 0 0 0 3px rgba(49, 83, 63, 0.08);
+}
+
+.admin-service-checkbox {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    width: fit-content;
+
+    color: #425149;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.admin-service-checkbox input {
+    width: 17px;
+    height: 17px;
+
+    accent-color: #31533f;
+
+    cursor: pointer;
+}
+
+.admin-services-form-actions {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 11px;
+
+    padding-top: 4px;
+}
+
+.admin-service-cancel-button,
+.admin-service-save-button {
+    border-radius: 10px;
+
+    padding: 11px 17px;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.admin-service-cancel-button {
+    border: 1px solid #d8dfda;
+
+    background: #ffffff;
+
+    color: #526058;
+}
+
+.admin-service-cancel-button:hover {
+    background: #f5f7f5;
+}
+
+.admin-service-save-button {
+    border: 1px solid #31533f;
+
+    background: #31533f;
+
+    color: #ffffff;
+}
+
+.admin-service-save-button:hover {
+    background: #274534;
+}
+
+
+/* =========================================================
+   TOOLBAR
+   ========================================================= */
+
+.admin-services-toolbar {
+    display: flex;
+
+    align-items: flex-end;
+
+    gap: 18px;
+
+    margin-bottom: 20px;
+}
+
+.admin-services-search {
+    flex: 1;
+
+    max-width: 700px;
+}
+
+.admin-services-filter {
+    width: 190px;
+}
+
+.admin-services-search,
+.admin-services-filter {
+    display: grid;
+
+    gap: 7px;
+}
+
+.admin-services-search label,
+.admin-services-filter label {
+    color: #59665e;
+
+    font-size: 12px;
+
+    font-weight: 800;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.08em;
+}
+
+.admin-services-search input,
+.admin-services-filter select {
+    box-sizing: border-box;
+
+    width: 100%;
+
+    min-height: 44px;
+
+    border: 1px solid #d8e0da;
+
+    border-radius: 10px;
+
+    padding: 10px 13px;
+
+    background: #ffffff;
+
+    color: #24342b;
+
+    font: inherit;
+
+    font-size: 14px;
+
+    outline: none;
+}
+
+.admin-services-filter select {
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   LIST SECTION
+   ========================================================= */
+
+.admin-services-list-section {
+    border: 1px solid #e2e8e3;
+
+    border-radius: 18px;
+
+    padding: 22px;
+
+    background: #ffffff;
+
+    box-shadow: 0 10px 26px rgba(35, 51, 42, 0.05);
+}
+
+.admin-services-section-heading {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 20px;
+}
+
+.admin-services-section-heading p {
+    margin: 0 0 5px;
+
+    color: #718077;
+
+    font-size: 11px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.13em;
+}
+
+.admin-services-section-heading h2 {
+    margin: 0;
+
+    color: #213128;
+
+    font-size: 23px;
+}
+
+.admin-services-section-heading > span {
+    display: grid;
+
+    place-items: center;
+
+    min-width: 36px;
+    height: 36px;
+
+    border-radius: 10px;
+
+    padding: 0 9px;
+
+    background: #eef5f0;
+
+    color: #31533f;
+
+    font-size: 13px;
+
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   SERVICE GRID
+   ========================================================= */
+
+.admin-services-grid {
+    display: grid;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 18px;
+}
+
+.admin-service-card {
+    display: flex;
+
+    flex-direction: column;
+
+    min-width: 0;
+
+    border: 1px solid #dfe7e1;
+
+    border-radius: 15px;
+
+    padding: 20px;
+
+    background: #ffffff;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.admin-service-card:hover {
+    transform: translateY(-2px);
+
+    border-color: #cbd9cf;
+
+    box-shadow: 0 12px 26px rgba(35, 51, 42, 0.07);
+}
+
+.admin-service-card.inactive {
+    background: #fafbfa;
+
+    opacity: 0.92;
+}
+
+.admin-service-card-top {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin-bottom: 17px;
+}
+
+.admin-service-card-icon {
+    display: grid;
+
+    place-items: center;
+
+    width: 43px;
+    height: 43px;
+
+    border-radius: 11px;
+
+    background: #eef5f0;
+
+    color: #31533f;
+
+    font-size: 19px;
+}
+
+.admin-service-status {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 999px;
+
+    padding: 6px 10px;
+
+    font-size: 11px;
+
+    font-weight: 800;
+}
+
+.admin-service-status.active {
+    border: 1px solid #cfe6d6;
+
+    background: #f1faf4;
+
+    color: #267347;
+}
+
+.admin-service-status.inactive {
+    border: 1px solid #d9dfda;
+
+    background: #f4f6f4;
+
+    color: #69756e;
+}
+
+.admin-service-card h3 {
+    margin: 0 0 9px;
+
+    color: #22332a;
+
+    font-size: 20px;
+
+    line-height: 1.3;
+}
+
+.admin-service-card p {
+    flex: 1;
+
+    margin: 0;
+
+    color: #68736c;
+
+    font-size: 14px;
+
+    line-height: 1.65;
+}
+
+.admin-service-card-actions {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    margin-top: 19px;
+
+    padding-top: 17px;
+
+    border-top: 1px solid #edf0ee;
+}
+
+.admin-service-card-actions button {
+    flex: 1;
+
+    min-width: 90px;
+
+    border-radius: 9px;
+
+    padding: 9px 11px;
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: background 0.2s ease;
+}
+
+.admin-service-edit-button {
+    border: 1px solid #d6e3da;
+
+    background: #f7faf8;
+
+    color: #31533f;
+}
+
+.admin-service-edit-button:hover {
+    background: #eef5f0;
+}
+
+.admin-service-toggle-button {
+    border: 1px solid #ead5d2;
+
+    background: #fff8f7;
+
+    color: #a24a43;
+}
+
+.admin-service-toggle-button:hover {
+    background: #faece9;
+}
+
+.admin-service-card.inactive .admin-service-toggle-button {
+    border-color: #cfe6d6;
+
+    background: #f1faf4;
+
+    color: #267347;
+}
+
+.admin-service-card.inactive .admin-service-toggle-button:hover {
+    background: #e3f4e8;
+}
+
+.admin-service-delete-button {
+    border: 1px solid #ead5d2;
+
+    background: #ffffff;
+
+    color: #a24a43;
+}
+
+.admin-service-delete-button:hover {
+    background: #fff0ed;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.admin-services-empty-state {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-height: 250px;
+
+    border: 1px dashed #d7dfd9;
+
+    border-radius: 14px;
+
+    padding: 30px;
+
+    background: #fafcfb;
+
+    text-align: center;
+}
+
+.admin-services-empty-state > div {
+    display: grid;
+
+    place-items: center;
+
+    width: 54px;
+    height: 54px;
+
+    margin-bottom: 14px;
+
+    border-radius: 14px;
+
+    background: #eef5f0;
+
+    font-size: 23px;
+}
+
+.admin-services-empty-state h3 {
+    margin: 0 0 7px;
+
+    color: #2b3c32;
+
+    font-size: 19px;
+}
+
+.admin-services-empty-state p {
+    max-width: 450px;
+
+    margin: 0;
+
+    color: #718078;
+
+    font-size: 14px;
+
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .admin-services-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-service-stats {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .admin-service-stat:last-child {
+        grid-column: span 2;
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 760px) {
+
+    .admin-services-page {
+        width: min(100% - 28px, 600px);
+
+        padding-top: 25px;
+    }
+
+    .admin-services-hero {
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+    .admin-add-service-button {
+        width: 100%;
+    }
+
+    .admin-service-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-service-stat:last-child {
+        grid-column: auto;
+    }
+
+    .admin-services-toolbar {
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+    .admin-services-search {
+        max-width: none;
+    }
+
+    .admin-services-filter {
+        width: 100%;
+    }
+
+    .admin-services-form,
+    .admin-services-list-section {
+        padding: 20px;
+    }
+
+    .admin-services-form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .admin-service-cancel-button,
+    .admin-service-save-button {
+        width: 100%;
+    }
+
+    .admin-service-card-actions {
+        flex-direction: column;
+    }
+
+    .admin-service-card-actions button {
+        width: 100%;
+    }
+}
+
+
+/* =========================================================
+   SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 430px) {
+
+    .admin-services-page {
+        width: min(100% - 20px, 600px);
+    }
+
+    .admin-services-hero h1 {
+        font-size: 31px;
+    }
+
+    .admin-services-section-heading {
+        align-items: flex-start;
+    }
+
+    .admin-services-section-heading h2 {
+        font-size: 21px;
+    }
+}

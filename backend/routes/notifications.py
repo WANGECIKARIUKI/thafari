@@ -9,7 +9,6 @@
 # - getting the unread notification count
 # - marking one notification as read
 # - marking all notifications as read
-# - creating a temporary test notification
 #
 # Notifications can optionally contain a "link".
 #
@@ -27,7 +26,7 @@
 # the notification as read.
 # ============================================================
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify
 
 from flask_jwt_extended import (
     jwt_required,
@@ -37,11 +36,6 @@ from flask_jwt_extended import (
 from extensions import db
 
 from models.notification import Notification
-
-from services.notification_service import (
-    create_notification,
-    emit_notification
-)
 
 
 # ============================================================
@@ -411,153 +405,3 @@ def mark_all_notifications_as_read():
             len(notifications)
 
     }), 200
-
-
-# ============================================================
-# TEMPORARY DEVELOPMENT TEST ROUTE
-# ============================================================
-#
-# We are keeping this temporarily because it gives us an
-# easy way to test the new notification link functionality
-# before connecting every real Thafari event.
-#
-# Once we have finished connecting real notification events,
-# we can remove this route.
-# ============================================================
-
-@notification_bp.route(
-    "/notifications/test",
-    methods=["POST"]
-)
-@jwt_required()
-def create_test_notification():
-    """
-    Temporary development endpoint used to verify
-    notification creation, storage and delivery.
-
-    This now supports an optional "link" so we can test
-    the View/Open functionality.
-    """
-
-    # --------------------------------------------------------
-    # Get the currently authenticated user.
-    # --------------------------------------------------------
-
-    current_user_id = int(
-        get_jwt_identity()
-    )
-
-
-    # --------------------------------------------------------
-    # Get request body.
-    # --------------------------------------------------------
-
-    data = request.get_json() or {}
-
-
-    # --------------------------------------------------------
-    # Read test notification values.
-    # --------------------------------------------------------
-
-    title = data.get(
-        "title",
-        "Test Notification"
-    )
-
-
-    message = data.get(
-        "message",
-        "This is a test notification from Thafari."
-    )
-
-
-    # --------------------------------------------------------
-    # Optional notification link.
-    #
-    # If the request does not provide one, the notification
-    # will simply not have a View/Open button.
-    # --------------------------------------------------------
-
-    link = data.get(
-        "link"
-    )
-
-
-    # --------------------------------------------------------
-    # Create the notification.
-    # --------------------------------------------------------
-
-    notification = create_notification(
-
-        user_id=current_user_id,
-
-        title=title,
-
-        message=message,
-
-        notification_type="system",
-
-        # Pass the optional link into the notification.
-        link=link
-    )
-
-
-    # --------------------------------------------------------
-    # Commit the notification to the database first.
-    # --------------------------------------------------------
-
-    db.session.commit()
-
-
-    # --------------------------------------------------------
-    # Only notify the user's connected browser after the
-    # database transaction succeeds.
-    # --------------------------------------------------------
-
-    emit_notification(
-        notification
-    )
-
-
-    # --------------------------------------------------------
-    # Return the created notification.
-    # --------------------------------------------------------
-
-    return jsonify({
-
-        "message":
-            "Notification created successfully.",
-
-        "notification": {
-
-            "id":
-                notification.id,
-
-            "user_id":
-                notification.user_id,
-
-            "title":
-                notification.title,
-
-            "message":
-                notification.message,
-
-            "notification_type":
-                notification.notification_type,
-
-            "is_read":
-                notification.is_read,
-
-            # ------------------------------------------------
-            # Return the link so we can confirm it was stored.
-            # ------------------------------------------------
-
-            "link":
-                notification.link,
-
-            "created_at":
-                notification.created_at.isoformat()
-
-        }
-
-    }), 201

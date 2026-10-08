@@ -50,7 +50,7 @@ from decorators.auth_decorator import roles_required
 
 from datetime import datetime
 
-from extensions import db
+from extensions import db, limiter
 
 from decimal import Decimal
 
@@ -141,6 +141,7 @@ def get_public_payment_settings():
 
                 "mpesa": {
                     "enabled": False,
+                    "mode": "paybill",
                     "paybill": None,
                     "till": None,
                     "business_name": None
@@ -180,6 +181,9 @@ def get_public_payment_settings():
                 "enabled":
                     settings.mpesa_enabled,
 
+                "mode":
+                    settings.mpesa_mode,
+
                 "paybill":
                     settings.mpesa_paybill,
 
@@ -209,6 +213,509 @@ def get_public_payment_settings():
 
     }), 200
 
+
+# =========================================================
+# ADMIN PAYMENT SETTINGS
+# =========================================================
+#
+# These routes allow ONLY administrators to view and update
+# the platform payment settings.
+#
+# GET /api/admin/payment-settings
+# PUT /api/admin/payment-settings
+#
+# These settings control the payment details displayed to
+# customers on the booking payment screen.
+# =========================================================
+
+
+@payment_bp.route(
+    "/admin/payment-settings",
+    methods=["GET"]
+)
+@jwt_required()
+@roles_required("admin")
+def get_admin_payment_settings():
+    """
+    Return the current platform payment settings.
+
+    Only administrators can access this endpoint.
+    """
+
+    settings = PaymentSetting.query.filter_by(
+        setting_key="default"
+    ).first()
+
+
+    # -----------------------------------------------------
+    # Create a safe default configuration if none exists
+    # -----------------------------------------------------
+
+    if not settings:
+
+        settings = PaymentSetting(
+            setting_key="default",
+            mpesa_enabled=True,
+            mpesa_mode="paybill",
+            mpesa_paybill="",
+            mpesa_till="",
+            mpesa_business_name="",
+            airtel_enabled=False,
+            airtel_money_number="",
+            airtel_business_name="",
+            instructions=""
+        )
+
+        db.session.add(settings)
+
+        try:
+
+            db.session.commit()
+
+        except Exception as e:
+
+            db.session.rollback()
+
+            print(
+                f"Admin payment settings creation error: {e}"
+            )
+
+            return jsonify({
+                "message": (
+                    "Payment settings could not "
+                    "be initialized."
+                )
+            }), 500
+
+
+    return jsonify({
+
+        "message":
+            "Admin payment settings retrieved successfully.",
+
+        "payment_settings": {
+
+            "mpesa_enabled":
+                settings.mpesa_enabled,
+
+            "mpesa_mode":
+                settings.mpesa_mode,
+
+            "mpesa_paybill":
+                settings.mpesa_paybill,
+
+            "mpesa_till":
+                settings.mpesa_till,
+
+            "mpesa_business_name":
+                settings.mpesa_business_name,
+
+            "airtel_enabled":
+                settings.airtel_enabled,
+
+            "airtel_money_number":
+                settings.airtel_money_number,
+
+            "airtel_business_name":
+                settings.airtel_business_name,
+
+            "instructions":
+                settings.instructions
+
+        }
+
+    }), 200
+
+
+@payment_bp.route(
+    "/admin/payment-settings",
+    methods=["PUT"]
+)
+@jwt_required()
+@roles_required("admin")
+def update_admin_payment_settings():
+    """
+    Update the platform payment settings.
+
+    Only administrators can modify these settings.
+
+    The active M-Pesa mode must be either:
+        - paybill
+        - till
+    """
+
+    data = request.get_json(
+        silent=True
+    ) or {}
+
+
+    # -----------------------------------------------------
+    # Find the default payment configuration
+    # -----------------------------------------------------
+
+    settings = PaymentSetting.query.filter_by(
+        setting_key="default"
+    ).first()
+
+
+    # -----------------------------------------------------
+    # Create the configuration if it does not exist
+    # -----------------------------------------------------
+
+    if not settings:
+
+        settings = PaymentSetting(
+            setting_key="default"
+        )
+
+        db.session.add(settings)
+
+
+    # -----------------------------------------------------
+    # Read incoming values
+    # -----------------------------------------------------
+
+    mpesa_enabled = data.get(
+        "mpesa_enabled",
+        settings.mpesa_enabled
+    )
+
+    mpesa_mode = data.get(
+        "mpesa_mode",
+        settings.mpesa_mode or "paybill"
+    )
+
+    mpesa_paybill = data.get(
+        "mpesa_paybill",
+        settings.mpesa_paybill
+    )
+
+    mpesa_till = data.get(
+        "mpesa_till",
+        settings.mpesa_till
+    )
+
+    mpesa_business_name = data.get(
+        "mpesa_business_name",
+        settings.mpesa_business_name
+    )
+
+    airtel_enabled = data.get(
+        "airtel_enabled",
+        settings.airtel_enabled
+    )
+
+    airtel_money_number = data.get(
+        "airtel_money_number",
+        settings.airtel_money_number
+    )
+
+    airtel_business_name = data.get(
+        "airtel_business_name",
+        settings.airtel_business_name
+    )
+
+    instructions = data.get(
+        "instructions",
+        settings.instructions
+    )
+
+
+    # -----------------------------------------------------
+    # Validate M-Pesa enabled
+    # -----------------------------------------------------
+
+    if not isinstance(
+        mpesa_enabled,
+        bool
+    ):
+
+        return jsonify({
+            "message":
+                "mpesa_enabled must be true or false."
+        }), 400
+
+
+    # -----------------------------------------------------
+    # Validate M-Pesa mode
+    # -----------------------------------------------------
+
+    if not isinstance(
+        mpesa_mode,
+        str
+    ):
+
+        return jsonify({
+            "message":
+                "mpesa_mode must be paybill or till."
+        }), 400
+
+
+    mpesa_mode = (
+        mpesa_mode
+        .strip()
+        .lower()
+    )
+
+
+    if mpesa_mode not in {
+        "paybill",
+        "till"
+    }:
+
+        return jsonify({
+            "message":
+                "mpesa_mode must be paybill or till."
+        }), 400
+
+
+    # -----------------------------------------------------
+    # Validate M-Pesa payment destination
+    # -----------------------------------------------------
+
+    if mpesa_enabled:
+
+        if mpesa_mode == "paybill":
+
+            if not isinstance(
+                mpesa_paybill,
+                str
+            ) or not mpesa_paybill.strip():
+
+                return jsonify({
+                    "message":
+                        "M-Pesa Paybill number is required "
+                        "when Paybill mode is active."
+                }), 400
+
+
+        if mpesa_mode == "till":
+
+            if not isinstance(
+                mpesa_till,
+                str
+            ) or not mpesa_till.strip():
+
+                return jsonify({
+                    "message":
+                        "M-Pesa Till Number is required "
+                        "when Till mode is active."
+                }), 400
+
+
+    # -----------------------------------------------------
+    # Validate Airtel settings
+    # -----------------------------------------------------
+
+    if not isinstance(
+        airtel_enabled,
+        bool
+    ):
+
+        return jsonify({
+            "message":
+                "airtel_enabled must be true or false."
+        }), 400
+
+
+    if airtel_enabled:
+
+        if not isinstance(
+            airtel_money_number,
+            str
+        ) or not airtel_money_number.strip():
+
+            return jsonify({
+                "message":
+                    "Airtel Money number is required "
+                    "when Airtel Money is enabled."
+            }), 400
+
+
+    # -----------------------------------------------------
+    # Normalize text fields
+    # -----------------------------------------------------
+
+    if mpesa_paybill is None:
+        mpesa_paybill = ""
+
+    if mpesa_till is None:
+        mpesa_till = ""
+
+    if mpesa_business_name is None:
+        mpesa_business_name = ""
+
+    if airtel_money_number is None:
+        airtel_money_number = ""
+
+    if airtel_business_name is None:
+        airtel_business_name = ""
+
+    if instructions is None:
+        instructions = ""
+
+
+    if not isinstance(
+        mpesa_paybill,
+        str
+    ):
+
+        return jsonify({
+            "message":
+                "mpesa_paybill must be text."
+        }), 400
+
+
+    if not isinstance(
+        mpesa_till,
+        str
+    ):
+
+        return jsonify({
+            "message":
+                "mpesa_till must be text."
+        }), 400
+
+
+    if not isinstance(
+        mpesa_business_name,
+        str
+    ):
+
+        return jsonify({
+            "message":
+                "mpesa_business_name must be text."
+        }), 400
+
+
+    if not isinstance(
+        airtel_money_number,
+        str
+    ):
+
+        return jsonify({
+            "message":
+                "airtel_money_number must be text."
+        }), 400
+
+
+    if not isinstance(
+        airtel_business_name,
+        str
+    ):
+
+        return jsonify({
+            "message":
+                "airtel_business_name must be text."
+        }), 400
+
+
+    if not isinstance(
+        instructions,
+        str
+    ):
+
+        return jsonify({
+            "message":
+                "instructions must be text."
+        }), 400
+
+
+    # -----------------------------------------------------
+    # Update settings
+    # -----------------------------------------------------
+
+    settings.mpesa_enabled = mpesa_enabled
+
+    settings.mpesa_mode = mpesa_mode
+
+    settings.mpesa_paybill = (
+        mpesa_paybill.strip()
+    )
+
+    settings.mpesa_till = (
+        mpesa_till.strip()
+    )
+
+    settings.mpesa_business_name = (
+        mpesa_business_name.strip()
+    )
+
+    settings.airtel_enabled = airtel_enabled
+
+    settings.airtel_money_number = (
+        airtel_money_number.strip()
+    )
+
+    settings.airtel_business_name = (
+        airtel_business_name.strip()
+    )
+
+    settings.instructions = (
+        instructions.strip()
+    )
+
+
+    # -----------------------------------------------------
+    # Save changes
+    # -----------------------------------------------------
+
+    try:
+
+        db.session.commit()
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        print(
+            f"Admin payment settings update error: {e}"
+        )
+
+        return jsonify({
+            "message":
+                "Payment settings could not be updated."
+        }), 500
+
+
+    return jsonify({
+
+        "message":
+            "Payment settings updated successfully.",
+
+        "payment_settings": {
+
+            "mpesa_enabled":
+                settings.mpesa_enabled,
+
+            "mpesa_mode":
+                settings.mpesa_mode,
+
+            "mpesa_paybill":
+                settings.mpesa_paybill,
+
+            "mpesa_till":
+                settings.mpesa_till,
+
+            "mpesa_business_name":
+                settings.mpesa_business_name,
+
+            "airtel_enabled":
+                settings.airtel_enabled,
+
+            "airtel_money_number":
+                settings.airtel_money_number,
+
+            "airtel_business_name":
+                settings.airtel_business_name,
+
+            "instructions":
+                settings.instructions
+
+        }
+
+    }), 200
+
 # =========================================================
 # SUBMIT DIRECT PAYMENT
 # =========================================================
@@ -217,6 +724,7 @@ def get_public_payment_settings():
     "/payment/direct",
     methods=["POST"]
 )
+@limiter.limit("5 per 15 minutes")
 @jwt_required()
 @roles_required("customer")
 def submit_direct_payment():
@@ -588,7 +1096,13 @@ def submit_direct_payment():
 
 
     # -----------------------------------------------------
-    # Save payment
+    # Save the payment FIRST
+    # -----------------------------------------------------
+    #
+    # IMPORTANT:
+    # The payment record is the primary business operation.
+    # A notification problem must never prevent a customer's
+    # payment submission from being stored.
     # -----------------------------------------------------
 
     try:
@@ -609,6 +1123,113 @@ def submit_direct_payment():
                 "direct payment."
             )
         }), 500
+
+
+    # -----------------------------------------------------
+    # Create staff notifications AFTER payment is committed
+    # -----------------------------------------------------
+
+    staff_notifications = []
+
+    try:
+
+        # Notify every admin because admins can review any
+        # direct payment.
+        admin_users = User.query.filter_by(
+            role="admin"
+        ).all()
+
+
+        for admin_user in admin_users:
+
+            staff_notifications.append(
+                create_notification(
+                    user_id=admin_user.id,
+                    title="New Direct Payment",
+                    message=(
+                        f"A customer submitted a direct payment "
+                        f"of KES {payment.amount} for booking "
+                        f"#{booking.id}. It is awaiting verification."
+                    ),
+                    notification_type="payment",
+                    link=(
+                        f"/admin/direct-payments/{payment.id}"
+                    )
+                )
+            )
+
+
+        # Notify the tour operator responsible for the tour.
+        tour_operator_id = (
+            booking.departure.tour.tour_operator_id
+            if booking.departure
+            and booking.departure.tour
+            else None
+        )
+
+
+        if tour_operator_id:
+
+            already_notified_ids = {
+                notification.user_id
+                for notification in staff_notifications
+            }
+
+            if tour_operator_id not in already_notified_ids:
+
+                staff_notifications.append(
+                    create_notification(
+                        user_id=tour_operator_id,
+                        title="New Direct Payment",
+                        message=(
+                            f"A customer submitted a direct payment "
+                            f"of KES {payment.amount} for booking "
+                            f"#{booking.id}. It is awaiting verification."
+                        ),
+                        notification_type="payment",
+                        link=(
+                            f"/admin/direct-payments/{payment.id}"
+                        )
+                    )
+                )
+
+
+        # Commit notifications independently from the payment.
+        db.session.commit()
+
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        print(
+            "Direct payment staff notification error: "
+            f"{e}"
+        )
+
+        # The payment has already been committed, so we still
+        # return success for the payment submission.
+        staff_notifications = []
+
+
+    # -----------------------------------------------------
+    # Emit staff notifications after successful commit
+    # -----------------------------------------------------
+
+    for notification in staff_notifications:
+
+        try:
+
+            emit_notification(
+                notification
+            )
+
+        except Exception as e:
+
+            print(
+                "Direct payment staff notification "
+                f"could not be delivered: {e}"
+            )
 
 
     # -----------------------------------------------------
@@ -3093,6 +3714,19 @@ def reject_direct_payment(
         }), 400
 
 
+    booking = payment.booking
+
+
+    if not booking:
+
+        return jsonify({
+            "message": (
+                "The booking associated with "
+                "this payment was not found."
+            )
+        }), 404
+
+
     # -----------------------------------------------------
     # Reject payment
     # -----------------------------------------------------
@@ -3108,7 +3742,7 @@ def reject_direct_payment(
 
 
     # -----------------------------------------------------
-    # Save rejection
+    # Save rejection FIRST
     # -----------------------------------------------------
 
     try:
@@ -3131,6 +3765,66 @@ def reject_direct_payment(
         }), 500
 
 
+    # -----------------------------------------------------
+    # Create customer rejection notification
+    # -----------------------------------------------------
+
+    rejection_notification = None
+
+
+    try:
+
+        rejection_notification = create_notification(
+
+            user_id=booking.user_id,
+
+            title="Payment Rejected",
+
+            message=(
+                f"Your direct payment of KES {payment.amount} "
+                f"for booking #{booking.id} was rejected. "
+                f"Please review your payment details and try again."
+            ),
+
+            notification_type="payment",
+
+            link=f"/booking/view/{booking.id}"
+        )
+
+
+        db.session.commit()
+
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        print(
+            "Direct payment rejection notification "
+            f"error: {e}"
+        )
+
+
+    # -----------------------------------------------------
+    # Emit customer rejection notification
+    # -----------------------------------------------------
+
+    if rejection_notification:
+
+        try:
+
+            emit_notification(
+                rejection_notification
+            )
+
+        except Exception as e:
+
+            print(
+                "Direct payment rejection notification "
+                f"could not be delivered: {e}"
+            )
+
+
     return jsonify({
 
         "message":
@@ -3149,10 +3843,9 @@ def reject_direct_payment(
             payment.verified_at.isoformat(),
 
         "booking_status":
-            payment.booking.status
+            booking.status
 
     }), 200
-
 
 
 # =========================================================

@@ -4,8 +4,12 @@
 //
 // This file contains API requests related to notifications.
 //
-// Keeping notification requests here means our React pages
-// and components do not need to know the exact backend URLs.
+// Authentication is handled automatically by api.js using
+// the HttpOnly authentication cookie.
+//
+// React pages and components do not need to know the exact
+// backend authentication mechanism.
+//
 // =========================================================
 
 import api from "./api"
@@ -19,19 +23,15 @@ import api from "./api"
 //
 // GET /api/notifications
 //
-// The backend uses the JWT access token to determine which
-// user's notifications should be returned.
+// The backend determines which notifications belong to the
+// authenticated user using the HttpOnly authentication cookie.
+//
 // =========================================================
 
-export const getNotifications = async (accessToken) => {
+export const getNotifications = async () => {
 
     const response = await api.get(
-        "/notifications",
-        {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        }
+        "/notifications"
     )
 
     return response.data
@@ -46,18 +46,14 @@ export const getNotifications = async (accessToken) => {
 //
 // GET /api/notifications/unread
 //
-// This returns only notifications that have not been read.
+// Returns only notifications that have not been read.
+//
 // =========================================================
 
-export const getUnreadNotifications = async (accessToken) => {
+export const getUnreadNotifications = async () => {
 
     const response = await api.get(
-        "/notifications/unread",
-        {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        }
+        "/notifications/unread"
     )
 
     return response.data
@@ -72,18 +68,16 @@ export const getUnreadNotifications = async (accessToken) => {
 //
 // GET /api/notifications/unread-count
 //
-// This is used by the Navbar notification bell.
+// Used by the Navbar notification bell.
+//
+// Authentication is supplied by the HttpOnly cookie.
+//
 // =========================================================
 
-export const getUnreadNotificationCount = async (accessToken) => {
+export const getUnreadNotificationCount = async () => {
 
     const response = await api.get(
-        "/notifications/unread-count",
-        {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        }
+        "/notifications/unread-count"
     )
 
     return response.data
@@ -98,22 +92,20 @@ export const getUnreadNotificationCount = async (accessToken) => {
 //
 // PATCH /api/notifications/<notification_id>/read
 //
-// This marks one notification as read.
+// Marks one notification as read.
+//
+// The api.js request interceptor automatically supplies the
+// CSRF token required for this unsafe request.
+//
 // =========================================================
 
 export const markNotificationAsRead = async (
-    accessToken,
     notificationId
 ) => {
 
     const response = await api.patch(
         `/notifications/${notificationId}/read`,
-        {},
-        {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        }
+        {}
     )
 
     return response.data
@@ -128,22 +120,19 @@ export const markNotificationAsRead = async (
 //
 // PATCH /api/notifications/read-all
 //
-// This marks all notifications belonging to the current
+// Marks all notifications belonging to the currently
 // authenticated user as read.
+//
+// The api.js request interceptor automatically supplies the
+// CSRF token required for this unsafe request.
+//
 // =========================================================
 
-export const markAllNotificationsAsRead = async (
-    accessToken
-) => {
+export const markAllNotificationsAsRead = async () => {
 
     const response = await api.patch(
         "/notifications/read-all",
-        {},
-        {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        }
+        {}
     )
 
     return response.data

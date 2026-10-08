@@ -5,14 +5,13 @@
 // This file handles frontend requests related to
 // booking cancellation requests.
 //
-// It supports:
+// Authentication is handled automatically by api.js using
+// the HttpOnly authentication cookie.
 //
-// - Admin cancellation requests
-// - Tour Operator cancellation requests
-// - Approving cancellation requests
-// - Denying cancellation requests
+// The accessToken parameters are retained only for
+// compatibility with existing components.
 //
-// IMPORTANT:
+// They are NOT used as credentials.
 //
 // The backend remains responsible for:
 // - Authorization
@@ -55,20 +54,18 @@ export const getCancellationRequests = async (
     status = "pending"
 ) => {
 
+    // Compatibility only.
+    // Authentication is handled by the HttpOnly cookie.
+    void accessToken
+
     const response = await api.get(
         "/admin/cancellation-requests",
         {
             params: {
                 status: status,
             },
-
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
         }
     )
-
 
     return response.data
 }
@@ -202,17 +199,14 @@ export const approveCancellationRequest = async (
     accessToken
 ) => {
 
+    // Compatibility only.
+    // Authentication is handled by the HttpOnly cookie.
+    void accessToken
+
     const response = await api.patch(
         `/admin/cancellation-requests/${cancellationRequestId}/approve`,
-        {},
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
-        }
+        {}
     )
-
 
     return response.data
 }
@@ -245,19 +239,16 @@ export const denyCancellationRequest = async (
     accessToken
 ) => {
 
+    // Compatibility only.
+    // Authentication is handled by the HttpOnly cookie.
+    void accessToken
+
     const response = await api.patch(
         `/admin/cancellation-requests/${cancellationRequestId}/deny`,
         {
             reason: reason,
-        },
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
         }
     )
-
 
     return response.data
 }

@@ -14,15 +14,16 @@
 //
 // IMPORTANT:
 //
-// The direct-payment admin routes in this file match the
-// original working backend architecture:
+// Authentication is now handled by the HttpOnly authentication
+// cookie configured in api.js.
 //
-// GET   /api/admin/direct-payments?status=pending
-// GET   /api/admin/direct-payments?status=successful
-// GET   /api/admin/direct-payments?status=failed
+// Existing accessToken parameters are temporarily retained in
+// some function signatures so existing components continue to
+// work during this security migration.
 //
-// PATCH /api/admin/direct-payments/<payment_id>/verify
-// PATCH /api/admin/direct-payments/<payment_id>/reject
+// The accessToken value is NEVER sent as a Bearer token.
+//
+// api.js automatically sends the HttpOnly cookie.
 //
 // =========================================================
 
@@ -46,16 +47,15 @@ export const createPayment = async (
     accessToken
 ) => {
 
+    // Keep the existing parameter for compatibility with
+    // current components. It is intentionally not used
+    // as an authentication credential.
+    void accessToken
+
     const response = await api.post(
         "/payment",
         {
             booking_id: bookingId,
-        },
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
         }
     )
 
@@ -80,14 +80,11 @@ export const getBookingPayments = async (
     accessToken
 ) => {
 
+    // Kept for compatibility with existing callers.
+    void accessToken
+
     const response = await api.get(
-        `/booking/${bookingId}/payments`,
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
-        }
+        `/booking/${bookingId}/payments`
     )
 
     return response.data
@@ -132,6 +129,10 @@ export const getPaymentSettings = async () => {
 //
 // The backend creates the internal transaction reference.
 //
+// Backend route:
+//
+// POST /api/payment/direct
+//
 // =========================================================
 
 export const submitDirectPayment = async (
@@ -139,15 +140,12 @@ export const submitDirectPayment = async (
     accessToken
 ) => {
 
+    // Kept for compatibility with existing callers.
+    void accessToken
+
     const response = await api.post(
         "/payment/direct",
-        paymentData,
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
-        }
+        paymentData
     )
 
     return response.data
@@ -158,7 +156,7 @@ export const submitDirectPayment = async (
 // GET DIRECT PAYMENTS
 // =========================================================
 //
-// This is the ORIGINAL working direct-payment endpoint.
+// Original working direct-payment endpoint.
 //
 // Backend route:
 //
@@ -185,16 +183,17 @@ export const getDirectPayments = async (
     status = "pending"
 ) => {
 
+    // Kept because existing pages already call this function
+    // with an accessToken argument.
+    //
+    // The value is NOT used for authentication.
+    void accessToken
+
     const response = await api.get(
         "/admin/direct-payments",
         {
             params: {
                 status: status,
-            },
-
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
             },
         }
     )
@@ -207,11 +206,7 @@ export const getDirectPayments = async (
 // GET PENDING DIRECT PAYMENTS
 // =========================================================
 //
-// Convenience function for the pending-payment page.
-//
-// It uses the ORIGINAL backend endpoint:
-//
-// GET /api/admin/direct-payments?status=pending
+// Retrieves pending direct payments.
 //
 // =========================================================
 
@@ -230,12 +225,7 @@ export const getPendingDirectPayments = async (
 // GET SUCCESSFUL DIRECT PAYMENTS
 // =========================================================
 //
-// Retrieves direct payments that have been successfully
-// verified.
-//
-// Backend route:
-//
-// GET /api/admin/direct-payments?status=successful
+// Retrieves successfully verified direct payments.
 //
 // =========================================================
 
@@ -254,17 +244,13 @@ export const getSuccessfulDirectPayments = async (
 // GET REJECTED DIRECT PAYMENTS
 // =========================================================
 //
-// The backend stores rejected direct payments using:
+// Backend status:
 //
-// status = "failed"
+// failed
 //
-// The frontend can display these as:
+// Frontend display:
 //
-// "Rejected"
-//
-// Backend route:
-//
-// GET /api/admin/direct-payments?status=failed
+// Rejected
 //
 // =========================================================
 
@@ -283,16 +269,16 @@ export const getRejectedDirectPayments = async (
 // GET DIRECT PAYMENT BY STATUS
 // =========================================================
 //
-// This helper allows the DirectPayments page to request
-// whichever category it needs.
+// Convenience helper used by the direct-payment management
+// page.
 //
-// Frontend category:
+// Frontend categories:
 //
 // pending
 // successful
 // rejected
 //
-// Backend category:
+// Backend categories:
 //
 // pending
 // successful
@@ -305,54 +291,45 @@ export const getDirectPaymentHistory = async (
     status = "pending"
 ) => {
 
+    // Kept for compatibility with current callers.
+    void accessToken
+
     // -----------------------------------------------------
-    // Pending
+    // PENDING
     // -----------------------------------------------------
 
     if (status === "pending") {
 
-        return await getPendingDirectPayments(
-            accessToken
-        )
+        return await getPendingDirectPayments()
     }
 
 
     // -----------------------------------------------------
-    // Successful
+    // SUCCESSFUL
     // -----------------------------------------------------
 
     if (status === "successful") {
 
-        return await getSuccessfulDirectPayments(
-            accessToken
-        )
+        return await getSuccessfulDirectPayments()
     }
 
 
     // -----------------------------------------------------
-    // Rejected
-    // -----------------------------------------------------
-    //
-    // The frontend calls this "rejected".
-    //
-    // The backend stores it as "failed".
-    //
+    // REJECTED
     // -----------------------------------------------------
 
     if (status === "rejected") {
 
-        return await getRejectedDirectPayments(
-            accessToken
-        )
+        return await getRejectedDirectPayments()
     }
 
 
     // -----------------------------------------------------
-    // Any other backend-supported status
+    // OTHER BACKEND-SUPPORTED STATUS
     // -----------------------------------------------------
 
     return await getDirectPayments(
-        accessToken,
+        undefined,
         status
     )
 }
@@ -362,7 +339,7 @@ export const getDirectPaymentHistory = async (
 // GET ONE DIRECT PAYMENT
 // =========================================================
 //
-// Retrieves the details of one direct payment.
+// Retrieves one direct payment.
 //
 // Backend route:
 //
@@ -375,14 +352,11 @@ export const getDirectPayment = async (
     accessToken
 ) => {
 
+    // Kept for compatibility with existing callers.
+    void accessToken
+
     const response = await api.get(
-        `/admin/direct-payments/${paymentId}`,
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
-        }
+        `/admin/direct-payments/${paymentId}`
     )
 
     return response.data
@@ -416,15 +390,12 @@ export const verifyDirectPayment = async (
     accessToken
 ) => {
 
+    // Kept for compatibility with existing callers.
+    void accessToken
+
     const response = await api.patch(
         `/admin/direct-payments/${paymentId}/verify`,
-        {},
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
-        }
+        {}
     )
 
     return response.data
@@ -452,15 +423,79 @@ export const rejectDirectPayment = async (
     accessToken
 ) => {
 
+    // Kept for compatibility with existing callers.
+    void accessToken
+
     const response = await api.patch(
         `/admin/direct-payments/${paymentId}/reject`,
-        {},
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
-        }
+        {}
+    )
+
+    return response.data
+}
+
+
+// =========================================================
+// GET ADMIN PAYMENT SETTINGS
+// =========================================================
+//
+// Retrieves payment settings configured by the admin.
+//
+// Backend route:
+//
+// GET /api/admin/payment-settings
+//
+// =========================================================
+
+export const getAdminPaymentSettings = async (
+    accessToken
+) => {
+
+    // Kept for compatibility with existing callers.
+    void accessToken
+
+    const response = await api.get(
+        "/admin/payment-settings"
+    )
+
+    return response.data
+}
+
+
+// =========================================================
+// UPDATE ADMIN PAYMENT SETTINGS
+// =========================================================
+//
+// Updates the platform payment settings configured by the
+// admin.
+//
+// Includes:
+//
+// - M-Pesa enabled/disabled
+// - M-Pesa mode
+// - Paybill number
+// - Till number
+// - M-Pesa business name
+// - Airtel settings
+// - Payment instructions
+//
+// Backend route:
+//
+// PUT /api/admin/payment-settings
+//
+// =========================================================
+
+export const updateAdminPaymentSettings = async (
+    paymentSettings,
+    accessToken
+) => {
+
+    // Kept for compatibility with existing callers.
+    void accessToken
+
+    const response = await api.put(
+        "/admin/payment-settings",
+        paymentSettings
     )
 
     return response.data

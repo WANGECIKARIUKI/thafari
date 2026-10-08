@@ -19,13 +19,13 @@
 // Saving profile details will use:
 // PATCH /api/auth/me
 //
-// The PATCH endpoint will be added to the backend as the next
-// part of the profile feature.
+// Authentication is handled by the HttpOnly authentication
+// cookie. No JWT is stored in localStorage or manually sent
+// through an Authorization header.
 // =========================================================
 
 import {
     useEffect,
-    useMemo,
     useState,
 } from "react"
 
@@ -50,7 +50,6 @@ export default function Profile() {
     const navigate = useNavigate()
 
     const {
-        accessToken,
         user,
         isAuthenticated,
         authLoading,
@@ -74,7 +73,13 @@ export default function Profile() {
     // PAGE STATE
     // ---------------------------------------------------------
 
-    const [loading, setLoading] = useState(Boolean(accessToken))
+    // Start in loading mode while the authenticated user's
+    // profile is being retrieved.
+    //
+    // We do NOT change this state synchronously inside the
+    // useEffect. This avoids React cascading-render warnings.
+    const [loading, setLoading] = useState(true)
+
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState("")
     const [success, setSuccess] = useState("")
@@ -82,40 +87,51 @@ export default function Profile() {
 
 
     // =========================================================
-    // AUTHORIZATION HEADER
-    // =========================================================
-
-    const authConfig = useMemo(() => {
-
-        return {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
-        }
-
-    }, [accessToken])
-
-
-    // =========================================================
     // LOAD CURRENT PROFILE
+    // =========================================================
+    //
+    // Authentication is handled automatically by api.js using
+    // the HttpOnly access cookie.
+    //
+    // No JWT is read from localStorage.
+    //
+    // No Authorization: Bearer header is created here.
     // =========================================================
 
     useEffect(() => {
 
-        if (!accessToken) {
+        // Wait until AuthContext has completed its
+        // authentication restoration.
+        if (authLoading) {
             return
         }
+
+
+        // The page protection below handles unauthenticated
+        // users, so there is nothing to load here.
+        if (!isAuthenticated) {
+            return
+        }
+
+
+        let cancelled = false
 
 
         const loadProfile = async () => {
 
             try {
 
+                // The authenticated HttpOnly cookie is
+                // automatically included by api.js.
                 const response = await api.get(
-                    "/auth/me",
-                    authConfig
+                    "/auth/me"
                 )
+
+
+                if (cancelled) {
+                    return
+                }
+
 
                 const currentUser =
                     response.data?.user ||
@@ -137,10 +153,16 @@ export default function Profile() {
 
             } catch (requestError) {
 
+                if (cancelled) {
+                    return
+                }
+
+
                 console.error(
                     "Failed to load profile:",
                     requestError
                 )
+
 
                 setError(
                     requestError.response?.data?.message ||
@@ -149,7 +171,9 @@ export default function Profile() {
 
             } finally {
 
-                setLoading(false)
+                if (!cancelled) {
+                    setLoading(false)
+                }
 
             }
 
@@ -158,7 +182,18 @@ export default function Profile() {
 
         loadProfile()
 
-    }, [accessToken, authConfig])
+
+        // Prevent state updates after the component has
+        // unmounted or the effect has been replaced.
+        return () => {
+            cancelled = true
+        }
+
+    }, [
+        authLoading,
+        isAuthenticated,
+    ])
+
 
     // =========================================================
     // HANDLE INPUT
@@ -256,6 +291,13 @@ export default function Profile() {
 
             setSaving(true)
 
+
+            // Authentication is handled automatically by
+            // the HttpOnly access cookie.
+            //
+            // api.js also adds the required CSRF header
+            // automatically for this PATCH request.
+
             const response = await api.patch(
                 "/auth/me",
                 {
@@ -269,8 +311,7 @@ export default function Profile() {
                         formData.email.trim(),
                     phone_number:
                         formData.phone_number.trim(),
-                },
-                authConfig
+                }
             )
 
 
@@ -311,6 +352,7 @@ export default function Profile() {
                 "Failed to update profile:",
                 requestError
             )
+
 
             setError(
                 requestError.response?.data?.message ||
@@ -354,8 +396,13 @@ export default function Profile() {
     // =========================================================
     // AUTH LOADING
     // =========================================================
+    //
+    // Keep authentication loading separate from profile
+    // loading so an unauthenticated user is not trapped
+    // on the loading screen.
+    // =========================================================
 
-    if (authLoading || loading) {
+    if (authLoading) {
 
         return (
 
@@ -394,6 +441,38 @@ export default function Profile() {
                 to="/login"
                 replace
             />
+        )
+
+    }
+
+
+    // =========================================================
+    // PROFILE LOADING
+    // =========================================================
+
+    if (loading) {
+
+        return (
+
+            <div className="profile-page profile-loading-page">
+
+                <div className="profile-loading-card">
+
+                    <div className="profile-loading-spinner" />
+
+                    <h2>
+                        Loading your profile...
+                    </h2>
+
+                    <p>
+                        Please wait while we retrieve your
+                        Thafari account information.
+                    </p>
+
+                </div>
+
+            </div>
+
         )
 
     }

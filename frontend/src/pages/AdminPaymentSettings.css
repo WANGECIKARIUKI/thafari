@@ -1,0 +1,503 @@
+/* =========================================================
+   THAFARI - ADMIN PAYMENT SETTINGS
+   Stronger safari-inspired admin styling
+   ========================================================= */
+
+.admin-payment-settings-page {
+    min-height: 100vh;
+    padding: 36px 24px 56px;
+    background:
+        radial-gradient(circle at top right, rgba(15, 118, 110, 0.10), transparent 30%),
+        linear-gradient(135deg, #f4f8f5 0%, #eef5f1 48%, #f8f5ed 100%);
+}
+
+.admin-payment-settings-container {
+    width: 100%;
+    max-width: 1050px;
+    margin: 0 auto;
+}
+
+.admin-payment-settings-card {
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #dce8df;
+    border-radius: 20px;
+    box-shadow:
+        0 18px 50px rgba(19, 68, 52, 0.12),
+        0 3px 12px rgba(19, 68, 52, 0.05);
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.admin-payment-settings-header {
+    position: relative;
+    padding: 34px 36px 30px;
+    color: #ffffff;
+    background:
+        linear-gradient(135deg, #064e3b 0%, #0f766e 58%, #15803d 100%);
+}
+
+.admin-payment-settings-header::after {
+    content: "🦁";
+    position: absolute;
+    right: 34px;
+    bottom: 20px;
+    font-size: 58px;
+    opacity: 0.13;
+}
+
+.admin-payment-settings-eyebrow {
+    display: inline-block;
+    margin-bottom: 9px;
+    color: #a7f3d0;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.admin-payment-settings-header h1 {
+    position: relative;
+    z-index: 1;
+    margin: 0 0 9px;
+    color: #ffffff;
+    font-size: 2.05rem;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+}
+
+.admin-payment-settings-header p {
+    position: relative;
+    z-index: 1;
+    max-width: 720px;
+    margin: 0;
+    color: #d1fae5;
+    font-size: 0.96rem;
+    line-height: 1.65;
+}
+
+/* =========================================================
+   SECTIONS
+   ========================================================= */
+
+.admin-payment-settings-form {
+    padding: 0 36px 34px;
+}
+
+.admin-payment-settings-section {
+    padding: 30px 0;
+    border-top: 1px solid #e1ebe4;
+}
+
+.admin-payment-settings-section:first-of-type {
+    border-top: 0;
+}
+
+.admin-payment-settings-section-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 22px;
+}
+
+.admin-payment-settings-section-heading > div > span {
+    display: inline-block;
+    margin-bottom: 6px;
+    color: #0f766e;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.admin-payment-settings-section-heading h2 {
+    margin: 0 0 6px;
+    color: #12372d;
+    font-size: 1.25rem;
+    line-height: 1.3;
+}
+
+.admin-payment-settings-section-heading p {
+    max-width: 650px;
+    margin: 0;
+    color: #5f756b;
+    font-size: 0.9rem;
+    line-height: 1.55;
+}
+
+/* =========================================================
+   TOGGLE
+   ========================================================= */
+
+.admin-payment-settings-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 8px 13px 8px 9px;
+    border: 1px solid #cfe1d6;
+    border-radius: 999px;
+    background: #f0fdf4;
+    color: #166534;
+    font-size: 0.84rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.admin-payment-settings-toggle input[type="checkbox"] {
+    width: 42px;
+    height: 23px;
+    min-width: 42px;
+    margin: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    position: relative;
+    border: 0;
+    border-radius: 999px;
+    background: #b8c8bf;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.admin-payment-settings-toggle input[type="checkbox"]::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 2px 5px rgba(16, 24, 40, 0.22);
+    transition: transform 0.2s ease;
+}
+
+.admin-payment-settings-toggle input[type="checkbox"]:checked {
+    background: #16a34a;
+}
+
+.admin-payment-settings-toggle input[type="checkbox"]:checked::after {
+    transform: translateX(19px);
+}
+
+.admin-payment-settings-toggle input[type="checkbox"]:focus-visible {
+    outline: 3px solid rgba(22, 163, 74, 0.2);
+    outline-offset: 2px;
+}
+
+/* =========================================================
+   FORM FIELDS
+   ========================================================= */
+
+.admin-payment-settings-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    padding: 22px;
+    border: 1px solid #dce9e0;
+    border-radius: 16px;
+    background: #f8fbf9;
+}
+
+.admin-payment-settings-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.admin-payment-settings-field.full-width {
+    grid-column: 1 / -1;
+}
+
+.admin-payment-settings-field label {
+    color: #24483c;
+    font-size: 0.88rem;
+    font-weight: 800;
+}
+
+.admin-payment-settings-field input,
+.admin-payment-settings-field select,
+.admin-payment-settings-field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #c9d8cf;
+    border-radius: 11px;
+    background: #ffffff;
+    color: #18382e;
+    font-family: inherit;
+    font-size: 0.94rem;
+    padding: 12px 14px;
+    outline: none;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+.admin-payment-settings-field input,
+.admin-payment-settings-field select {
+    min-height: 47px;
+}
+
+.admin-payment-settings-field textarea {
+    min-height: 125px;
+    resize: vertical;
+    line-height: 1.55;
+}
+
+.admin-payment-settings-field input::placeholder,
+.admin-payment-settings-field textarea::placeholder {
+    color: #91a59b;
+}
+
+.admin-payment-settings-field input:hover,
+.admin-payment-settings-field select:hover,
+.admin-payment-settings-field textarea:hover {
+    border-color: #9db8aa;
+}
+
+.admin-payment-settings-field input:focus,
+.admin-payment-settings-field select:focus,
+.admin-payment-settings-field textarea:focus {
+    border-color: #0f766e;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.11);
+}
+
+.admin-payment-settings-field small {
+    color: #63786e;
+    font-size: 0.77rem;
+    line-height: 1.45;
+}
+
+/* =========================================================
+   ALERTS
+   ========================================================= */
+
+.admin-payment-settings-alert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 24px 36px 0;
+    padding: 14px 16px;
+    border: 1px solid transparent;
+    border-radius: 11px;
+    font-size: 0.88rem;
+    line-height: 1.45;
+}
+
+.admin-payment-settings-alert strong {
+    white-space: nowrap;
+}
+
+.admin-payment-settings-alert.error {
+    color: #991b1b;
+    background: #fff1f2;
+    border-color: #fecdd3;
+}
+
+.admin-payment-settings-alert.success {
+    color: #166534;
+    background: #ecfdf3;
+    border-color: #bbf7d0;
+}
+
+/* =========================================================
+   PAYMENT INSTRUCTIONS
+   ========================================================= */
+
+.admin-payment-settings-field textarea[name="instructions"] {
+    min-height: 145px;
+    background: #fffef8;
+    border-color: #dfd4ad;
+}
+
+.admin-payment-settings-field textarea[name="instructions"]:focus {
+    border-color: #b08b2e;
+    box-shadow: 0 0 0 4px rgba(176, 139, 46, 0.11);
+}
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+
+.admin-payment-settings-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    padding-top: 25px;
+    border-top: 1px solid #e1ebe4;
+}
+
+.admin-payment-settings-save {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-width: 185px;
+    min-height: 48px;
+    padding: 12px 20px;
+    border: 0;
+    border-radius: 11px;
+    background: linear-gradient(135deg, #0f766e, #15803d);
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 0.91rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 7px 18px rgba(15, 118, 110, 0.2);
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        filter 0.2s ease;
+}
+
+.admin-payment-settings-save:hover:not(:disabled) {
+    filter: brightness(1.04);
+    box-shadow: 0 10px 24px rgba(15, 118, 110, 0.28);
+    transform: translateY(-2px);
+}
+
+.admin-payment-settings-save:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.admin-payment-settings-save:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* =========================================================
+   LOADING
+   ========================================================= */
+
+.admin-payment-settings-loading {
+    min-height: 340px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: #416256;
+    font-size: 0.94rem;
+}
+
+.admin-payment-settings-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #d4e2da;
+    border-top-color: #0f766e;
+    border-radius: 50%;
+    animation: admin-payment-settings-spin 0.8s linear infinite;
+}
+
+@keyframes admin-payment-settings-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 768px) {
+    .admin-payment-settings-page {
+        padding: 22px 14px 40px;
+    }
+
+    .admin-payment-settings-header {
+        padding: 28px 24px;
+    }
+
+    .admin-payment-settings-form {
+        padding: 0 24px 28px;
+    }
+
+    .admin-payment-settings-alert {
+        margin-left: 24px;
+        margin-right: 24px;
+    }
+
+    .admin-payment-settings-section-heading {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .admin-payment-settings-toggle {
+        align-self: flex-start;
+    }
+
+    .admin-payment-settings-fields {
+        grid-template-columns: 1fr;
+        padding: 18px;
+    }
+
+    .admin-payment-settings-field.full-width {
+        grid-column: auto;
+    }
+}
+
+@media (max-width: 520px) {
+    .admin-payment-settings-page {
+        padding: 12px 9px 28px;
+    }
+
+    .admin-payment-settings-card {
+        border-radius: 15px;
+    }
+
+    .admin-payment-settings-header {
+        padding: 24px 18px;
+    }
+
+    .admin-payment-settings-header::after {
+        right: 18px;
+        font-size: 42px;
+    }
+
+    .admin-payment-settings-header h1 {
+        font-size: 1.55rem;
+    }
+
+    .admin-payment-settings-header p {
+        font-size: 0.86rem;
+    }
+
+    .admin-payment-settings-form {
+        padding: 0 18px 24px;
+    }
+
+    .admin-payment-settings-alert {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 3px;
+        margin: 18px 18px 0;
+    }
+
+    .admin-payment-settings-section {
+        padding: 24px 0;
+    }
+
+    .admin-payment-settings-section-heading h2 {
+        font-size: 1.08rem;
+    }
+
+    .admin-payment-settings-fields {
+        padding: 15px;
+        gap: 16px;
+        border-radius: 13px;
+    }
+
+    .admin-payment-settings-actions {
+        padding-top: 20px;
+    }
+
+    .admin-payment-settings-save {
+        width: 100%;
+    }
+}

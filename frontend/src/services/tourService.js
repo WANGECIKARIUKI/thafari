@@ -25,6 +25,27 @@ import api from "./api"
 
 
 // =========================================================
+// AUTHENTICATION NOTE
+// =========================================================
+//
+// Authentication is now handled by the HttpOnly authentication
+// cookie configured in api.js.
+//
+// Existing accessToken parameters are retained temporarily so
+// existing components continue to work during the staged
+// security migration.
+//
+// IMPORTANT:
+//
+// The accessToken value is deliberately NOT sent in an
+// Authorization header.
+//
+// api.js sends the authentication cookie automatically.
+//
+// =========================================================
+
+
+// =========================================================
 // NORMALIZE TOUR
 // =========================================================
 
@@ -34,7 +55,9 @@ const normalizeTour = (tour) => {
         return tour
     }
 
+
     return {
+
         ...tour,
 
         id: tour.id ?? tour.tour_id,
@@ -50,17 +73,27 @@ const normalizeTourResponse = (data) => {
 
     if (Array.isArray(data)) {
 
-        return data.map(normalizeTour)
+        return data.map(
+            normalizeTour
+        )
     }
 
-    if (data && Array.isArray(data.tours)) {
+
+    if (
+        data &&
+        Array.isArray(data.tours)
+    ) {
 
         return {
+
             ...data,
 
-            tours: data.tours.map(normalizeTour),
+            tours: data.tours.map(
+                normalizeTour
+            ),
         }
     }
+
 
     return data
 }
@@ -72,7 +105,10 @@ const normalizeTourResponse = (data) => {
 
 export const getTours = async () => {
 
-    const response = await api.get("/tours")
+    const response = await api.get(
+        "/tours"
+    )
+
 
     return normalizeTourResponse(
         response.data
@@ -84,11 +120,14 @@ export const getTours = async () => {
 // GET TOUR DETAILS
 // =========================================================
 
-export const getTourDetails = async (tourId) => {
+export const getTourDetails = async (
+    tourId
+) => {
 
     const response = await api.get(
         `/tours/${tourId}`
     )
+
 
     return normalizeTour(
         response.data
@@ -100,11 +139,14 @@ export const getTourDetails = async (tourId) => {
 // GET TOUR DEPARTURES
 // =========================================================
 
-export const getTourDepartures = async (tourId) => {
+export const getTourDepartures = async (
+    tourId
+) => {
 
     const response = await api.get(
         `/tours/${tourId}/departures`
     )
+
 
     return response.data
 }
@@ -118,15 +160,15 @@ export const getManageableTours = async (
     accessToken
 ) => {
 
+    // Authentication is supplied by the
+    // HttpOnly cookie configured in api.js.
+    void accessToken
+
+
     const response = await api.get(
-        "/tours/manage",
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
-        }
+        "/tours/manage"
     )
+
 
     return normalizeTourResponse(
         response.data
@@ -143,20 +185,21 @@ export const createTour = async (
     tourData
 ) => {
 
+    // Authentication is supplied by the
+    // HttpOnly cookie configured in api.js.
+    void accessToken
+
+
     const response = await api.post(
         "/tour",
-        tourData,
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
-        }
+        tourData
     )
+
 
     if (response.data?.tour) {
 
         return {
+
             ...response.data,
 
             tour: normalizeTour(
@@ -164,6 +207,7 @@ export const createTour = async (
             ),
         }
     }
+
 
     return response.data
 }
@@ -179,20 +223,21 @@ export const updateTour = async (
     tourData
 ) => {
 
+    // Authentication is supplied by the
+    // HttpOnly cookie configured in api.js.
+    void accessToken
+
+
     const response = await api.patch(
         `/tours/${tourId}`,
-        tourData,
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
-        }
+        tourData
     )
+
 
     if (response.data?.tour) {
 
         return {
+
             ...response.data,
 
             tour: normalizeTour(
@@ -200,6 +245,7 @@ export const updateTour = async (
             ),
         }
     }
+
 
     return response.data
 }
@@ -214,15 +260,15 @@ export const deactivateTour = async (
     tourId
 ) => {
 
+    // Authentication is supplied by the
+    // HttpOnly cookie configured in api.js.
+    void accessToken
+
+
     const response = await api.delete(
-        `/tours/${tourId}`,
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
-        }
+        `/tours/${tourId}`
     )
+
 
     return response.data
 }
@@ -237,18 +283,18 @@ export const reactivateTour = async (
     tourId
 ) => {
 
+    // Authentication is supplied by the
+    // HttpOnly cookie configured in api.js.
+    void accessToken
+
+
     const response = await api.patch(
         `/tours/${tourId}`,
         {
             is_active: true,
-        },
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
         }
     )
+
 
     return response.data
 }
@@ -261,6 +307,7 @@ export const reactivateTour = async (
 // =========================================================
 //
 // These functions are kept inside tourService.js.
+//
 // There is NO separate tourPackageService.js.
 //
 // =========================================================
@@ -288,6 +335,7 @@ export const getTourPackage = async (
         `/tours/${tourId}/package`
     )
 
+
     return response.data
 }
 
@@ -297,6 +345,7 @@ export const getTourPackage = async (
 // =========================================================
 //
 // Public endpoint.
+//
 // Customers can view the itinerary.
 //
 // =========================================================
@@ -308,6 +357,7 @@ export const getItineraries = async (
     const response = await api.get(
         `/tours/${tourId}/itinerary`
     )
+
 
     return response.data
 }
@@ -323,16 +373,16 @@ export const createItinerary = async (
     itineraryData
 ) => {
 
+    // Authentication is supplied by the
+    // HttpOnly cookie configured in api.js.
+    void accessToken
+
+
     const response = await api.post(
         `/tours/${tourId}/itinerary`,
-        itineraryData,
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
-        }
+        itineraryData
     )
+
 
     return response.data
 }
@@ -349,16 +399,16 @@ export const updateItinerary = async (
     itineraryData
 ) => {
 
+    // Authentication is supplied by the
+    // HttpOnly cookie configured in api.js.
+    void accessToken
+
+
     const response = await api.patch(
         `/tours/${tourId}/itinerary/${itineraryId}`,
-        itineraryData,
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
-        }
+        itineraryData
     )
+
 
     return response.data
 }
@@ -374,15 +424,15 @@ export const deleteItinerary = async (
     itineraryId
 ) => {
 
+    // Authentication is supplied by the
+    // HttpOnly cookie configured in api.js.
+    void accessToken
+
+
     const response = await api.delete(
-        `/tours/${tourId}/itinerary/${itineraryId}`,
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
-        }
+        `/tours/${tourId}/itinerary/${itineraryId}`
     )
+
 
     return response.data
 }
@@ -404,6 +454,7 @@ export const getAccommodations = async (
         `/tours/${tourId}/accommodation`
     )
 
+
     return response.data
 }
 
@@ -418,16 +469,16 @@ export const createAccommodation = async (
     accommodationData
 ) => {
 
+    // Authentication is supplied by the
+    // HttpOnly cookie configured in api.js.
+    void accessToken
+
+
     const response = await api.post(
         `/tours/${tourId}/accommodation`,
-        accommodationData,
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
-        }
+        accommodationData
     )
+
 
     return response.data
 }
@@ -444,16 +495,16 @@ export const updateAccommodation = async (
     accommodationData
 ) => {
 
+    // Authentication is supplied by the
+    // HttpOnly cookie configured in api.js.
+    void accessToken
+
+
     const response = await api.patch(
         `/tours/${tourId}/accommodation/${accommodationId}`,
-        accommodationData,
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
-        }
+        accommodationData
     )
+
 
     return response.data
 }
@@ -469,15 +520,15 @@ export const deleteAccommodation = async (
     accommodationId
 ) => {
 
+    // Authentication is supplied by the
+    // HttpOnly cookie configured in api.js.
+    void accessToken
+
+
     const response = await api.delete(
-        `/tours/${tourId}/accommodation/${accommodationId}`,
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
-        }
+        `/tours/${tourId}/accommodation/${accommodationId}`
     )
+
 
     return response.data
 }
@@ -502,6 +553,7 @@ export const getTourFaqs = async (
         `/tours/${tourId}/faq`
     )
 
+
     return response.data
 }
 
@@ -516,16 +568,16 @@ export const createTourFaq = async (
     faqData
 ) => {
 
+    // Authentication is supplied by the
+    // HttpOnly cookie configured in api.js.
+    void accessToken
+
+
     const response = await api.post(
         `/tours/${tourId}/faq`,
-        faqData,
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
-        }
+        faqData
     )
+
 
     return response.data
 }
@@ -542,16 +594,16 @@ export const updateTourFaq = async (
     faqData
 ) => {
 
+    // Authentication is supplied by the
+    // HttpOnly cookie configured in api.js.
+    void accessToken
+
+
     const response = await api.patch(
         `/tours/${tourId}/faq/${faqId}`,
-        faqData,
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
-        }
+        faqData
     )
+
 
     return response.data
 }
@@ -567,15 +619,15 @@ export const deleteTourFaq = async (
     faqId
 ) => {
 
+    // Authentication is supplied by the
+    // HttpOnly cookie configured in api.js.
+    void accessToken
+
+
     const response = await api.delete(
-        `/tours/${tourId}/faq/${faqId}`,
-        {
-            headers: {
-                Authorization:
-                    `Bearer ${accessToken}`,
-            },
-        }
+        `/tours/${tourId}/faq/${faqId}`
     )
+
 
     return response.data
 }

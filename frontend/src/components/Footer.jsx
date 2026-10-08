@@ -4,7 +4,8 @@
 //
 // Shared footer for the public-facing pages.
 // ---------------------------------------------------------
-import "./Footer.css"
+import "./footer.css"
+import "./Branding.css"
 
 
 function Footer() {
@@ -16,8 +17,19 @@ function Footer() {
 
                 <div className="footer-brand">
 
-                    <h2>
-                        THAFARI
+                    <h2 className="footer-brand-wordmark">
+                        <span className="thafari-wordmark">
+                            <span className="thafari-wordmark-main">
+                                THA
+                            </span>
+                            <span className="thafari-wordmark-highlight">
+                                FARI
+                            </span>
+                            <span
+                                className="thafari-wordmark-accent"
+                                aria-hidden="true"
+                            />
+                        </span>
                     </h2>
 
                     <p>
@@ -43,8 +55,8 @@ function Footer() {
                             About Us
                         </a>
 
-                        <a href="/faqs">
-                            FAQs
+                        <a href="/#contact">
+                            Contact Us
                         </a>
 
                     </div>

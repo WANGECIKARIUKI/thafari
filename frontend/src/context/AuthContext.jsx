@@ -5,14 +5,23 @@
 // This file manages authentication for the entire React
 // application.
 //
-// It stores:
-// - Access token
-// - Refresh token
+// IMPORTANT SECURITY CHANGE:
+//
+// Authentication JWTs are NO LONGER stored in localStorage
+// and are NO LONGER exposed to JavaScript.
+//
+// Flask now stores the access and refresh JWTs in secure
+// HttpOnly cookies.
+//
+// This context therefore stores only:
 // - Logged-in user
+// - Authentication status
+// - Authentication loading state
 // - Login
 // - Logout
 //
-// It also restores the logged-in user after a browser refresh.
+// It also restores the logged-in user after a browser refresh
+// by asking the backend to identify the current cookie session.
 //
 // IMPORTANT ROLE BEHAVIOUR:
 //
@@ -27,7 +36,16 @@
 //
 // The login function returns the authenticated user so
 // Login.jsx can decide where the user should go after login.
+//
+// NOTE:
+// accessToken is retained in the context temporarily as a
+// NON-SECRET compatibility marker for existing components
+// that still expect the property to exist.
+//
+// It is NOT the real JWT.
+// The real JWT never enters React state or localStorage.
 // =========================================================
+
 
 import {
     createContext,
@@ -37,10 +55,14 @@ import {
     useState,
 } from "react"
 
+
 import {
     loginUser,
     getCurrentUser,
 } from "../services/authService"
+
+
+import api from "../services/api"
 
 
 // =========================================================
@@ -51,38 +73,67 @@ const AuthContext = createContext(null)
 
 
 // =========================================================
+// READ CSRF COOKIE
+// =========================================================
+//
+// JWT authentication cookies are HttpOnly and cannot be read
+// by JavaScript.
+//
+// Flask-JWT-Extended also creates a separate CSRF cookie.
+// That cookie is intentionally readable by JavaScript so the
+// frontend can send the value in the X-CSRF-TOKEN header.
+//
+// =========================================================
+
+const getCookieValue = (name) => {
+
+    const cookies =
+        document.cookie.split("; ")
+
+    const matchingCookie =
+        cookies.find(
+            (cookie) =>
+                cookie.startsWith(`${name}=`)
+        )
+
+    if (!matchingCookie) {
+        return null
+    }
+
+    return decodeURIComponent(
+        matchingCookie.substring(
+            name.length + 1
+        )
+    )
+}
+
+
+// =========================================================
 // AUTH PROVIDER
 // =========================================================
 
 export function AuthProvider({ children }) {
 
     // ---------------------------------------------------------
-    // GET SAVED TOKENS
-    // ---------------------------------------------------------
-    //
-    // These are read when the application starts.
-    //
-    // If tokens exist, we attempt to restore the user below.
-    // ---------------------------------------------------------
-
-    const savedAccessToken =
-        localStorage.getItem("thafari_access_token")
-
-
-    const savedRefreshToken =
-        localStorage.getItem("thafari_refresh_token")
-
-
-    // ---------------------------------------------------------
     // AUTHENTICATION STATE
+    // ---------------------------------------------------------
+    //
+    // There are NO JWT values here.
+    //
+    // The compatibility marker is only used so older parts of
+    // the frontend that expect an "accessToken" property do
+    // not immediately crash during this migration.
     // ---------------------------------------------------------
 
     const [accessToken, setAccessToken] =
-        useState(savedAccessToken)
+        useState(null)
 
 
-    const [refreshToken, setRefreshToken] =
-        useState(savedRefreshToken)
+    // Refresh token is deliberately removed from React state.
+    //
+    // The real refresh token lives only inside the HttpOnly
+    // browser cookie managed by Flask.
+    const refreshToken = null
 
 
     const [user, setUser] =
@@ -93,26 +144,33 @@ export function AuthProvider({ children }) {
     // USER LOADING STATE
     // ---------------------------------------------------------
     //
-    // If an access token exists, authentication restoration
-    // starts in the loading state.
+    // We start in the loading state because the browser may
+    // already have a valid authentication cookie.
     //
-    // If there is no access token, authentication is already
-    // known to be finished.
+    // The backend is responsible for telling us whether the
+    // current browser session is authenticated.
     // ---------------------------------------------------------
 
     const [authLoading, setAuthLoading] =
-        useState(Boolean(savedAccessToken))
+        useState(true)
 
 
     // =========================================================
     // LOGOUT
     // =========================================================
     //
-    // This function is declared before the inactivity effect
-    // because the inactivity timer uses it.
+    // The logout request is sent to Flask.
+    //
+    // Flask:
+    // 1. Reads the JWT cookies.
+    // 2. Revokes the access JWT.
+    // 3. Revokes the refresh JWT when available.
+    // 4. Clears the authentication cookies.
+    //
+    // JavaScript never receives either JWT.
     // =========================================================
 
-    const logout = () => {
+    const logout = async () => {
 
         // -----------------------------------------------------
         // DETERMINE WHERE THE USER SHOULD GO AFTER LOGOUT
@@ -122,8 +180,7 @@ export function AuthProvider({ children }) {
         //
         // Customers return to the public Thafari home page.
         //
-        // We determine the destination BEFORE clearing the user
-        // from React state.
+        // We determine the destination BEFORE clearing the user.
         // -----------------------------------------------------
 
         const logoutDestination =
@@ -134,54 +191,81 @@ export function AuthProvider({ children }) {
 
 
         // -----------------------------------------------------
-        // REMOVE ACCESS TOKEN
-        // -----------------------------------------------------
-
-        localStorage.removeItem(
-            "thafari_access_token"
-        )
-
-
-        // -----------------------------------------------------
-        // REMOVE REFRESH TOKEN
-        // -----------------------------------------------------
-
-        localStorage.removeItem(
-            "thafari_refresh_token"
-        )
-
-
-        // -----------------------------------------------------
-        // CLEAR REACT AUTHENTICATION STATE
-        // -----------------------------------------------------
-
-        setAccessToken(null)
-
-        setRefreshToken(null)
-
-        setUser(null)
-
-
-        // -----------------------------------------------------
-        // AUTHENTICATION RESTORATION IS COMPLETE
-        // -----------------------------------------------------
-
-        setAuthLoading(false)
-
-
-        // -----------------------------------------------------
-        // REDIRECT AFTER LOGOUT
+        // GET CSRF TOKEN
         // -----------------------------------------------------
         //
-        // Admin / Tour Operator → Login
-        // Customer → Home
+        // This token is NOT the JWT.
         //
-        // Using window.location.href also ensures the application
-        // starts from a clean unauthenticated state.
+        // It is specifically used to protect cookie-authenticated
+        // state-changing requests from CSRF attacks.
         // -----------------------------------------------------
 
-        window.location.href =
-            logoutDestination
+        const csrfToken =
+            getCookieValue(
+                "thafari_csrf_access"
+            )
+
+
+        try {
+
+            // -------------------------------------------------
+            // ASK BACKEND TO LOG OUT
+            // -------------------------------------------------
+
+            await api.post(
+                "/auth/logout",
+                {},
+                csrfToken
+                    ? {
+                        headers: {
+                            "X-CSRF-TOKEN":
+                                csrfToken,
+                        },
+                    }
+                    : undefined
+            )
+
+        } catch (error) {
+
+            // -------------------------------------------------
+            // LOGOUT FAILURE
+            // -------------------------------------------------
+            //
+            // Even if the network request fails, clear local
+            // React authentication state so the user is not
+            // left viewing an authenticated UI.
+            //
+            // The browser may still hold a cookie if the server
+            // did not receive the logout request, so the next
+            // authentication restoration will determine the
+            // real server-side session state.
+            // -------------------------------------------------
+
+            console.error(
+                "Logout request failed:",
+                error
+            )
+
+        } finally {
+
+            // -------------------------------------------------
+            // CLEAR FRONTEND AUTHENTICATION STATE
+            // -------------------------------------------------
+
+            setAccessToken(null)
+
+            setUser(null)
+
+            setAuthLoading(false)
+
+
+            // -------------------------------------------------
+            // REDIRECT
+            // -------------------------------------------------
+
+            window.location.href =
+                logoutDestination
+        }
     }
 
 
@@ -189,103 +273,104 @@ export function AuthProvider({ children }) {
     // RESTORE USER AFTER PAGE REFRESH
     // =========================================================
     //
-    // When the browser refreshes, React state is lost.
+    // When the browser refreshes, React state disappears.
     //
-    // localStorage still contains the access token, so we use
-    // that token to ask Flask for the current user.
+    // The HttpOnly JWT cookie remains inside the browser.
+    //
+    // We ask Flask for /auth/me and Flask reads the cookie.
     // =========================================================
 
     useEffect(() => {
 
         // -----------------------------------------------------
-        // THERE IS NOTHING TO RESTORE
+        // REMOVE LEGACY LOCALSTORAGE TOKENS
         // -----------------------------------------------------
         //
-        // authLoading is already initialized to false when
-        // there is no saved access token.
+        // These keys may still exist from an older Thafari
+        // session before the security migration.
         //
-        // Therefore we do NOT call setAuthLoading(false) here.
-        // This avoids the React cascading-render warning.
+        // They are not used anymore.
         // -----------------------------------------------------
 
-        if (!accessToken) {
+        localStorage.removeItem(
+            "thafari_access_token"
+        )
 
-            return
-        }
-
-
-        // -----------------------------------------------------
-        // USER ALREADY RESTORED
-        // -----------------------------------------------------
-        //
-        // Nothing else needs to happen.
-        // -----------------------------------------------------
-
-        if (user) {
-
-            return
-        }
+        localStorage.removeItem(
+            "thafari_refresh_token"
+        )
 
 
         // -----------------------------------------------------
-        // RESTORE USER
+        // RESTORE AUTHENTICATED USER
         // -----------------------------------------------------
 
         const restoreUser = async () => {
 
             try {
 
-                // Ask the backend who owns the access token.
+                // -------------------------------------------------
+                // ASK FLASK WHO OWNS THE CURRENT COOKIE SESSION
+                // -------------------------------------------------
+
                 const currentUser =
-                    await getCurrentUser(accessToken)
+                    await getCurrentUser()
 
 
-                // The backend may return the user directly
-                // or inside a "user" property.
+                // -------------------------------------------------
+                // NORMALIZE USER RESPONSE
+                // -------------------------------------------------
+
                 const authenticatedUser =
-                    currentUser.user || currentUser
+                    currentUser.user ||
+                    currentUser
 
 
-                // Save the authenticated user.
+                // -------------------------------------------------
+                // SAVE USER
+                // -------------------------------------------------
+
                 setUser(
                     authenticatedUser
                 )
 
+
+                // -------------------------------------------------
+                // NON-SECRET COMPATIBILITY MARKER
+                // -------------------------------------------------
+                //
+                // Existing frontend code still expects an
+                // accessToken property.
+                //
+                // IMPORTANT:
+                // This value is NOT a JWT and cannot be used
+                // to authenticate without the browser cookie.
+                // -------------------------------------------------
+
+                setAccessToken(
+                    "cookie-authenticated"
+                )
+
             } catch (error) {
 
-                console.error(
-                    "Failed to restore authenticated user:",
+                // -------------------------------------------------
+                // NO VALID AUTHENTICATED SESSION
+                // -------------------------------------------------
+
+                console.info(
+                    "No active Thafari authentication session.",
                     error
                 )
 
-
-                // -------------------------------------------------
-                // INVALID SESSION
-                // -------------------------------------------------
-                //
-                // If the saved token is no longer valid, remove
-                // the saved authentication information.
-                // -------------------------------------------------
-
-                localStorage.removeItem(
-                    "thafari_access_token"
-                )
-
-
-                localStorage.removeItem(
-                    "thafari_refresh_token"
-                )
-
-
                 setAccessToken(null)
-
-                setRefreshToken(null)
-
                 setUser(null)
 
             } finally {
 
-                // Authentication restoration has finished.
+                // -------------------------------------------------
+                // AUTHENTICATION RESTORATION IS COMPLETE
+                // -------------------------------------------------
+
                 setAuthLoading(false)
             }
         }
@@ -293,10 +378,7 @@ export function AuthProvider({ children }) {
 
         restoreUser()
 
-    }, [
-        accessToken,
-        user,
-    ])
+    }, [])
 
 
     // =========================================================
@@ -317,7 +399,8 @@ export function AuthProvider({ children }) {
     // Admins and tour operators are intentionally excluded.
     // =========================================================
 
-    const inactivityTimerRef = useRef(null)
+    const inactivityTimerRef =
+        useRef(null)
 
 
     useEffect(() => {
@@ -328,18 +411,20 @@ export function AuthProvider({ children }) {
 
         if (
             !user ||
-            user.role !== "customer" ||
-            !accessToken
+            user.role !== "customer"
         ) {
 
             // Clear any existing timer.
-            if (inactivityTimerRef.current) {
+            if (
+                inactivityTimerRef.current
+            ) {
 
                 clearTimeout(
                     inactivityTimerRef.current
                 )
 
-                inactivityTimerRef.current = null
+                inactivityTimerRef.current =
+                    null
             }
 
             return
@@ -371,45 +456,42 @@ export function AuthProvider({ children }) {
         // HANDLE CUSTOMER INACTIVITY
         // -----------------------------------------------------
 
-        const handleInactivityLogout = () => {
+        const handleInactivityLogout =
+            async () => {
 
-            console.log(
-                "Customer session expired after 15 minutes of inactivity."
-            )
+                console.log(
+                    "Customer session expired after 15 minutes of inactivity."
+                )
 
-
-            // Clear authentication state.
-            logout()
-
-
-            // AuthContext does not use React Router directly,
-            // so redirect through the browser.
-            window.location.href = "/login"
-        }
+                await logout()
+            }
 
 
         // -----------------------------------------------------
         // RESET INACTIVITY TIMER
         // -----------------------------------------------------
 
-        const resetInactivityTimer = () => {
+        const resetInactivityTimer =
+            () => {
 
-            // Clear the previous timer.
-            if (inactivityTimerRef.current) {
-
-                clearTimeout(
+                // Clear the previous timer.
+                if (
                     inactivityTimerRef.current
-                )
+                ) {
+
+                    clearTimeout(
+                        inactivityTimerRef.current
+                    )
+                }
+
+
+                // Start a new inactivity countdown.
+                inactivityTimerRef.current =
+                    setTimeout(
+                        handleInactivityLogout,
+                        INACTIVITY_LIMIT
+                    )
             }
-
-
-            // Start a new inactivity countdown.
-            inactivityTimerRef.current =
-                setTimeout(
-                    handleInactivityLogout,
-                    INACTIVITY_LIMIT
-                )
-        }
 
 
         // -----------------------------------------------------
@@ -427,14 +509,18 @@ export function AuthProvider({ children }) {
 
 
         // Add the activity listeners.
-        activityEvents.forEach((eventName) => {
+        activityEvents.forEach(
+            (eventName) => {
 
-            window.addEventListener(
-                eventName,
-                resetInactivityTimer,
-                { passive: true }
-            )
-        })
+                window.addEventListener(
+                    eventName,
+                    resetInactivityTimer,
+                    {
+                        passive: true,
+                    }
+                )
+            }
+        )
 
 
         // Start the initial countdown.
@@ -448,30 +534,32 @@ export function AuthProvider({ children }) {
         return () => {
 
             // Clear the timer.
-            if (inactivityTimerRef.current) {
+            if (
+                inactivityTimerRef.current
+            ) {
 
                 clearTimeout(
                     inactivityTimerRef.current
                 )
 
-                inactivityTimerRef.current = null
+                inactivityTimerRef.current =
+                    null
             }
 
 
             // Remove all activity listeners.
-            activityEvents.forEach((eventName) => {
+            activityEvents.forEach(
+                (eventName) => {
 
-                window.removeEventListener(
-                    eventName,
-                    resetInactivityTimer
-                )
-            })
+                    window.removeEventListener(
+                        eventName,
+                        resetInactivityTimer
+                    )
+                }
+            )
         }
 
-    }, [
-        user,
-        accessToken,
-    ])
+    }, [user])
 
 
     // =========================================================
@@ -481,14 +569,15 @@ export function AuthProvider({ children }) {
     // This function:
     //
     // 1. Sends credentials to Flask.
-    // 2. Receives JWT tokens.
-    // 3. Saves the tokens.
-    // 4. Gets the authenticated user.
-    // 5. Saves the user in React state.
-    // 6. RETURNS THE USER.
+    // 2. Flask creates the JWTs.
+    // 3. Flask stores both JWTs in HttpOnly cookies.
+    // 4. The frontend asks Flask for the authenticated user.
+    // 5. The user is saved in React state.
+    // 6. The user is returned to Login.jsx.
     //
-    // Returning the user allows Login.jsx to determine the
-    // correct destination after authentication.
+    // IMPORTANT:
+    //
+    // The frontend does NOT receive or store either JWT.
     // =========================================================
 
     const login = async (credentials) => {
@@ -502,69 +591,14 @@ export function AuthProvider({ children }) {
             // -------------------------------------------------
             // SEND LOGIN REQUEST
             // -------------------------------------------------
-
-            const data =
-                await loginUser(credentials)
-
-
-            // -------------------------------------------------
-            // GET TOKENS
+            //
+            // loginUser uses the Axios client with
+            // withCredentials enabled, so Flask can set the
+            // authentication cookies.
             // -------------------------------------------------
 
-            const newAccessToken =
-                data.access_token
-
-
-            const newRefreshToken =
-                data.refresh_token
-
-
-            // -------------------------------------------------
-            // CHECK THAT TOKENS EXIST
-            // -------------------------------------------------
-
-            if (
-                !newAccessToken ||
-                !newRefreshToken
-            ) {
-
-                throw new Error(
-                    "Login succeeded but authentication tokens were not returned."
-                )
-            }
-
-
-            // -------------------------------------------------
-            // SAVE ACCESS TOKEN
-            // -------------------------------------------------
-
-            localStorage.setItem(
-                "thafari_access_token",
-                newAccessToken
-            )
-
-
-            // -------------------------------------------------
-            // SAVE REFRESH TOKEN
-            // -------------------------------------------------
-
-            localStorage.setItem(
-                "thafari_refresh_token",
-                newRefreshToken
-            )
-
-
-            // -------------------------------------------------
-            // UPDATE REACT TOKEN STATE
-            // -------------------------------------------------
-
-            setAccessToken(
-                newAccessToken
-            )
-
-
-            setRefreshToken(
-                newRefreshToken
+            await loginUser(
+                credentials
             )
 
 
@@ -572,14 +606,12 @@ export function AuthProvider({ children }) {
             // GET CURRENT USER
             // -------------------------------------------------
             //
-            // The login response provides authentication tokens.
-            //
-            // We then ask the backend for the actual user so
-            // we know their role.
+            // The browser automatically sends the HttpOnly
+            // access cookie to Flask.
             // -------------------------------------------------
 
             const currentUser =
-                await getCurrentUser(newAccessToken)
+                await getCurrentUser()
 
 
             // -------------------------------------------------
@@ -587,7 +619,8 @@ export function AuthProvider({ children }) {
             // -------------------------------------------------
 
             const authenticatedUser =
-                currentUser.user || currentUser
+                currentUser.user ||
+                currentUser
 
 
             // -------------------------------------------------
@@ -600,11 +633,26 @@ export function AuthProvider({ children }) {
 
 
             // -------------------------------------------------
+            // NON-SECRET COMPATIBILITY MARKER
+            // -------------------------------------------------
+            //
+            // This replaces the old real access token in React
+            // state.
+            //
+            // It is intentionally NOT an authentication secret.
+            // -------------------------------------------------
+
+            setAccessToken(
+                "cookie-authenticated"
+            )
+
+
+            // -------------------------------------------------
             // RETURN USER
             // -------------------------------------------------
             //
-            // Login.jsx will use this value to decide whether
-            // to send the user to:
+            // Login.jsx uses this to determine whether to send
+            // the user to:
             //
             // Customer → Home
             // Admin → Dashboard
@@ -613,9 +661,20 @@ export function AuthProvider({ children }) {
 
             return authenticatedUser
 
+        } catch (error) {
+
+            // -------------------------------------------------
+            // CLEAR AUTHENTICATION STATE IF LOGIN FAILED
+            // -------------------------------------------------
+
+            setAccessToken(null)
+            setUser(null)
+
+            throw error
+
         } finally {
 
-            // Login/Authentication process is finished.
+            // Login/authentication process is finished.
             setAuthLoading(false)
         }
     }
@@ -624,9 +683,13 @@ export function AuthProvider({ children }) {
     // =========================================================
     // AUTHENTICATION STATUS
     // =========================================================
+    //
+    // Authentication is based on the authenticated user in
+    // React state, not on a token stored in JavaScript.
+    // =========================================================
 
     const isAuthenticated =
-        Boolean(accessToken)
+        Boolean(user)
 
 
     // =========================================================
@@ -637,8 +700,16 @@ export function AuthProvider({ children }) {
 
         <AuthContext.Provider
             value={{
+                // Temporary compatibility property.
+                //
+                // IMPORTANT:
+                // This is NEVER the real JWT.
                 accessToken,
+
+                // The real refresh JWT is HttpOnly and never
+                // enters JavaScript.
                 refreshToken,
+
                 user,
                 isAuthenticated,
                 authLoading,
@@ -661,12 +732,7 @@ export function AuthProvider({ children }) {
 // This custom hook gives components access to AuthContext.
 // =========================================================
 
-// =========================================================
-// USE AUTH HOOK
-// =========================================================
-//
-// This custom hook gives components access to AuthContext.
-//
+
 // The ESLint rule below is disabled for this export because
 // this file intentionally contains both:
 //

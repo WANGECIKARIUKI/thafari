@@ -331,52 +331,253 @@
 
 @media (max-width: 760px) {
 
+    .booking-view-page {
+        width: 100%;
+        min-width: 0;
+        overflow-x: hidden;
+    }
+
     .booking-view-hero {
         padding: 48px 20px 42px;
     }
 
-
-    .booking-view-container {
-        width: min(100% - 32px, 1100px);
-        padding-top: 32px;
+    .booking-view-hero-content {
+        width: 100%;
+        min-width: 0;
     }
 
+    .booking-view-breadcrumb {
+        flex-wrap: wrap;
+        gap: 7px;
+        line-height: 1.5;
+    }
+
+    .booking-view-hero h1 {
+        font-size: clamp(32px, 10vw, 48px);
+        overflow-wrap: anywhere;
+    }
+
+    .booking-view-hero p:last-child {
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    .booking-view-container {
+        width: calc(100% - 32px);
+        max-width: 1100px;
+        min-width: 0;
+        padding: 32px 0 70px;
+    }
 
     .booking-view-status-card {
         align-items: flex-start;
         flex-direction: column;
+        gap: 16px;
+        padding: 22px;
     }
 
+    .booking-view-status-card h2 {
+        font-size: 24px;
+        overflow-wrap: anywhere;
+    }
+
+    .booking-view-status {
+        max-width: 100%;
+        min-width: 0;
+        padding: 9px 14px;
+    }
 
     .booking-view-grid {
         grid-template-columns: 1fr;
+        min-width: 0;
     }
-
 
     .booking-view-card {
-        padding: 24px;
+        min-width: 0;
+        padding: 22px;
+        overflow: hidden;
     }
 
+    .booking-view-card h2 {
+        font-size: 21px;
+        line-height: 1.3;
+    }
+
+    .booking-view-detail-list {
+        min-width: 0;
+    }
 
     .booking-view-detail-list > div {
         align-items: flex-start;
         flex-direction: column;
         gap: 7px;
+        min-width: 0;
     }
 
+    .booking-view-detail-list span,
+    .booking-view-detail-list strong {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
 
     .booking-view-detail-list strong {
         text-align: left;
     }
 
-
-    .booking-view-actions {
-        flex-direction: column;
+    .booking-view-total strong {
+        font-size: 20px;
     }
 
+    /*
+       Mobile action buttons:
+       Each action gets its own full-width row so the Message Tour Operator
+       button cannot become cramped or disappear on narrow screens.
+    */
+    .booking-view-actions {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        margin-top: 22px;
+    }
 
     .booking-view-primary-button,
     .booking-view-secondary-button {
         width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        min-height: 50px;
+        box-sizing: border-box;
+        padding: 12px 16px;
+        border-radius: 12px;
+        white-space: normal;
+        text-align: center;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    .booking-view-primary-button:focus-visible,
+    .booking-view-secondary-button:focus-visible {
+        outline: 3px solid rgba(36, 74, 48, 0.22);
+        outline-offset: 2px;
+    }
+
+    .booking-view-state {
+        width: calc(100% - 32px);
+        min-width: 0;
+        padding: 60px 0;
+    }
+
+    .booking-view-state h2,
+    .booking-view-state p {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+    }
+}
+
+/* Extra-small phones */
+@media (max-width: 480px) {
+
+    .booking-view-hero {
+        padding: 38px 16px 34px;
+    }
+
+    .booking-view-container {
+        width: calc(100% - 24px);
+        padding-top: 24px;
+        padding-bottom: 56px;
+    }
+
+    .booking-view-breadcrumb {
+        font-size: 12px;
+        margin-bottom: 18px;
+    }
+
+    .booking-view-eyebrow {
+        font-size: 11px;
+        letter-spacing: 0.11em;
+    }
+
+    .booking-view-hero h1 {
+        font-size: clamp(28px, 11vw, 40px);
+    }
+
+    .booking-view-hero p:last-child {
+        font-size: 14px;
+        margin-top: 14px;
+    }
+
+    .booking-view-status-card {
+        padding: 18px;
+        border-radius: 16px;
+    }
+
+    .booking-view-status-card h2 {
+        font-size: 21px;
+    }
+
+    .booking-view-card {
+        padding: 18px;
+        border-radius: 16px;
+    }
+
+    .booking-view-card h2 {
+        font-size: 19px;
+        margin-bottom: 18px;
+    }
+
+    .booking-view-detail-list > div {
+        padding: 14px 0;
+    }
+
+    .booking-view-detail-list span {
+        font-size: 13px;
+    }
+
+    .booking-view-detail-list strong {
+        font-size: 14px;
+    }
+
+    .booking-view-total strong {
+        font-size: 19px;
+    }
+
+    .booking-view-primary-button,
+    .booking-view-secondary-button {
+        min-height: 52px;
+        padding: 12px 14px;
+        font-size: 14px;
+    }
+}
+
+/* Very narrow phones */
+@media (max-width: 360px) {
+
+    .booking-view-hero {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .booking-view-container {
+        width: calc(100% - 20px);
+    }
+
+    .booking-view-status-card,
+    .booking-view-card {
+        padding: 15px;
+    }
+
+    .booking-view-actions {
+        gap: 10px;
+    }
+
+    .booking-view-primary-button,
+    .booking-view-secondary-button {
+        font-size: 13px;
+        padding-left: 10px;
+        padding-right: 10px;
     }
 }

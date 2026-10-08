@@ -4,7 +4,7 @@ from flask_jwt_extended import (
     get_jwt_identity
 )
 from decorators.auth_decorator import roles_required
-from extensions import db
+from extensions import db, limiter
 from models.user import User
 from models.booking import Booking
 from models.departure import Departure
@@ -38,10 +38,68 @@ booking_bp = Blueprint(
 
 
 # ---------------------------------------------------------
+# AUTOMATICALLY COMPLETE FINISHED BOOKINGS
+# ---------------------------------------------------------
+#
+# A confirmed booking becomes completed once its departure
+# end date has passed.
+#
+# We update this directly in the booking API so customers,
+# admins and tour operators always receive the current status
+# when they load their bookings.
+# ---------------------------------------------------------
+
+def update_completed_bookings():
+    """
+    Mark confirmed bookings as completed after their departure
+    end date has passed.
+
+    We deliberately use the departure end_date rather than the
+    start_date because a safari can run for multiple days.
+    """
+
+    today = date.today()
+
+    finished_bookings = (
+        Booking.query
+        .join(Departure)
+        .filter(
+            Booking.status == "confirmed",
+            Departure.end_date < today
+        )
+        .all()
+    )
+
+    if not finished_bookings:
+        return 0
+
+    updated_count = 0
+
+    try:
+        for booking in finished_bookings:
+            booking.status = "completed"
+            updated_count += 1
+
+        db.session.commit()
+
+        return updated_count
+
+    except Exception as e:
+        db.session.rollback()
+
+        print(
+            f"Failed to automatically complete bookings: {e}"
+        )
+
+        return 0
+
+
+# ---------------------------------------------------------
 # CREATE A BOOKING
 # ---------------------------------------------------------
 
 @booking_bp.route("/booking", methods=["POST"])
+@limiter.limit("10 per minute")
 @jwt_required()
 @roles_required("admin", "customer")
 def create_booking():
@@ -289,6 +347,7 @@ def expired_bookings():
     "/booking/<int:booking_id>/cancel",
     methods=["PATCH"]
 )
+@limiter.limit("10 per minute")
 @jwt_required()
 @roles_required("customer")
 def cancel_booking(booking_id):
@@ -444,6 +503,7 @@ def cancel_booking(booking_id):
     "/booking/<int:booking_id>/cancellation-request",
     methods=["POST"]
 )
+@limiter.limit("10 per minute")
 @jwt_required()
 @roles_required("customer")
 def request_booking_cancellation(booking_id):
@@ -748,6 +808,10 @@ def request_booking_cancellation(booking_id):
 @roles_required("admin", "customer")
 def get_booking(booking_id):
 
+    # Automatically complete confirmed bookings whose
+    # departure has already ended.
+    update_completed_bookings()
+
     # Find the requested booking.
     booking = Booking.query.filter_by(
         id=booking_id
@@ -821,6 +885,10 @@ def get_booking(booking_id):
     "tour_operator"
 )
 def get_bookings():
+
+    # Automatically complete confirmed bookings whose
+    # departure has already ended.
+    update_completed_bookings()
 
     # Get the authenticated user's ID.
     current_user_id = int(
