@@ -1,4 +1,5 @@
-"""app.py file
+"""
+app.py file
 purpose: create and configure the flask application
 responsibilities:
 1. create the flask application
@@ -35,6 +36,8 @@ from routes.tour_package import tour_package_bp
 from routes.services import service_bp
 from routes.contact import contact_bp
 from routes.reviews import review_bp
+from routes.chatbot import chatbot_bp
+from routes.guest_inquiries import guest_inquiry_bp
 
 
 # =========================================================
@@ -256,7 +259,7 @@ def create_app():
 
 
     # Database migrations
-    migrate.init_app(app)
+    migrate.init_app(app, db)
 
 
     # =========================================================
@@ -450,6 +453,24 @@ def create_app():
 
     app.register_blueprint(
         review_bp
+    )
+
+
+    # =========================================================
+    # REGISTER CHATBOT BLUEPRINT
+    # =========================================================
+
+    app.register_blueprint(
+        chatbot_bp
+    )
+
+
+    # =========================================================
+    # REGISTER GUEST INQUIRY BLUEPRINT
+    # =========================================================
+
+    app.register_blueprint(
+        guest_inquiry_bp
     )
 
 

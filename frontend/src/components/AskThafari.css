@@ -1,0 +1,726 @@
+
+/* =========================================================
+   ASK THAFARI — THAFARI BRAND STYLING
+   ========================================================= */
+
+.ask-thafari-launcher,
+.ask-thafari-window,
+.ask-thafari-window * {
+    box-sizing: border-box;
+}
+
+/* =========================================================
+   FLOATING LAUNCHER
+   ========================================================= */
+
+.ask-thafari-launcher {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 9998;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    min-width: 190px;
+    padding: 14px 22px;
+
+    border: none;
+    border-radius: 999px;
+
+    background: #1f6b4f;
+    color: #ffffff;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    box-shadow: 0 12px 30px rgba(31, 107, 79, 0.25);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+.ask-thafari-launcher:hover {
+    transform: translateY(-3px);
+    background: #18583f;
+    box-shadow: 0 16px 36px rgba(31, 107, 79, 0.30);
+}
+
+/* Hide the original emoji and show a branded sparkle */
+.ask-thafari-launcher-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 26px;
+    height: 26px;
+
+    font-size: 0;
+}
+
+.ask-thafari-launcher-icon::after {
+    content: "✦";
+    color: #f4d58a;
+    font-size: 27px;
+    line-height: 1;
+}
+
+.ask-thafari-launcher-text {
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   CHAT WINDOW
+   ========================================================= */
+
+.ask-thafari-wrapper {
+    position: fixed;
+    right: 24px;
+    bottom: 88px;
+    z-index: 9999;
+}
+
+.ask-thafari-window {
+    display: flex;
+    flex-direction: column;
+
+    width: 390px;
+    max-width: calc(100vw - 32px);
+
+    height: 620px;
+    max-height: calc(100vh - 120px);
+
+    overflow: hidden;
+
+    border: 1px solid #e1e9e3;
+    border-radius: 22px;
+
+    background: #ffffff;
+
+    box-shadow: 0 24px 70px rgba(20, 48, 37, 0.20);
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.ask-thafari-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+
+    padding: 16px 18px;
+
+    background: linear-gradient(135deg, #1f6b4f, #245f49);
+    color: #ffffff;
+}
+
+.ask-thafari-header-info {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 0;
+}
+
+/* Replace the robot with a personal T badge */
+.ask-thafari-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    width: 42px;
+    height: 42px;
+
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 50%;
+
+    background: rgba(255, 255, 255, 0.13);
+
+    font-size: 0;
+}
+
+.ask-thafari-avatar::after {
+    content: "T";
+    color: #f4d58a;
+    font-size: 19px;
+    font-weight: 800;
+}
+
+.ask-thafari-header h2 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 750;
+}
+
+.ask-thafari-header p {
+    margin: 3px 0 0;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 11px;
+}
+
+.ask-thafari-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    width: 34px;
+    height: 34px;
+
+    border: none;
+    border-radius: 50%;
+
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+
+    font-family: inherit;
+    font-size: 23px;
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+.ask-thafari-close:hover {
+    background: rgba(255, 255, 255, 0.22);
+}
+
+
+/* =========================================================
+   SCROLLABLE CONTENT
+   ========================================================= */
+
+.ask-thafari-content {
+    flex: 1;
+    min-height: 0;
+
+    overflow-y: auto;
+
+    padding: 18px 16px;
+
+    background: #f6f9f7;
+
+    scroll-behavior: smooth;
+}
+
+.ask-thafari-content::-webkit-scrollbar {
+    width: 5px;
+}
+
+.ask-thafari-content::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #cad8cf;
+}
+
+
+/* =========================================================
+   WELCOME SECTION
+   ========================================================= */
+
+.ask-thafari-welcome {
+    margin-bottom: 18px;
+}
+
+.ask-thafari-welcome-icon {
+    margin-bottom: 7px;
+    font-size: 25px;
+}
+
+.ask-thafari-welcome h3 {
+    margin: 0 0 8px;
+    color: #203b30;
+    font-size: 19px;
+    font-weight: 750;
+}
+
+.ask-thafari-welcome p {
+    margin: 0 0 7px;
+    color: #63736a;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+
+/* =========================================================
+   CHAT MESSAGES
+   IMPORTANT: These selectors match your JSX exactly.
+   ========================================================= */
+
+.ask-thafari-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    width: 100%;
+    margin: 0 0 16px;
+}
+
+/* Shared message styling */
+.ask-thafari-message {
+    display: block;
+
+    width: fit-content;
+    max-width: 82%;
+
+    margin: 0;
+    padding: 11px 14px;
+
+    border-radius: 16px;
+
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.55;
+
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+/* Thafari replies — white bubble */
+.ask-thafari-message-assistant {
+    align-self: flex-start;
+    margin-right: auto;
+
+    background: #ffffff;
+    color: #29483b;
+
+    border: 1px solid #dfe8e2;
+    border-bottom-left-radius: 5px;
+
+    box-shadow: 0 3px 10px rgba(31, 63, 50, 0.05);
+}
+
+/* Visitor questions — safari gold bubble */
+.ask-thafari-message-user {
+    align-self: flex-end;
+    margin-left: auto;
+
+    background: linear-gradient(135deg, #d9a441, #bd8125);
+    color: #ffffff;
+
+    border: 1px solid rgba(189, 129, 37, 0.15);
+    border-bottom-right-radius: 5px;
+
+    box-shadow: 0 4px 12px rgba(189, 129, 37, 0.18);
+}
+
+
+/* =========================================================
+   POPULAR QUESTIONS
+   ========================================================= */
+
+.ask-thafari-questions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    margin: 12px 0 18px;
+}
+
+.ask-thafari-section-title {
+    margin-bottom: 3px;
+
+    color: #748078;
+    font-size: 10px;
+    font-weight: 800;
+
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.ask-thafari-question {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    width: 100%;
+    padding: 12px;
+
+    border: 1px solid #e0e8e2;
+    border-radius: 12px;
+
+    background: #ffffff;
+    color: #29483b;
+
+    font-family: inherit;
+    font-size: 12px;
+    text-align: left;
+
+    cursor: pointer;
+
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.ask-thafari-question:hover {
+    transform: translateY(-1px);
+    border-color: #b7cfc2;
+    background: #fafffb;
+}
+
+.ask-thafari-question span:first-child {
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   TALK TO A PERSON CARD
+   ========================================================= */
+
+.ask-thafari-human-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    margin: 16px 0;
+
+    padding: 15px;
+
+    border: 1px solid #d8e7de;
+    border-radius: 15px;
+
+    background: linear-gradient(135deg, #edf6f0, #f7faf7);
+}
+
+.ask-thafari-human-card strong {
+    display: block;
+    margin-bottom: 5px;
+
+    color: #244b3c;
+    font-size: 14px;
+    font-weight: 750;
+}
+
+.ask-thafari-human-card p {
+    margin: 0;
+
+    color: #66766e;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.ask-thafari-human-card button {
+    width: 100%;
+    padding: 11px 13px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: #1f6b4f;
+    color: #ffffff;
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.ask-thafari-human-card button:hover {
+    background: #18583f;
+}
+
+
+/* =========================================================
+   GUEST INQUIRY FORM
+   ========================================================= */
+
+.ask-thafari-inquiry-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    width: 100%;
+    margin: 16px 0;
+    padding: 19px;
+
+    border: 1px solid #dce8e0;
+    border-radius: 17px;
+
+    background: #ffffff;
+
+    box-shadow: 0 5px 20px rgba(31, 63, 50, 0.06);
+}
+
+.ask-thafari-form-title {
+    color: #203b30;
+    font-size: 18px;
+    font-weight: 750;
+    line-height: 1.4;
+}
+
+.ask-thafari-form-description {
+    margin: 0 0 8px;
+
+    color: #718078;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.ask-thafari-inquiry-form label {
+    display: block;
+    width: 100%;
+
+    margin: 5px 0 0;
+
+    color: #344b40;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* Inputs and textarea stack underneath their labels */
+.ask-thafari-inquiry-form input,
+.ask-thafari-inquiry-form textarea {
+    display: block;
+
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
+    margin: 0 0 7px;
+    padding: 12px 13px;
+
+    border: 1px solid #d9e3dc;
+    border-radius: 10px;
+
+    outline: none;
+
+    background: #f9fbf9;
+    color: #263d34;
+
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.5;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+.ask-thafari-inquiry-form input:focus,
+.ask-thafari-inquiry-form textarea:focus {
+    border-color: #1f6b4f;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(31, 107, 79, 0.09);
+}
+
+.ask-thafari-inquiry-form input::placeholder,
+.ask-thafari-inquiry-form textarea::placeholder {
+    color: #99a69f;
+}
+
+.ask-thafari-inquiry-form textarea {
+    min-height: 115px;
+    resize: vertical;
+}
+
+/* Submit button */
+.ask-thafari-inquiry-form .ask-thafari-submit {
+    display: block;
+
+    width: 100%;
+    margin-top: 4px;
+    padding: 13px 16px;
+
+    border: none;
+    border-radius: 11px;
+
+    background: #1f6b4f;
+    color: #ffffff;
+
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.ask-thafari-inquiry-form .ask-thafari-submit:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: #18583f;
+}
+
+.ask-thafari-inquiry-form .ask-thafari-submit:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+/* Inquiry submission status */
+.ask-thafari-inquiry-form .ask-thafari-submission-message {
+    padding: 11px 12px;
+
+    border: 1px solid #d5eadb;
+    border-radius: 10px;
+
+    background: #edf7f0;
+    color: #286044;
+
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   MESSAGE INPUT AREA
+   ========================================================= */
+
+.ask-thafari-input-area {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+
+    padding: 12px;
+
+    border-top: 1px solid #e8ece9;
+    background: #ffffff;
+}
+
+.ask-thafari-input {
+    flex: 1;
+    min-width: 0;
+
+    padding: 11px 13px;
+
+    border: 1px solid #dce4df;
+    border-radius: 11px;
+
+    outline: none;
+
+    background: #f9fbf9;
+    color: #263d34;
+
+    font-family: inherit;
+    font-size: 13px;
+
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ask-thafari-input:focus {
+    border-color: #1f6b4f;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(31, 107, 79, 0.07);
+}
+
+.ask-thafari-input::placeholder {
+    color: #99a69f;
+}
+
+.ask-thafari-send {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    width: 42px;
+    height: 42px;
+
+    border: none;
+    border-radius: 11px;
+
+    background: #1f6b4f;
+    color: #ffffff;
+
+    font-family: inherit;
+    font-size: 17px;
+
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.ask-thafari-send:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: #18583f;
+}
+
+.ask-thafari-send:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   MOBILE RESPONSIVENESS
+   ========================================================= */
+
+@media (max-width: 600px) {
+    .ask-thafari-launcher {
+        right: 15px;
+        bottom: 15px;
+        min-width: auto;
+        padding: 12px 17px;
+    }
+
+    .ask-thafari-wrapper {
+        right: 10px;
+        bottom: 76px;
+        left: 10px;
+    }
+
+    .ask-thafari-window {
+        width: 100%;
+        max-width: none;
+
+        height: min(650px, calc(100vh - 100px));
+        border-radius: 18px;
+    }
+
+    .ask-thafari-content {
+        padding: 16px 13px;
+    }
+
+    .ask-thafari-message {
+        max-width: 88%;
+    }
+
+    .ask-thafari-header {
+        padding: 14px 15px;
+    }
+
+    .ask-thafari-input-area {
+        padding: 10px;
+    }
+
+    .ask-thafari-input {
+        font-size: 12px;
+    }
+
+    .ask-thafari-send {
+        width: 40px;
+        height: 40px;
+    }
+
+    .ask-thafari-inquiry-form {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 400px) {
+    .ask-thafari-launcher {
+        right: 12px;
+        bottom: 12px;
+    }
+
+    .ask-thafari-window {
+        border-radius: 16px;
+    }
+
+    .ask-thafari-message {
+        max-width: 91%;
+    }
+}

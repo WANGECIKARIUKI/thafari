@@ -19,3 +19,4 @@ from models.cancellation_request import CancellationRequest
 from models.service import Service
 from models.contact import Contact
 from models.review import Review
+from models.guest_inquiry import GuestInquiry

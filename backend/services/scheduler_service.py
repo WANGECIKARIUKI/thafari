@@ -1,7 +1,13 @@
+
+from datetime import date, datetime
+
 from apscheduler.schedulers.background import BackgroundScheduler
 
+from extensions import db
+from models.booking import Booking
+from models.departure import Departure
 from services.departure_notification_service import (
-    send_upcoming_departure_reminders
+    send_upcoming_departure_reminders,
 )
 
 
@@ -13,47 +19,106 @@ def start_scheduler(app):
     """
     Start the background scheduler.
 
-    The scheduler runs the departure reminder service
-    automatically in the background.
+    The scheduler:
+    1. Sends upcoming departure reminders.
+    2. Automatically completes confirmed bookings after
+       their departure end date has passed.
     """
 
-    # Prevent the same job from being registered more than once.
-    if scheduler.get_job("departure_reminder_job"):
-        return
-
     def departure_reminder_job():
+        """Send departure reminders inside the Flask app context."""
+
+        with app.app_context():
+            try:
+                notifications_sent = send_upcoming_departure_reminders()
+
+                print(
+                    "Departure reminder job completed. "
+                    f"Notifications sent: {notifications_sent}"
+                )
+
+            except Exception:
+                app.logger.exception(
+                    "Departure reminder job failed."
+                )
+
+    def complete_finished_bookings_job():
         """
-        Run the departure reminder service inside
-        the Flask application context.
+        Complete confirmed bookings whose departure end date
+        is earlier than today's date.
         """
 
         with app.app_context():
             try:
-                notifications_sent = (
-                    send_upcoming_departure_reminders()
+                today = date.today()
+
+                finished_bookings = (
+                    Booking.query
+                    .join(
+                        Departure,
+                        Booking.departure_id == Departure.id,
+                    )
+                    .filter(
+                        Booking.status == "confirmed",
+                        Departure.end_date < today,
+                    )
+                    .all()
                 )
+
+                if not finished_bookings:
+                    print(
+                        "Booking completion job completed. "
+                        "No finished confirmed bookings found."
+                    )
+                    return
+
+                completed_count = 0
+
+                for booking in finished_bookings:
+                    booking.status = "completed"
+                    completed_count += 1
+
+                db.session.commit()
 
                 print(
-                    f"Departure reminder job completed. "
-                    f"Notifications sent: {notifications_sent}"
+                    "Booking completion job completed. "
+                    f"Bookings marked completed: {completed_count}"
                 )
 
-            except Exception as e:
-                print(
-                    f"Departure reminder job failed: {e}"
+            except Exception:
+                db.session.rollback()
+                app.logger.exception(
+                    "Automatic booking completion job failed."
                 )
 
-    # TEMPORARY TEST:
-    # Run every minute so we can verify that APScheduler
-    # is executing the departure reminder job.
-    scheduler.add_job(
-        departure_reminder_job,
-        trigger="interval",
-        days=1,
-        id="departure_reminder_job",
-        replace_existing=True
-    )
+    # Register the departure reminder job independently.
+    # Existing reminder timing is preserved: once per day.
+    if not scheduler.get_job("departure_reminder_job"):
+        scheduler.add_job(
+            departure_reminder_job,
+            trigger="interval",
+            days=1,
+            id="departure_reminder_job",
+            replace_existing=True,
+            max_instances=1,
+            coalesce=True,
+        )
 
-    scheduler.start()
+    # Check for finished bookings every hour.
+    # Run once immediately when the scheduler starts as well.
+    if not scheduler.get_job("booking_completion_job"):
+        scheduler.add_job(
+            complete_finished_bookings_job,
+            trigger="interval",
+            hours=1,
+            id="booking_completion_job",
+            replace_existing=True,
+            next_run_time=datetime.now(),
+            max_instances=1,
+            coalesce=True,
+        )
+
+    if not scheduler.running:
+        scheduler.start()
 
     print("Background scheduler started.")

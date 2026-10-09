@@ -100,6 +100,8 @@ import AdminPaymentSettings from "../pages/AdminPaymentSettings"
 
 import AdminReviews from "../pages/AdminReviews"
 
+import AdminGuestInquiries from "../pages/AdminGuestInquiries"
+
 
 // =========================================================
 // CHAT PAGES
@@ -972,6 +974,33 @@ function AppRoutes() {
                             message="Only administrators can manage customer reviews."
                         >
                             <AdminReviews />
+                        </RoleProtectedRoute>
+                    }
+                />
+
+
+                {/* =================================================
+                    ADMIN / TOUR OPERATOR GUEST INQUIRIES
+                =================================================
+
+                    Allows authorized staff to manage public guest
+                    inquiries submitted through Ask Thafari.
+
+                    URL:
+
+                    /admin/guest-inquiries
+                ================================================= */}
+
+                <Route
+                    path="/admin/guest-inquiries"
+                    element={
+                        <RoleProtectedRoute
+                            allowedRoles={["admin", "tour_operator"]}
+                            eyebrow="THAFARI • GUEST SUPPORT"
+                            title="Access denied"
+                            message="Only administrators and tour operators can manage guest inquiries."
+                        >
+                            <AdminGuestInquiries />
                         </RoleProtectedRoute>
                     }
                 />

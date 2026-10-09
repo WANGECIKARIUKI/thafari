@@ -11,6 +11,7 @@
 import AppRoutes from "./routes/AppRoutes"
 import { AuthProvider } from "./context/AuthContext"
 import BackToTop from "./pages/BackToTop"
+import AskThafari from "./components/AskThafari"
 
 function App() {
     return (
@@ -19,6 +20,9 @@ function App() {
 
             {/* Global back-to-top button */}
             <BackToTop />
+
+            {/* Public Ask Thafari chatbot launcher */}
+            <AskThafari />
         </AuthProvider>
     )
 }
