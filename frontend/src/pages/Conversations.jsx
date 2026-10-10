@@ -1,3 +1,4 @@
+import { formatKenyaDate, formatKenyaDateTime, formatKenyaTime } from "../utils/dateTime";
 // =========================================================
 // THAFARI CONVERSATIONS PAGE
 // =========================================================
@@ -546,16 +547,8 @@ function Conversations() {
                                                 {latestMessage?.created_at && (
 
                                                     <time>
-                                                        {new Date(
+                                                        {formatKenyaDateTime(
                                                             latestMessage.created_at
-                                                        ).toLocaleString(
-                                                            "en-KE",
-                                                            {
-                                                                dateStyle:
-                                                                    "medium",
-                                                                timeStyle:
-                                                                    "short",
-                                                            }
                                                         )}
                                                     </time>
 

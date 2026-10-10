@@ -1,3 +1,4 @@
+import { formatKenyaDate, formatKenyaDateTime, formatKenyaTime } from "../utils/dateTime";
 // =========================================================
 // THAFARI BOOKING VIEW PAGE
 // =========================================================
@@ -70,19 +71,8 @@ function formatDate(value) {
         return "Not available"
     }
 
-    const date = new Date(value)
-
-    if (Number.isNaN(date.getTime())) {
-        return "Not available"
-    }
-
-    return date.toLocaleString(
-        "en-KE",
-        {
-            dateStyle: "medium",
-            timeStyle: "short",
-        }
-    )
+    const formatted = formatKenyaDateTime(value)
+    return formatted === "—" ? "Not available" : formatted
 }
 
 

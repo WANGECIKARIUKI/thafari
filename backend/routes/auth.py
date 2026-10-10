@@ -105,6 +105,64 @@ auth_bp = Blueprint(
 
 
 # =========================================================
+# GET CSRF TOKENS FOR THE FRONTEND
+# =========================================================
+
+@auth_bp.route("/csrf", methods=["GET"])
+def get_csrf_tokens():
+    """
+    Return CSRF values associated with valid JWT cookies.
+
+    The JWTs themselves are never returned to JavaScript.
+    """
+
+    from flask import current_app
+
+    access_cookie_name = current_app.config.get(
+        "JWT_ACCESS_COOKIE_NAME",
+        "thafari_access_cookie"
+    )
+
+    refresh_cookie_name = current_app.config.get(
+        "JWT_REFRESH_COOKIE_NAME",
+        "thafari_refresh_cookie"
+    )
+
+    access_token = request.cookies.get(access_cookie_name)
+    refresh_token = request.cookies.get(refresh_cookie_name)
+
+    csrf_tokens = {
+        "access": None,
+        "refresh": None,
+    }
+
+    for token, expected_type, key in [
+        (access_token, "access", "access"),
+        (refresh_token, "refresh", "refresh"),
+    ]:
+        if not token:
+            continue
+
+        try:
+            decoded = decode_token(token)
+
+            if decoded.get("type") != expected_type:
+                continue
+
+            csrf_tokens[key] = decoded.get("csrf")
+
+        except Exception:
+            # An absent, invalid, or expired token is ignored.
+            continue
+
+    response = jsonify(csrf_tokens)
+    response.headers["Cache-Control"] = "no-store"
+
+    return response, 200
+
+
+
+# =========================================================
 # PASSWORD VALIDATION HELPER
 # =========================================================
 

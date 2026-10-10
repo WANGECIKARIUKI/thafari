@@ -1,3 +1,4 @@
+import { formatKenyaDate, formatKenyaDateTime, formatKenyaTime } from "../utils/dateTime";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -141,16 +142,8 @@ function AdminGuestInquiries() {
             return "Date unavailable";
         }
 
-        const date = new Date(dateValue);
-
-        if (Number.isNaN(date.getTime())) {
-            return "Date unavailable";
-        }
-
-        return date.toLocaleString("en-KE", {
-            dateStyle: "medium",
-            timeStyle: "short",
-        });
+        const formatted = formatKenyaDateTime(dateValue);
+        return formatted === "—" ? "Date unavailable" : formatted;
     };
 
     // --------------------------------------------------------

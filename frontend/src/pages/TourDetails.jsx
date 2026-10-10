@@ -1,3 +1,4 @@
+import { formatKenyaDate, formatKenyaDateTime, formatKenyaTime } from "../utils/dateTime";
 // =========================================================
 // THAFARI TOUR DETAILS PAGE
 // =========================================================
@@ -406,14 +407,7 @@ function TourDetails() {
         }
 
 
-        return new Date(date).toLocaleDateString(
-            "en-KE",
-            {
-                day: "numeric",
-                month: "long",
-                year: "numeric"
-            }
-        )
+        return formatKenyaDate(date)
     }
 
 

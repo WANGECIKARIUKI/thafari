@@ -1,3 +1,4 @@
+import { formatKenyaDate, formatKenyaDateTime, formatKenyaTime } from "../utils/dateTime";
 // =========================================================
 // THAFARI BOOKING PAGE
 // =========================================================
@@ -272,14 +273,7 @@ function Booking() {
             return "Date unavailable"
         }
 
-        return new Date(date).toLocaleDateString(
-            "en-KE",
-            {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-            }
-        )
+        return formatKenyaDate(date)
     }
 
 

@@ -1,3 +1,4 @@
+import { formatKenyaDate, formatKenyaDateTime, formatKenyaTime } from "../utils/dateTime";
 
  // =========================================================
  // THAFARI NOTIFICATIONS PAGE
@@ -507,9 +508,7 @@ function Notifications() {
 
                                         <span>
                                             {notification.created_at
-                                                ? new Date(
-                                                    notification.created_at
-                                                ).toLocaleString()
+                                                ? formatKenyaDateTime(notification.created_at)
                                                 : ""}
                                         </span>
                                     </div>

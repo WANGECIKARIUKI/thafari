@@ -1,3 +1,4 @@
+import { formatKenyaDate, formatKenyaDateTime, formatKenyaTime } from "../utils/dateTime";
 // =========================================================
 // THAFARI PAYMENT RESULT PAGE
 // =========================================================
@@ -451,28 +452,7 @@ function PaymentResult() {
         }
 
 
-        const parsedDate =
-            new Date(date)
-
-
-        if (
-            Number.isNaN(
-                parsedDate.getTime()
-            )
-        ) {
-
-            return "—"
-
-        }
-
-
-        return parsedDate.toLocaleString(
-            "en-KE",
-            {
-                dateStyle: "medium",
-                timeStyle: "short",
-            }
-        )
+        return formatKenyaDateTime(date)
     }
 
 

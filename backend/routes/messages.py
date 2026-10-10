@@ -7,6 +7,7 @@ from models.conversation import Conversation
 from models.conversation_participant import ConversationParticipant
 from models.message import Message
 from datetime import datetime
+from sqlalchemy import func, or_
 
 
 message_bp = Blueprint(
@@ -261,6 +262,44 @@ def create_conversation():
             }
         ]
     }), 201
+
+
+# ---------------------------------------------------------
+# GET TOTAL UNREAD MESSAGE COUNT
+# ---------------------------------------------------------
+# Returns only the total number of unread messages for the
+# currently authenticated user. This lightweight endpoint
+# is used by the floating chat badge so it does not need to
+# download the full conversations list just to count unread
+# messages.
+# ---------------------------------------------------------
+
+@message_bp.route("/conversations/unread-count", methods=["GET"])
+@jwt_required()
+def get_unread_message_count():
+
+    current_user_id = int(get_jwt_identity())
+
+    unread_count = (
+        db.session.query(func.count(Message.id))
+        .join(
+            ConversationParticipant,
+            ConversationParticipant.conversation_id == Message.conversation_id
+        )
+        .filter(
+            ConversationParticipant.user_id == current_user_id,
+            Message.sender_id != current_user_id,
+            or_(
+                ConversationParticipant.last_read_at.is_(None),
+                Message.created_at > ConversationParticipant.last_read_at
+            )
+        )
+        .scalar()
+    ) or 0
+
+    return jsonify({
+        "unread_count": int(unread_count)
+    }), 200
 
 
 # ---------------------------------------------------------

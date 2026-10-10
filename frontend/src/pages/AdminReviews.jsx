@@ -1,3 +1,4 @@
+import { formatKenyaDate, formatKenyaDateTime, formatKenyaTime } from "../utils/dateTime";
 // =========================================================
 // THAFARI ADMIN REVIEWS
 // =========================================================
@@ -366,25 +367,12 @@ function AdminReviews() {
             return "Not available"
         }
 
-        const date =
-            new Date(value)
-
-        if (
-            Number.isNaN(
-                date.getTime()
-            )
-        ) {
-            return "Not available"
-        }
-
-        return date.toLocaleDateString(
-            "en-KE",
-            {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-            }
-        )
+        const formatted = formatKenyaDate(value, {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+        })
+        return formatted === "—" ? "Not available" : formatted
     }
 
 

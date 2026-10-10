@@ -31,9 +31,7 @@ import {
     useAuth,
 } from "../context/AuthContext"
 
-import {
-    getConversations,
-} from "../services/chatService"
+import api from "../services/api"
 
 import "./FloatingChat.css"
 
@@ -96,15 +94,8 @@ function FloatingChat() {
     // =====================================================
     // LOAD UNREAD MESSAGES
     // =====================================================
-    //
-    // The conversations endpoint already returns:
-    //
-    // unread_count
-    //
-    // for every conversation belonging to the current user.
-    //
-    // We simply add those values together.
-    //
+    // Use the lightweight endpoint instead of loading every
+    // conversation and message preview just to calculate a badge.
     // =====================================================
 
     const loadUnreadCount =
@@ -115,84 +106,37 @@ function FloatingChat() {
                     !isAuthenticated ||
                     !accessToken
                 ) {
-
                     setUnreadCount(0)
-
                     return
                 }
 
-
                 try {
-
                     setLoading(true)
 
+                    const response = await api.get(
+                        "/conversations/unread-count"
+                    )
 
-                    const data =
-                        await getConversations(
-                            accessToken
-                        )
-
-
-                    const conversations =
-                        Array.isArray(
-                            data?.conversations
-                        )
-                            ? data.conversations
-                            : []
-
-
-                    const totalUnread =
-                        conversations.reduce(
-                            (
-                                total,
-                                conversation
-                            ) => {
-
-                                const count =
-                                    Number(
-                                        conversation?.unread_count ||
-                                        0
-                                    )
-
-
-                                return (
-                                    total +
-                                    (
-                                        Number.isFinite(
-                                            count
-                                        )
-                                            ? count
-                                            : 0
-                                    )
-                                )
-
-                            },
-                            0
-                        )
-
+                    const count = Number(
+                        response.data?.unread_count ?? 0
+                    )
 
                     setUnreadCount(
-                        totalUnread
+                        Number.isFinite(count) && count > 0
+                            ? count
+                            : 0
                     )
 
                 } catch (error) {
-
-                    // -------------------------------------------------
-                    // The floating button should never break the rest
-                    // of the application if the unread-count request
-                    // fails.
-                    // -------------------------------------------------
-
+                    // A badge failure should not break the application.
                     console.error(
                         "Failed to load unread chat count:",
                         error
                     )
 
                 } finally {
-
                     setLoading(false)
                 }
-
             },
             [
                 accessToken,
@@ -209,7 +153,8 @@ function FloatingChat() {
 
         if (
             !isAuthenticated ||
-            !accessToken
+            !accessToken ||
+            isChatRoute
         ) {
 
             setUnreadCount(0)
@@ -223,6 +168,7 @@ function FloatingChat() {
     }, [
         isAuthenticated,
         accessToken,
+        isChatRoute,
         loadUnreadCount,
     ])
 
@@ -231,12 +177,11 @@ function FloatingChat() {
     // REFRESH UNREAD COUNT
     // =====================================================
     //
-    // We refresh periodically so the floating button can
-    // notice messages received while the user is elsewhere
-    // in Thafari.
-    //
-    // We intentionally use a reasonable interval rather
-    // than making a request every second.
+    // Refresh periodically while the floating launcher is visible.
+    // The launcher is hidden on the inbox/chat routes, so it does
+    // not poll while the user is already viewing messages.
+    // A 60-second interval reduces repeated full conversation-list
+    // requests while still updating the badge periodically.
     //
     // =====================================================
 
@@ -244,7 +189,8 @@ function FloatingChat() {
 
         if (
             !isAuthenticated ||
-            !accessToken
+            !accessToken ||
+            isChatRoute
         ) {
             return
         }
@@ -257,7 +203,7 @@ function FloatingChat() {
                     loadUnreadCount()
 
                 },
-                15000
+                60000
             )
 
 
@@ -271,6 +217,7 @@ function FloatingChat() {
     }, [
         isAuthenticated,
         accessToken,
+        isChatRoute,
         loadUnreadCount,
     ])
 
@@ -283,7 +230,8 @@ function FloatingChat() {
 
         if (
             !isAuthenticated ||
-            !accessToken
+            !accessToken ||
+            isChatRoute
         ) {
             return
         }
@@ -319,6 +267,7 @@ function FloatingChat() {
     }, [
         isAuthenticated,
         accessToken,
+        isChatRoute,
         loadUnreadCount,
     ])
 

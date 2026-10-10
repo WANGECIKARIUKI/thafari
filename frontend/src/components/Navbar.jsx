@@ -122,6 +122,7 @@ function Navbar() {
 
 
         let isMounted = true
+        let isLoadingUnreadCount = false
 
 
         // -----------------------------------------------------
@@ -129,6 +130,14 @@ function Navbar() {
         // -----------------------------------------------------
 
         const loadUnreadCount = async () => {
+
+            // Prevent overlapping requests when the timer, tab
+            // visibility event, and Socket.IO event fire together.
+            if (isLoadingUnreadCount) {
+                return
+            }
+
+            isLoadingUnreadCount = true
 
             try {
 
@@ -161,6 +170,8 @@ function Navbar() {
                     )
 
                 }
+            } finally {
+                isLoadingUnreadCount = false
             }
         }
 
@@ -274,11 +285,6 @@ function Navbar() {
                         "Thafari notification socket connected."
                     )
 
-
-                    // Re-sync after connection in case a
-                    // notification arrived while connecting.
-                    loadUnreadCount()
-
                 }
             )
 
@@ -335,7 +341,7 @@ function Navbar() {
         const refreshInterval =
             window.setInterval(
                 loadUnreadCount,
-                15000
+                60000
             )
 
 

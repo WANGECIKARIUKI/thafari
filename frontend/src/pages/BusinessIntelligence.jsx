@@ -1,3 +1,4 @@
+import { formatKenyaDate, formatKenyaDateTime, formatKenyaTime } from "../utils/dateTime";
 // =========================================================
 // THAFARI BUSINESS INTELLIGENCE
 // =========================================================
@@ -109,22 +110,12 @@ const formatDate = (value) => {
         return "—"
     }
 
-    const date = new Date(
-        `${value}T00:00:00`
-    )
-
-    if (Number.isNaN(date.getTime())) {
-        return value
-    }
-
-    return date.toLocaleDateString(
-        "en-KE",
-        {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-        }
-    )
+    const formatted = formatKenyaDate(value, {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+    })
+    return formatted === "—" ? value : formatted
 
 }
 

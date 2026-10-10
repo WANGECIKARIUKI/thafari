@@ -1,258 +1,215 @@
-// =========================================================
-// THAFARI API CLIENT
-// =========================================================
-//
-// Central Axios configuration for communicating with the
-// Flask backend.
-//
-// SECURITY UPDATE:
-//
-// Thafari now uses JWT authentication through HttpOnly cookies.
-//
-// JavaScript does NOT:
-// - receive the JWT
-// - store the JWT
-// - read the JWT
-// - send the JWT in an Authorization header
-//
-// The browser automatically sends the authentication cookies
-// because withCredentials is enabled.
-//
-// Because cookie authentication is vulnerable to CSRF,
-// Flask-JWT-Extended also gives us a separate CSRF cookie.
-//
-// That CSRF cookie is intentionally readable by JavaScript.
-//
-// This file automatically reads the CSRF cookie and sends it
-// in the X-CSRF-TOKEN header for protected state-changing
-// requests.
-//
-// =========================================================
 
+import axios from "axios";
 
-import axios from "axios"
-
+const API_URL = import.meta.env.VITE_API_URL;
 
 // =========================================================
-// BACKEND URL
+// AXIOS CONFIGURATION
 // =========================================================
-//
-// Vite exposes variables beginning with VITE_ through
-// import.meta.env.
-//
-
-const API_URL =
-    import.meta.env.VITE_API_URL
-
-
-// =========================================================
-// CREATE AXIOS INSTANCE
-// =========================================================
-//
-// withCredentials: true is REQUIRED so the browser sends
-// Thafari's HttpOnly authentication cookies to the Flask API.
-//
 
 const api = axios.create({
-
     baseURL: API_URL,
-
-    // Allow browser cookies to be sent with API requests.
     withCredentials: true,
-
     headers: {
         "Content-Type": "application/json",
     },
-
-})
-
+});
 
 // =========================================================
-// CSRF COOKIE HELPER
-// =========================================================
-//
-// The authentication JWT cookies are HttpOnly and therefore
-// CANNOT be read by JavaScript.
-//
-// The CSRF cookies are different:
-// they are intentionally readable by JavaScript.
-//
-// We use the CSRF cookie value and place it into:
-//
-//     X-CSRF-TOKEN
-//
-// Flask-JWT-Extended then verifies that the CSRF header matches
-// the CSRF value stored with the JWT cookie.
+// CSRF TOKEN STORAGE
 // =========================================================
 
-const getCookieValue = (name) => {
+let csrfTokens = {
+    access: null,
+    refresh: null,
+};
 
-    if (
-        typeof document === "undefined"
-    ) {
+let csrfRequest = null;
+let refreshPromise = null;
 
-        return null
+// =========================================================
+// FETCH CSRF TOKENS
+// =========================================================
+
+const getCsrfTokens = async (forceRefresh = false) => {
+    if (forceRefresh) {
+        csrfTokens = {
+            access: null,
+            refresh: null,
+        };
     }
 
+    if (!csrfRequest) {
+        csrfRequest = api
+            .get("/auth/csrf")
+            .then((response) => {
+                csrfTokens = {
+                    access: response.data?.access || null,
+                    refresh: response.data?.refresh || null,
+                };
 
-    const cookies =
-        document.cookie.split("; ")
-
-
-    const matchingCookie =
-        cookies.find(
-            (cookie) =>
-                cookie.startsWith(
-                    `${name}=`
-                )
-        )
-
-
-    if (!matchingCookie) {
-
-        return null
+                return csrfTokens;
+            })
+            .finally(() => {
+                csrfRequest = null;
+            });
     }
 
-
-    return decodeURIComponent(
-        matchingCookie.substring(
-            name.length + 1
-        )
-    )
-
-}
-
+    return csrfRequest;
+};
 
 // =========================================================
-// GET CSRF TOKEN FOR REQUEST
-// =========================================================
-//
-// Most authenticated requests use the ACCESS JWT cookie.
-//
-// Therefore we normally use:
-//
-//     thafari_csrf_access
-//
-// The refresh endpoint is special because it is authenticated
-// using the REFRESH JWT cookie.
-//
-// Therefore /auth/refresh uses:
-//
-//     thafari_csrf_refresh
+// REQUEST INTERCEPTOR — CSRF PROTECTION
 // =========================================================
 
-const getCsrfTokenForRequest = (config) => {
+api.interceptors.request.use(async (config) => {
+    const method = (config.method || "get").toUpperCase();
 
-    const requestUrl =
-        config?.url || ""
+    const unsafeMethods = [
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE",
+    ];
 
-
-    // -----------------------------------------------------
-    // REFRESH REQUEST
-    // -----------------------------------------------------
-
-    if (
-        requestUrl.includes(
-            "/auth/refresh"
-        )
-    ) {
-
-        return getCookieValue(
-            "thafari_csrf_refresh"
-        )
-
+    if (!unsafeMethods.includes(method)) {
+        return config;
     }
 
+    const url = config.url || "";
+    const isRefreshRequest = url.includes("/auth/refresh");
 
-    // -----------------------------------------------------
-    // NORMAL AUTHENTICATED REQUEST
-    // -----------------------------------------------------
+    let csrfToken = isRefreshRequest
+        ? csrfTokens.refresh
+        : csrfTokens.access;
 
-    return getCookieValue(
-        "thafari_csrf_access"
-    )
+    if (!csrfToken) {
+        const tokens = await getCsrfTokens();
 
-}
+        csrfToken = isRefreshRequest
+            ? tokens.refresh
+            : tokens.access;
+    }
 
+    if (csrfToken) {
+        config.headers = config.headers || {};
+        config.headers["X-CSRF-TOKEN"] = csrfToken;
+    }
+
+    return config;
+});
 
 // =========================================================
-// REQUEST INTERCEPTOR
-// =========================================================
-//
-// Before every request, determine whether the request can
-// change server-side state.
-//
-// GET / HEAD / OPTIONS are normally safe methods and do not
-// need a CSRF token.
-//
-// POST / PUT / PATCH / DELETE can change data and therefore
-// receive the CSRF token automatically.
+// RESPONSE INTERCEPTOR — AUTHENTICATION REFRESH
 // =========================================================
 
-api.interceptors.request.use(
+api.interceptors.response.use(
+    (response) => {
+        const url = response.config?.url || "";
 
-    (config) => {
-
-        const method =
-            (
-                config.method || "get"
-            ).toUpperCase()
-
-
-        const unsafeMethods = [
-            "POST",
-            "PUT",
-            "PATCH",
-            "DELETE",
-        ]
-
-
-        // -------------------------------------------------
-        // ONLY ADD CSRF HEADER TO STATE-CHANGING REQUESTS
-        // -------------------------------------------------
-
-        if (
-            unsafeMethods.includes(method)
-        ) {
-
-            const csrfToken =
-                getCsrfTokenForRequest(
-                    config
-                )
-
-
-            if (csrfToken) {
-
-                config.headers =
-                    config.headers || {}
-
-
-                config.headers[
-                    "X-CSRF-TOKEN"
-                ] = csrfToken
-
-            }
-
+        if (url.includes("/auth/login")) {
+            csrfTokens = {
+                access: null,
+                refresh: null,
+            };
         }
 
+        if (url.includes("/auth/refresh")) {
+            // The backend has replaced the access cookie.
+            // Fetch the new access CSRF token before retrying.
+            csrfTokens.access = null;
+        }
 
-        return config
+        if (url.includes("/auth/logout")) {
+            csrfTokens = {
+                access: null,
+                refresh: null,
+            };
+        }
 
+        return response;
     },
 
-    (error) => {
+    async (error) => {
+        const originalRequest = error.config;
+        const status = error.response?.status;
+        const url = originalRequest?.url || "";
 
-        return Promise.reject(
-            error
-        )
+        const message = String(
+            error.response?.data?.msg ||
+            error.response?.data?.message ||
+            ""
+        ).toLowerCase();
 
+        const isExpiredAccessToken =
+            message.includes("token has expired") ||
+            message.includes("access token has expired");
+
+        const excludedRoutes = [
+            "/auth/login",
+            "/auth/register",
+            "/auth/refresh",
+            "/auth/logout",
+            "/auth/csrf",
+        ];
+
+        const isExcludedRoute = excludedRoutes.some(
+            (route) => url.includes(route)
+        );
+
+        // Refresh only when the server identifies an expired
+        // token. Do not refresh for every 401 response.
+        if (
+            status !== 401 ||
+            !originalRequest ||
+            originalRequest._retry ||
+            isExcludedRoute ||
+            !isExpiredAccessToken
+        ) {
+            return Promise.reject(error);
+        }
+
+        // Ensure the original request can only be retried once.
+        originalRequest._retry = true;
+
+        try {
+            // Share one refresh request among simultaneous
+            // failed requests.
+            if (!refreshPromise) {
+                refreshPromise = (async () => {
+                    await api.post("/auth/refresh", {});
+
+                    // The access cookie has changed. Retrieve
+                    // the matching, fresh CSRF token.
+                    const tokens = await getCsrfTokens(true);
+
+                    if (!tokens.access) {
+                        throw new Error(
+                            "Unable to retrieve the new access CSRF token."
+                        );
+                    }
+
+                    return tokens;
+                })().finally(() => {
+                    refreshPromise = null;
+                });
+            }
+
+            const tokens = await refreshPromise;
+
+            // Replace any stale CSRF header from the failed
+            // request before retrying it.
+            originalRequest.headers =
+                originalRequest.headers || {};
+
+            originalRequest.headers["X-CSRF-TOKEN"] =
+                tokens.access;
+
+            return api(originalRequest);
+        } catch (refreshError) {
+            return Promise.reject(refreshError);
+        }
     }
+);
 
-)
-
-
-// =========================================================
-// EXPORT API CLIENT
-// =========================================================
-
-export default api
+export default api;

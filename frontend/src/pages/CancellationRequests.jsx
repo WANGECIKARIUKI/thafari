@@ -1,3 +1,4 @@
+import { formatKenyaDate, formatKenyaDateTime, formatKenyaTime } from "../utils/dateTime";
 // =========================================================
 // THAFARI CANCELLATION REQUEST REVIEW
 // =========================================================
@@ -89,22 +90,7 @@ const formatDate = (value) => {
     }
 
 
-    const date =
-        new Date(value)
-
-
-    if (Number.isNaN(date.getTime())) {
-        return "—"
-    }
-
-
-    return date.toLocaleString(
-        "en-KE",
-        {
-            dateStyle: "medium",
-            timeStyle: "short",
-        }
-    )
+    return formatKenyaDateTime(value)
 }
 
 
@@ -127,21 +113,7 @@ const formatDepartureDate = (value) => {
     }
 
 
-    const date =
-        new Date(`${value}T00:00:00`)
-
-
-    if (Number.isNaN(date.getTime())) {
-        return "—"
-    }
-
-
-    return date.toLocaleDateString(
-        "en-KE",
-        {
-            dateStyle: "medium",
-        }
-    )
+    return formatKenyaDate(value, { dateStyle: "medium" })
 }
 
 

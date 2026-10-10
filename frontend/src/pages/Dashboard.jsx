@@ -1,3 +1,4 @@
+import { formatKenyaDate, formatKenyaDateTime, formatKenyaTime } from "../utils/dateTime";
 // =========================================================
 // THAFARI DASHBOARD
 // =========================================================
@@ -3392,9 +3393,9 @@ function Dashboard() {
                                         {cancellationRequestPolicy.departure_date && (
                                             <p>
                                                 Departure:{" "}
-                                                {new Date(
-                                                    cancellationRequestPolicy.departure_date
-                                                ).toLocaleString()}
+                                                {formatKenyaDate(cancellationRequestPolicy.departure_date, {
+                                                    dateStyle: "medium",
+                                                })}
                                             </p>
                                         )}
 
@@ -3555,9 +3556,9 @@ function Dashboard() {
                                         {cancellationRequestPolicy.departure_date && (
                                             <p>
                                                 Departure:{" "}
-                                                {new Date(
-                                                    cancellationRequestPolicy.departure_date
-                                                ).toLocaleString()}
+                                                {formatKenyaDate(cancellationRequestPolicy.departure_date, {
+                                                    dateStyle: "medium",
+                                                })}
                                             </p>
                                         )}
 
