@@ -12,8 +12,9 @@ responsibilities:
 # create the flask application
 # flask - framework to build backend
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request, g
 import os
+import time
 
 
 from config.config import Config
@@ -107,6 +108,36 @@ def create_app():
     # -----------------------------------------------------
 
     app.config.from_object(Config)
+
+    # -----------------------------------------------------
+    # TEMPORARY REQUEST TIMING DIAGNOSTICS
+    # -----------------------------------------------------
+    # Measure time spent inside Flask for API requests.
+    # Do not log query strings, headers, cookies, or bodies.
+    # Remove this block after the production investigation.
+    # -----------------------------------------------------
+
+    @app.before_request
+    def _start_api_request_timer():
+        if request.path.startswith("/api/"):
+            g._api_request_started_at = time.perf_counter()
+
+    @app.after_request
+    def _log_api_request_duration(response):
+        started_at = getattr(g, "_api_request_started_at", None)
+
+        if started_at is not None:
+            duration_ms = (time.perf_counter() - started_at) * 1000
+            endpoint = request.endpoint or "unmatched"
+            app.logger.info(
+                "API_TIMING method=%s endpoint=%s status=%s duration_ms=%.2f",
+                request.method,
+                endpoint,
+                response.status_code,
+                duration_ms,
+            )
+
+        return response
 
 
     # =========================================================
