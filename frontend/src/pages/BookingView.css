@@ -75,6 +75,15 @@
     opacity: 0.9;
 }
 
+.booking-view-safari-destination {
+    margin: 14px 0 0;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.5;
+    opacity: 0.95;
+    overflow-wrap: anywhere;
+}
+
 
 /* =========================================================
    CONTAINER

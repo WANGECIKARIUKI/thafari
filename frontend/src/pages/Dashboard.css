@@ -1324,3 +1324,27 @@
         transition: none;
     }
 }
+
+/* Safari identification in booking history */
+.dashboard-booking-safari {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    margin-bottom: 8px;
+    min-width: 0;
+}
+
+.dashboard-booking-safari strong {
+    color: #24382b;
+    font-size: 0.94rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.dashboard-booking-safari span {
+    color: #657067;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}

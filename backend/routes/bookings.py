@@ -797,6 +797,40 @@ def request_booking_cancellation(booking_id):
 
 
 # ---------------------------------------------------------
+# SAFARI DETAILS FOR BOOKING RESPONSES
+# ---------------------------------------------------------
+# Include the tour and departure details in booking responses
+# so the frontend can identify the safari without extra calls.
+# ---------------------------------------------------------
+
+def get_booking_safari_details(booking):
+    departure = Departure.query.filter_by(
+        id=booking.departure_id
+    ).first()
+
+    tour = (
+        Tour.query.filter_by(id=departure.tour_id).first()
+        if departure
+        else None
+    )
+
+    return {
+        "tour_name": tour.tour_name if tour else None,
+        "destination": tour.destination if tour else None,
+        "departure_date": (
+            departure.start_date.isoformat()
+            if departure and departure.start_date
+            else None
+        ),
+        "return_date": (
+            departure.end_date.isoformat()
+            if departure and departure.end_date
+            else None
+        ),
+    }
+
+
+# ---------------------------------------------------------
 # GET A SINGLE BOOKING
 # ---------------------------------------------------------
 
@@ -852,6 +886,7 @@ def get_booking(booking_id):
         "booking_id": booking.id,
         "user_id": booking.user_id,
         "departure_id": booking.departure_id,
+        **get_booking_safari_details(booking),
         "number_of_people": booking.number_of_people,
         "price_per_person": float(
             booking.price_per_person
@@ -974,6 +1009,7 @@ def get_bookings():
             "booking_id": booking.id,
             "user_id": booking.user_id,
             "departure_id": booking.departure_id,
+            **get_booking_safari_details(booking),
             "number_of_people": booking.number_of_people,
             "price_per_person": float(
                 booking.price_per_person

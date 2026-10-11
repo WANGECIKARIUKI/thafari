@@ -481,12 +481,17 @@ function BookingView() {
 
 
                     <h1>
-                        Booking #{id}
+                        {booking.tour_name || `Booking #${id}`}
                     </h1>
 
+                    {booking.destination && (
+                        <p className="booking-view-safari-destination">
+                            📍 {booking.destination}
+                        </p>
+                    )}
 
                     <p>
-                        Here are the details of your
+                        Booking #{id} · Here are the details of your
                         safari reservation.
                     </p>
 
@@ -566,6 +571,34 @@ function BookingView() {
 
                             </div>
 
+
+                            <div>
+                                <span>Safari name</span>
+                                <strong>{booking.tour_name || "Not available"}</strong>
+                            </div>
+
+                            <div>
+                                <span>Destination</span>
+                                <strong>{booking.destination || "Not available"}</strong>
+                            </div>
+
+                            <div>
+                                <span>Departure date</span>
+                                <strong>
+                                    {booking.departure_date
+                                        ? formatKenyaDate(booking.departure_date)
+                                        : "Not available"}
+                                </strong>
+                            </div>
+
+                            <div>
+                                <span>Return date</span>
+                                <strong>
+                                    {booking.return_date
+                                        ? formatKenyaDate(booking.return_date)
+                                        : "Not available"}
+                                </strong>
+                            </div>
 
                             <div>
 

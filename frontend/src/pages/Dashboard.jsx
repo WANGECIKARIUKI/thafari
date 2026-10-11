@@ -2732,11 +2732,33 @@ function Dashboard() {
 
                                         </div>
 
+                                        <div className="dashboard-booking-safari">
+                                            <strong>
+                                                🦁 {booking.tour_name || "Safari details unavailable"}
+                                            </strong>
+
+                                            {booking.destination && (
+                                                <span>📍 {booking.destination}</span>
+                                            )}
+                                        </div>
+
                                         <div className="dashboard-booking-meta">
 
                                             <span>
                                                 🗺️ Departure #{booking.departure_id}
                                             </span>
+
+                                            {booking.departure_date && (
+                                                <span>
+                                                    📅 Departs {formatKenyaDate(booking.departure_date)}
+                                                </span>
+                                            )}
+
+                                            {booking.return_date && (
+                                                <span>
+                                                    🏁 Returns {formatKenyaDate(booking.return_date)}
+                                                </span>
+                                            )}
 
                                             <span>
                                                 👥 {booking.number_of_people}{" "}
