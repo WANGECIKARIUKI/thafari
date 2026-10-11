@@ -65,6 +65,51 @@
 }
 
 
+
+/* =========================================================
+   HEADER ACTIONS / BACK TO DASHBOARD
+========================================================= */
+
+.notifications-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.notifications-dashboard-link {
+    min-height: 42px;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #24382b;
+    color: #ffffff;
+    border: 1px solid #24382b;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.notifications-dashboard-link:hover {
+    background-color: #17221b;
+    border-color: #17221b;
+    transform: translateY(-1px);
+}
+
+.notifications-dashboard-link:focus-visible {
+    outline: 3px solid rgba(188, 168, 120, 0.45);
+    outline-offset: 3px;
+}
+
 /* =========================================================
    MARK ALL BUTTON
 ========================================================= */
@@ -580,6 +625,13 @@
     }
 
 
+    .notifications-header-actions {
+        width: 100%;
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .notifications-dashboard-link,
     .notifications-mark-all {
         width: 100%;
     }

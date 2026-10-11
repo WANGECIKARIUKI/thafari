@@ -20,6 +20,8 @@ import {
     useState,
 } from "react"
 
+import { Link } from "react-router-dom"
+
 
 import {
     useAuth,
@@ -28,6 +30,7 @@ import {
 
 import {
     getRevenueTargets,
+    createRevenueTarget,
     getTotalRevenue,
     getPopularTour,
     getTotalCustomers,
@@ -51,6 +54,7 @@ import {
 
 
 import "./BusinessIntelligence.css"
+import "./BusinessIntelligenceTargets.css"
 
 
 // =========================================================
@@ -207,6 +211,102 @@ function BusinessIntelligence() {
         analytics,
         setAnalytics,
     ] = useState(null)
+
+
+    // =====================================================
+    // CREATE REVENUE TARGET FORM
+    // =====================================================
+
+    const [isTargetFormOpen, setIsTargetFormOpen] = useState(false)
+    const [savingTarget, setSavingTarget] = useState(false)
+    const [targetFormError, setTargetFormError] = useState("")
+    const [targetFormSuccess, setTargetFormSuccess] = useState("")
+    const [targetAmountInput, setTargetAmountInput] = useState("")
+    const [targetStartDate, setTargetStartDate] = useState("")
+    const [targetEndDate, setTargetEndDate] = useState("")
+
+
+    const resetTargetForm = () => {
+        setTargetAmountInput("")
+        setTargetStartDate("")
+        setTargetEndDate("")
+        setTargetFormError("")
+    }
+
+
+    const handleCreateTarget = async (event) => {
+        event.preventDefault()
+        setTargetFormError("")
+        setTargetFormSuccess("")
+
+        const amount = Number(targetAmountInput)
+
+        if (!Number.isFinite(amount) || amount <= 0) {
+            setTargetFormError("Enter a target amount greater than zero.")
+            return
+        }
+
+        if (!targetStartDate || !targetEndDate) {
+            setTargetFormError("Choose both the start date and end date.")
+            return
+        }
+
+        if (targetEndDate < targetStartDate) {
+            setTargetFormError("The end date must be on or after the start date.")
+            return
+        }
+
+        if (Math.abs(amount * 100 - Math.round(amount * 100)) > 1e-7) {
+            setTargetFormError("The target amount can have no more than two decimal places.")
+            return
+        }
+
+        try {
+            setSavingTarget(true)
+
+            const response = await createRevenueTarget({
+                target_amount: amount,
+                start_date: targetStartDate,
+                end_date: targetEndDate,
+            })
+
+            const createdTarget = response?.revenue_target
+
+            const refreshedResponse = await getRevenueTargets(accessToken)
+            const refreshedTargets = Array.isArray(refreshedResponse?.revenue_targets)
+                ? refreshedResponse.revenue_targets
+                : []
+
+            setRevenueTargets(refreshedTargets)
+
+            if (createdTarget?.id) {
+                setSelectedTarget(String(createdTarget.id))
+            } else {
+                const matchingTarget = refreshedTargets.find(
+                    (target) =>
+                        target.start_date === targetStartDate &&
+                        target.end_date === targetEndDate &&
+                        Number(target.target_amount) === amount
+                )
+
+                if (matchingTarget) {
+                    setSelectedTarget(String(matchingTarget.id))
+                }
+            }
+
+            setIsTargetFormOpen(false)
+            resetTargetForm()
+            setTargetFormSuccess("Revenue target created successfully.")
+        } catch (requestError) {
+            setTargetFormError(
+                requestError?.response?.data?.message ||
+                requestError?.response?.data?.error ||
+                "We could not create the revenue target. Please try again."
+            )
+        } finally {
+            setSavingTarget(false)
+        }
+    }
 
 
     // =====================================================
@@ -883,6 +983,45 @@ function BusinessIntelligence() {
         <main className="business-intelligence-page">
 
             {/* =================================================
+                BACK TO DASHBOARD
+            ================================================= */}
+
+            <div
+                className="bi-back-dashboard-wrapper"
+                style={{
+                    display: "flex",
+                    justifyContent: "flex-start",
+                    width: "100%",
+                    marginBottom: "1rem",
+                }}
+            >
+                <Link
+                    to="/dashboard"
+                    className="bi-back-dashboard-link"
+                    style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "0.5rem",
+                        padding: "0.7rem 1rem",
+                        border: "1px solid #dbe3ec",
+                        borderRadius: "10px",
+                        background: "#ffffff",
+                        color: "#183153",
+                        fontWeight: 600,
+                        fontSize: "0.92rem",
+                        lineHeight: 1.2,
+                        textDecoration: "none",
+                        boxShadow: "0 2px 8px rgba(15, 23, 42, 0.05)",
+                        transition: "background-color 160ms ease, border-color 160ms ease",
+                    }}
+                >
+                    <span aria-hidden="true">←</span>
+                    Back to Dashboard
+                </Link>
+            </div>
+
+            {/* =================================================
                 PAGE HEADER
             ================================================= */}
 
@@ -913,9 +1052,24 @@ function BusinessIntelligence() {
 
                 <div className="bi-period-selector">
 
-                    <label htmlFor="bi-target">
-                        Analytics Period
-                    </label>
+                    <div className="bi-target-selector-heading">
+                        <label htmlFor="bi-target">
+                            Analytics Period
+                        </label>
+
+                        <button
+                            type="button"
+                            className="bi-create-target-button"
+                            onClick={() => {
+                                setTargetFormError("")
+                                setTargetFormSuccess("")
+                                setIsTargetFormOpen(true)
+                            }}
+                        >
+                            <span aria-hidden="true">＋</span>
+                            Create target
+                        </button>
+                    </div>
 
                     <div className="bi-calendar-selector">
 
@@ -1066,6 +1220,138 @@ function BusinessIntelligence() {
                 </div>
 
             </section>
+
+
+            {targetFormSuccess && (
+                <div className="bi-target-success" role="status">
+                    <span aria-hidden="true">✓</span>
+                    {targetFormSuccess}
+                    <button
+                        type="button"
+                        aria-label="Dismiss success message"
+                        onClick={() => setTargetFormSuccess("")}
+                    >
+                        ×
+                    </button>
+                </div>
+            )}
+
+
+            {isTargetFormOpen && (
+                <div
+                    className="bi-target-modal-backdrop"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget && !savingTarget) {
+                            setIsTargetFormOpen(false)
+                            resetTargetForm()
+                        }
+                    }}
+                >
+                    <section
+                        className="bi-target-modal"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="bi-target-modal-title"
+                    >
+                        <div className="bi-target-modal-header">
+                            <div>
+                                <span className="bi-section-eyebrow">REVENUE PLANNING</span>
+                                <h2 id="bi-target-modal-title">Create revenue target</h2>
+                                <p>Set a revenue goal for a reporting period.</p>
+                            </div>
+
+                            <button
+                                type="button"
+                                className="bi-target-modal-close"
+                                aria-label="Close form"
+                                disabled={savingTarget}
+                                onClick={() => {
+                                    setIsTargetFormOpen(false)
+                                    resetTargetForm()
+                                }}
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <form className="bi-target-form" onSubmit={handleCreateTarget}>
+                            <label htmlFor="bi-target-amount">
+                                Revenue target amount (KES)
+                                <input
+                                    id="bi-target-amount"
+                                    type="number"
+                                    min="0.01"
+                                    step="0.01"
+                                    inputMode="decimal"
+                                    placeholder="e.g. 250000"
+                                    value={targetAmountInput}
+                                    onChange={(event) => setTargetAmountInput(event.target.value)}
+                                    required
+                                />
+                            </label>
+
+                            <div className="bi-target-date-grid">
+                                <label htmlFor="bi-target-start-date">
+                                    Start date
+                                    <input
+                                        id="bi-target-start-date"
+                                        type="date"
+                                        value={targetStartDate}
+                                        max={targetEndDate || undefined}
+                                        onChange={(event) => setTargetStartDate(event.target.value)}
+                                        required
+                                    />
+                                </label>
+
+                                <label htmlFor="bi-target-end-date">
+                                    End date
+                                    <input
+                                        id="bi-target-end-date"
+                                        type="date"
+                                        value={targetEndDate}
+                                        min={targetStartDate || undefined}
+                                        onChange={(event) => setTargetEndDate(event.target.value)}
+                                        required
+                                    />
+                                </label>
+                            </div>
+
+                            <p className="bi-target-form-hint">
+                                Choose dates for a month, quarter, or any custom reporting period.
+                                Dates are inclusive.
+                            </p>
+
+                            {targetFormError && (
+                                <div className="bi-target-form-error" role="alert">
+                                    {targetFormError}
+                                </div>
+                            )}
+
+                            <div className="bi-target-form-actions">
+                                <button
+                                    type="button"
+                                    className="bi-target-cancel-button"
+                                    disabled={savingTarget}
+                                    onClick={() => {
+                                        setIsTargetFormOpen(false)
+                                        resetTargetForm()
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+
+                                <button
+                                    type="submit"
+                                    className="bi-target-submit-button"
+                                    disabled={savingTarget}
+                                >
+                                    {savingTarget ? "Saving target..." : "Save revenue target"}
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+                </div>
+            )}
 
 
             {/* =================================================

@@ -47,6 +47,8 @@ import {
 
 import {
     Link,
+    useLocation,
+    useNavigate,
 } from "react-router-dom"
 
 
@@ -59,12 +61,101 @@ import {
     getUnreadNotificationCount,
 } from "../services/notificationService"
 
+import {
+    getContact,
+} from "../services/contactService"
+
 
 import "./Navbar.css"
 import "./Branding.css"
 
 
 function Navbar() {
+
+    const navigate = useNavigate()
+    const location = useLocation()
+
+    const [isContactMenuOpen, setIsContactMenuOpen] = useState(false)
+    const [contactDetails, setContactDetails] = useState(null)
+
+    // Load the public contact details for the navbar dropdown.
+    useEffect(() => {
+        let isMounted = true
+
+        getContact()
+            .then((response) => {
+                if (isMounted) {
+                    setContactDetails(response?.contact || null)
+                }
+            })
+            .catch((error) => {
+                // The navbar should remain usable even if contact details
+                // have not been configured or the request temporarily fails.
+                console.warn("Could not load public contact details:", error?.message || error)
+            })
+
+        return () => {
+            isMounted = false
+        }
+    }, [])
+
+    // Close the dropdown when clicking elsewhere or pressing Escape.
+    useEffect(() => {
+        if (!isContactMenuOpen) return undefined
+
+        const handlePointerDown = (event) => {
+            if (!event.target.closest(".navbar-contact-wrapper")) {
+                setIsContactMenuOpen(false)
+            }
+        }
+
+        const handleKeyDown = (event) => {
+            if (event.key === "Escape") setIsContactMenuOpen(false)
+        }
+
+        document.addEventListener("pointerdown", handlePointerDown)
+        document.addEventListener("keydown", handleKeyDown)
+
+        return () => {
+            document.removeEventListener("pointerdown", handlePointerDown)
+            document.removeEventListener("keydown", handleKeyDown)
+        }
+    }, [isContactMenuOpen])
+
+    // A normal hash link can miss the target during client-side navigation.
+    // Scroll after React has navigated to the homepage.
+    useEffect(() => {
+        if (location.pathname === "/" && location.hash === "#contact") {
+            const timer = window.setTimeout(() => {
+                document.getElementById("contact")?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                })
+            }, 80)
+
+            return () => window.clearTimeout(timer)
+        }
+
+        return undefined
+    }, [location.pathname, location.hash])
+
+    const handleContactSectionClick = (event) => {
+        event.preventDefault()
+        setIsContactMenuOpen(false)
+
+        if (location.pathname !== "/") {
+            navigate({ pathname: "/", hash: "#contact" })
+            return
+        }
+
+        const contactSection = document.getElementById("contact")
+        if (contactSection) {
+            contactSection.scrollIntoView({ behavior: "smooth", block: "start" })
+            window.history.replaceState(null, "", "/#contact")
+        } else {
+            navigate({ pathname: "/", hash: "#contact" })
+        }
+    }
 
     // ---------------------------------------------------------
     // GET AUTHENTICATION INFORMATION
@@ -519,21 +610,67 @@ function Navbar() {
                     on the homepage.
                 --------------------------------------------- */}
 
-                <a
-                    href="/#contact"
-                    className="navbar-contact"
-                    aria-label="Contact Us"
-                    title="Contact Us"
-                >
-
-                    <span
-                        className="navbar-contact-icon"
-                        aria-hidden="true"
+                <div className="navbar-contact-wrapper">
+                    <a
+                        href="/#contact"
+                        className="navbar-contact"
+                        aria-label="Go to Contact section"
+                        title="Go to Contact section"
+                        onClick={handleContactSectionClick}
                     >
-                        📞
-                    </span>
+                        <span className="navbar-contact-icon" aria-hidden="true">
+                            📞
+                        </span>
+                    </a>
 
-                </a>
+                    <button
+                        type="button"
+                        className="navbar-contact-menu-toggle"
+                        aria-label={isContactMenuOpen ? "Close contact details" : "Open contact details"}
+                        aria-expanded={isContactMenuOpen}
+                        aria-controls="navbar-contact-menu"
+                        onClick={() => setIsContactMenuOpen((open) => !open)}
+                    >
+                        <span aria-hidden="true">⌄</span>
+                    </button>
+
+                    {isContactMenuOpen && (
+                        <div className="navbar-contact-menu" id="navbar-contact-menu" role="dialog" aria-label="Thafari contact details">
+                            <h3>Get in touch</h3>
+
+                            {contactDetails?.phone_number && (
+                                <a href={`tel:${contactDetails.phone_number}`} className="navbar-contact-detail">
+                                    <span aria-hidden="true">📞</span>
+                                    <span><strong>Phone</strong><small>{contactDetails.phone_number}</small></span>
+                                </a>
+                            )}
+
+                            {contactDetails?.email && (
+                                <a href={`mailto:${contactDetails.email}`} className="navbar-contact-detail">
+                                    <span aria-hidden="true">✉️</span>
+                                    <span><strong>Email</strong><small>{contactDetails.email}</small></span>
+                                </a>
+                            )}
+
+                            {contactDetails?.whatsapp && (
+                                <a
+                                    href={`https://wa.me/${String(contactDetails.whatsapp).replace(/\D/g, "")}`}
+                                    className="navbar-contact-detail"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <span aria-hidden="true">💬</span>
+                                    <span><strong>WhatsApp</strong><small>{contactDetails.whatsapp}</small></span>
+                                </a>
+                            )}
+
+                            {!contactDetails?.phone_number && !contactDetails?.email && !contactDetails?.whatsapp && (
+                                <p className="navbar-contact-empty">Contact details are not available right now.</p>
+                            )}
+
+                        </div>
+                    )}
+                </div>
 
 
                 {isAuthenticated ? (

@@ -383,7 +383,15 @@ function Notifications() {
                     </p>
                 </div>
 
-                {unreadCount > 0 && (
+                <div className="notifications-header-actions">
+                    <Link
+                        to="/dashboard"
+                        className="notifications-dashboard-link"
+                    >
+                        ← Back to Dashboard
+                    </Link>
+
+                    {unreadCount > 0 && (
                     <button
                         type="button"
                         className="notifications-mark-all"
@@ -394,7 +402,8 @@ function Notifications() {
                             ? "Updating..."
                             : "Mark all as read"}
                     </button>
-                )}
+                    )}
+                </div>
             </section>
 
             {/* LOADING */}

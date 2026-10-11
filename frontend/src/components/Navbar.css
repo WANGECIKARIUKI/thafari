@@ -82,59 +82,83 @@
 
 
 /* =========================================================
-   CONTACT US ICON
+   CONTACT BUTTON + DROPDOWN TOGGLE (ONE CONNECTED CONTROL)
 ========================================================= */
 
+.navbar-contact-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    overflow: visible;
+    background-color: #f8f6f1;
+    border: 1px solid #e2ded4;
+    border-radius: 999px;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.navbar-contact-wrapper:hover,
+.navbar-contact-wrapper:focus-within {
+    background-color: #eeece5;
+    border-color: #bca878;
+}
+
 .navbar-contact {
-    width: 42px;
+    min-width: 48px;
     height: 42px;
-
-    display: flex;
-
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-
-    flex-shrink: 0;
-
-    background-color: #f8f6f1;
-
-    border: 1px solid #e2ded4;
-    border-radius: 50%;
-
+    padding: 0 10px 0 13px;
+    background: transparent;
+    border: 0;
+    border-radius: 999px 0 0 999px;
     color: #24382b;
-
     text-decoration: none;
-
-    transition:
-        background-color 0.2s ease,
-        border-color 0.2s ease,
-        transform 0.2s ease,
-        color 0.2s ease;
+    transition: color 0.2s ease;
 }
-
 
 .navbar-contact:hover {
-    background-color: #eeece5;
-
-    border-color: #bca878;
-
     color: #24382b;
-
-    transform: translateY(-1px);
 }
-
 
 .navbar-contact-icon {
     display: flex;
-
     align-items: center;
     justify-content: center;
-
     font-size: 1.05rem;
-
     line-height: 1;
 }
 
+.navbar-contact-menu-toggle {
+    width: 30px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px 0 2px;
+    border: 0;
+    border-left: 1px solid transparent;
+    border-radius: 0 999px 999px 0;
+    background: transparent;
+    color: #24382b;
+    font: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.navbar-contact-menu-toggle:hover,
+.navbar-contact-menu-toggle:focus-visible {
+    color: #24382b;
+    outline-offset: 2px;
+}
+
+.navbar-contact-menu-toggle:focus-visible,
+.navbar-contact:focus-visible {
+    outline: 2px solid #61745f;
+    outline-offset: 2px;
+}
 
 /* =========================================================
    NOTIFICATION BELL
@@ -458,5 +482,110 @@
 
     .navbar-login {
         padding: 8px;
+    }
+}
+
+/* =========================================================
+   CONTACT DETAILS DROPDOWN
+========================================================= */
+
+.navbar-contact-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 1100;
+    width: min(320px, calc(100vw - 32px));
+    padding: 20px;
+    background: #ffffff;
+    border: 1px solid #e8e5de;
+    border-radius: 12px;
+    box-shadow: 0 14px 36px rgba(25, 38, 28, 0.16);
+    color: #24382b;
+}
+
+.navbar-contact-menu h3 {
+    margin: 0 0 14px;
+    font-size: 1.05rem;
+    font-weight: 750;
+}
+
+.navbar-contact-detail {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    padding: 11px 0;
+    color: #24382b;
+    text-decoration: none;
+    border-bottom: 1px solid #f0eee8;
+    overflow-wrap: anywhere;
+}
+
+.navbar-contact-detail > span:first-child {
+    flex-shrink: 0;
+    font-size: 1.1rem;
+}
+
+.navbar-contact-detail > span:last-child {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.navbar-contact-detail strong {
+    font-size: 0.88rem;
+}
+
+.navbar-contact-detail small {
+    color: #61745f;
+    font-size: 0.82rem;
+    overflow-wrap: anywhere;
+}
+
+.navbar-contact-detail:hover strong {
+    text-decoration: underline;
+}
+
+.navbar-contact-empty {
+    margin: 0 0 12px;
+    color: #61745f;
+    font-size: 0.86rem;
+    line-height: 1.5;
+}
+
+.navbar-contact-section-link {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-top: 14px;
+    padding: 10px 12px;
+    background: #24382b;
+    color: #ffffff;
+    border: 1px solid #24382b;
+    border-radius: 6px;
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.navbar-contact-section-link:hover {
+    background: #17221b;
+}
+
+@media (max-width: 500px) {
+    .navbar-contact-menu {
+        right: -6px;
+        padding: 16px;
+    }
+
+    .navbar-contact {
+        height: 38px;
+        min-width: 44px;
+    }
+
+    .navbar-contact-menu-toggle {
+        height: 38px;
     }
 }

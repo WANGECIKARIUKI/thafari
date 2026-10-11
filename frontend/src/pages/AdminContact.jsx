@@ -285,6 +285,11 @@ function AdminContact() {
                 "Contact details saved successfully."
             )
 
+            // Let the administrator see the success confirmation,
+            // then return to the dashboard just like Payment Settings.
+            setTimeout(() => {
+                navigate("/dashboard")
+            }, 1200)
 
         } catch (err) {
 

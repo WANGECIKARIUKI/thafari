@@ -5,46 +5,45 @@
 // This file handles all frontend requests for the Business
 // Intelligence dashboard.
 //
-// Backend blueprint:
-// admin_bp
+// Backend blueprint: admin_bp
+// Backend URL prefix: /api
 //
-// Backend URL prefix:
-// /api
-//
-// All Business Intelligence endpoints are protected by
-// backend authentication and require the admin role.
-//
-// IMPORTANT SECURITY CHANGE:
-//
-// Authentication is now handled by api.js using the
-// HttpOnly authentication cookie.
-//
-// The accessToken parameters are retained only for
-// compatibility with existing components.
-//
-// They are NOT used as credentials.
+// Authentication is handled by api.js using HttpOnly cookies.
+// accessToken parameters are retained for compatibility with
+// existing components, but are not used as credentials.
 // =========================================================
 
 import api from "./api"
 
 
 // =========================================================
+// CREATE REVENUE TARGET
+// =========================================================
+//
+// Backend: POST /api/revenue_target
+// Creates a target using the supplied amount and date range.
+// Authentication is handled by api.js.
+// =========================================================
+
+export const createRevenueTarget = async (targetData) => {
+    const response = await api.post(
+        "/revenue_target",
+        targetData
+    )
+
+    return response.data
+}
+
+
+// =========================================================
 // GET ALL REVENUE TARGETS
 // =========================================================
 //
-// Backend:
-// GET /api/revenue_targets
-//
-// Returns the revenue periods that the admin can select.
-//
+// Backend: GET /api/revenue_targets
+// Returns revenue periods available for selection.
 // =========================================================
 
-export const getRevenueTargets = async (
-    accessToken
-) => {
-
-    // Compatibility only.
-    // Authentication is handled by the HttpOnly cookie.
+export const getRevenueTargets = async (accessToken) => {
     void accessToken
 
     const response = await api.get(
@@ -57,20 +56,10 @@ export const getRevenueTargets = async (
 
 // =========================================================
 // GET TOTAL REVENUE
-// =========================================================
-//
-// Backend:
-// GET /api/total_revenue/<target_id>
-//
-// Calculates actual revenue for the selected target period.
-//
+// Backend: GET /api/total_revenue/<target_id>
 // =========================================================
 
-export const getTotalRevenue = async (
-    targetId,
-    accessToken
-) => {
-
+export const getTotalRevenue = async (targetId, accessToken) => {
     void accessToken
 
     const response = await api.get(
@@ -83,21 +72,11 @@ export const getTotalRevenue = async (
 
 // =========================================================
 // GET POPULAR TOUR
-// =========================================================
-//
-// Backend:
-// GET /api/popular_tours/<target_id>
-//
-// Uses the number of people booked to determine the most
-// popular tour during the selected period.
-//
+// Backend: GET /api/popular_tours/<target_id>
+// Uses number of people booked to determine popularity.
 // =========================================================
 
-export const getPopularTour = async (
-    targetId,
-    accessToken
-) => {
-
+export const getPopularTour = async (targetId, accessToken) => {
     void accessToken
 
     const response = await api.get(
@@ -110,21 +89,11 @@ export const getPopularTour = async (
 
 // =========================================================
 // GET TOTAL CUSTOMERS
-// =========================================================
-//
-// Backend:
-// GET /api/total_customers/<target_id>
-//
-// Customer count is based on Booking.number_of_people,
-// matching the BI backend definition.
-//
+// Backend: GET /api/total_customers/<target_id>
+// Counts customers using Booking.number_of_people.
 // =========================================================
 
-export const getTotalCustomers = async (
-    targetId,
-    accessToken
-) => {
-
+export const getTotalCustomers = async (targetId, accessToken) => {
     void accessToken
 
     const response = await api.get(
@@ -137,18 +106,10 @@ export const getTotalCustomers = async (
 
 // =========================================================
 // GET CONFIRMED BOOKINGS
-// =========================================================
-//
-// Backend:
-// GET /api/confirmed_bookings/<target_id>
-//
+// Backend: GET /api/confirmed_bookings/<target_id>
 // =========================================================
 
-export const getConfirmedBookings = async (
-    targetId,
-    accessToken
-) => {
-
+export const getConfirmedBookings = async (targetId, accessToken) => {
     void accessToken
 
     const response = await api.get(
@@ -161,18 +122,10 @@ export const getConfirmedBookings = async (
 
 // =========================================================
 // GET COMPLETED BOOKINGS
-// =========================================================
-//
-// Backend:
-// GET /api/completed_bookings/<target_id>
-//
+// Backend: GET /api/completed_bookings/<target_id>
 // =========================================================
 
-export const getCompletedBookings = async (
-    targetId,
-    accessToken
-) => {
-
+export const getCompletedBookings = async (targetId, accessToken) => {
     void accessToken
 
     const response = await api.get(
@@ -185,18 +138,10 @@ export const getCompletedBookings = async (
 
 // =========================================================
 // GET CANCELLED BOOKINGS
-// =========================================================
-//
-// Backend:
-// GET /api/cancelled_bookings/<target_id>
-//
+// Backend: GET /api/cancelled_bookings/<target_id>
 // =========================================================
 
-export const getCancelledBookings = async (
-    targetId,
-    accessToken
-) => {
-
+export const getCancelledBookings = async (targetId, accessToken) => {
     void accessToken
 
     const response = await api.get(
@@ -209,18 +154,10 @@ export const getCancelledBookings = async (
 
 // =========================================================
 // GET EXPIRED BOOKINGS
-// =========================================================
-//
-// Backend:
-// GET /api/expired_bookings/<target_id>
-//
+// Backend: GET /api/expired_bookings/<target_id>
 // =========================================================
 
-export const getExpiredBookings = async (
-    targetId,
-    accessToken
-) => {
-
+export const getExpiredBookings = async (targetId, accessToken) => {
     void accessToken
 
     const response = await api.get(
@@ -233,18 +170,10 @@ export const getExpiredBookings = async (
 
 // =========================================================
 // GET COMPLETION RATE
-// =========================================================
-//
-// Backend:
-// GET /api/completion_rate/<target_id>
-//
+// Backend: GET /api/completion_rate/<target_id>
 // =========================================================
 
-export const getCompletionRate = async (
-    targetId,
-    accessToken
-) => {
-
+export const getCompletionRate = async (targetId, accessToken) => {
     void accessToken
 
     const response = await api.get(
@@ -257,18 +186,10 @@ export const getCompletionRate = async (
 
 // =========================================================
 // GET CANCELLATION RATE
-// =========================================================
-//
-// Backend:
-// GET /api/cancellation_rate/<target_id>
-//
+// Backend: GET /api/cancellation_rate/<target_id>
 // =========================================================
 
-export const getCancellationRate = async (
-    targetId,
-    accessToken
-) => {
-
+export const getCancellationRate = async (targetId, accessToken) => {
     void accessToken
 
     const response = await api.get(
@@ -281,20 +202,11 @@ export const getCancellationRate = async (
 
 // =========================================================
 // GET AVERAGE BOOKING SIZE
-// =========================================================
-//
-// Backend:
-// GET /api/average_size/<target_id>
-//
+// Backend: GET /api/average_size/<target_id>
 // Represents the average number of people per booking.
-//
 // =========================================================
 
-export const getAverageBookingSize = async (
-    targetId,
-    accessToken
-) => {
-
+export const getAverageBookingSize = async (targetId, accessToken) => {
     void accessToken
 
     const response = await api.get(
@@ -307,18 +219,10 @@ export const getAverageBookingSize = async (
 
 // =========================================================
 // GET AVERAGE REVENUE PER BOOKING
-// =========================================================
-//
-// Backend:
-// GET /api/average_revenue/<target_id>
-//
+// Backend: GET /api/average_revenue/<target_id>
 // =========================================================
 
-export const getAverageRevenue = async (
-    targetId,
-    accessToken
-) => {
-
+export const getAverageRevenue = async (targetId, accessToken) => {
     void accessToken
 
     const response = await api.get(
@@ -331,18 +235,10 @@ export const getAverageRevenue = async (
 
 // =========================================================
 // GET TOP REVENUE TOUR
-// =========================================================
-//
-// Backend:
-// GET /api/top_revenue/<target_id>
-//
+// Backend: GET /api/top_revenue/<target_id>
 // =========================================================
 
-export const getTopRevenueTour = async (
-    targetId,
-    accessToken
-) => {
-
+export const getTopRevenueTour = async (targetId, accessToken) => {
     void accessToken
 
     const response = await api.get(
@@ -355,18 +251,10 @@ export const getTopRevenueTour = async (
 
 // =========================================================
 // GET REVENUE PER CUSTOMER
-// =========================================================
-//
-// Backend:
-// GET /api/customer_revenue/<target_id>
-//
+// Backend: GET /api/customer_revenue/<target_id>
 // =========================================================
 
-export const getRevenuePerCustomer = async (
-    targetId,
-    accessToken
-) => {
-
+export const getRevenuePerCustomer = async (targetId, accessToken) => {
     void accessToken
 
     const response = await api.get(
@@ -379,21 +267,11 @@ export const getRevenuePerCustomer = async (
 
 // =========================================================
 // GET CUSTOMER RETENTION
-// =========================================================
-//
-// Backend:
-// GET /api/customer_booking/<target_id>
-//
-// Calculates repeat-customer behaviour from completed
-// bookings.
-//
+// Backend: GET /api/customer_booking/<target_id>
+// Calculates repeat-customer behaviour from completed bookings.
 // =========================================================
 
-export const getCustomerRetention = async (
-    targetId,
-    accessToken
-) => {
-
+export const getCustomerRetention = async (targetId, accessToken) => {
     void accessToken
 
     const response = await api.get(
@@ -406,20 +284,11 @@ export const getCustomerRetention = async (
 
 // =========================================================
 // GET OCCUPANCY RATE
-// =========================================================
-//
-// Backend:
-// GET /api/occupancy_rate/<target_id>
-//
+// Backend: GET /api/occupancy_rate/<target_id>
 // Compares customers with available departure capacity.
-//
 // =========================================================
 
-export const getOccupancyRate = async (
-    targetId,
-    accessToken
-) => {
-
+export const getOccupancyRate = async (targetId, accessToken) => {
     void accessToken
 
     const response = await api.get(
@@ -432,21 +301,12 @@ export const getOccupancyRate = async (
 
 // =========================================================
 // GET BOOKING GROWTH
-// =========================================================
-//
-// Backend:
-// GET /api/booking_growth/<target_id>
-//
-// Compares the selected period with the previous
-// equal-length period.
-//
+// Backend: GET /api/booking_growth/<target_id>
+// Compares the selected period with the previous equal-length
+// period.
 // =========================================================
 
-export const getBookingGrowth = async (
-    targetId,
-    accessToken
-) => {
-
+export const getBookingGrowth = async (targetId, accessToken) => {
     void accessToken
 
     const response = await api.get(
@@ -459,21 +319,12 @@ export const getBookingGrowth = async (
 
 // =========================================================
 // GET CUSTOMER GROWTH
-// =========================================================
-//
-// Backend:
-// GET /api/customer_growth/<target_id>
-//
-// Compares customer activity with the previous
-// equal-length period.
-//
+// Backend: GET /api/customer_growth/<target_id>
+// Compares customer activity with the previous equal-length
+// period.
 // =========================================================
 
-export const getCustomerGrowth = async (
-    targetId,
-    accessToken
-) => {
-
+export const getCustomerGrowth = async (targetId, accessToken) => {
     void accessToken
 
     const response = await api.get(
@@ -486,20 +337,11 @@ export const getCustomerGrowth = async (
 
 // =========================================================
 // GET AVERAGE TRIP DURATION
-// =========================================================
-//
-// Backend:
-// GET /api/average_trip/<target_id>
-//
+// Backend: GET /api/average_trip/<target_id>
 // Calculates the average duration of completed trips.
-//
 // =========================================================
 
-export const getAverageTripDuration = async (
-    targetId,
-    accessToken
-) => {
-
+export const getAverageTripDuration = async (targetId, accessToken) => {
     void accessToken
 
     const response = await api.get(
@@ -512,20 +354,11 @@ export const getAverageTripDuration = async (
 
 // =========================================================
 // GET REVENUE BY TOUR
-// =========================================================
-//
-// Backend:
-// GET /api/revenue_tour/<target_id>
-//
+// Backend: GET /api/revenue_tour/<target_id>
 // Returns the revenue generated by individual tours.
-//
 // =========================================================
 
-export const getRevenueByTour = async (
-    targetId,
-    accessToken
-) => {
-
+export const getRevenueByTour = async (targetId, accessToken) => {
     void accessToken
 
     const response = await api.get(

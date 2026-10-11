@@ -28,6 +28,7 @@ import {
 
 import {
     Navigate,
+    useNavigate,
     useParams,
 } from "react-router-dom"
 
@@ -137,6 +138,8 @@ function DirectPayments() {
     // ---------------------------------------------------------
 
     const { status: routeStatus = "pending" } = useParams()
+
+    const navigate = useNavigate()
 
 
     const normalizeStatus = (status) => {
@@ -715,7 +718,15 @@ function DirectPayments() {
 
             <section className="direct-payments-header">
 
-                <div>
+                <div className="direct-payments-header-content">
+
+                    <button
+                        type="button"
+                        className="direct-payments-back-button"
+                        onClick={() => navigate("/dashboard")}
+                    >
+                        ← Back to Dashboard
+                    </button>
 
                     <p className="direct-payments-eyebrow">
                         PAYMENT REVIEW
