@@ -222,6 +222,19 @@ function AdminTours() {
             answer: "",
         })
 
+    // Draft package data for the single-submit tour creation flow.
+    const [draftDepartures, setDraftDepartures] = useState([])
+    const [draftItineraries, setDraftItineraries] = useState([])
+    const [draftAccommodations, setDraftAccommodations] = useState([])
+    const [draftFaqs, setDraftFaqs] = useState([])
+
+    const updateDraftRow = (setter, index, field, value) => {
+        setter((rows) => rows.map((row, rowIndex) =>
+            rowIndex === index ? { ...row, [field]: value } : row
+        ))
+    }
+
+
 
 
     // =========================================================
@@ -451,6 +464,11 @@ function AdminTours() {
             question: "",
             answer: "",
         })
+
+        setDraftDepartures([])
+        setDraftItineraries([])
+        setDraftAccommodations([])
+        setDraftFaqs([])
 
         setShowDepartureEditor(false)
 
@@ -1410,6 +1428,31 @@ function AdminTours() {
 
 
 
+        if (!editingTour) {
+            const incompleteDeparture = draftDepartures.some((item) =>
+                !item.start_date || !item.end_date || !item.capacity || !item.price_per_person ||
+                item.end_date < item.start_date || Number(item.capacity) < 1 || Number(item.price_per_person) <= 0
+            )
+            const incompleteItinerary = draftItineraries.some((item) =>
+                !item.day_number || Number(item.day_number) < 1 || !item.title.trim() || !item.description.trim()
+            )
+            const incompleteAccommodation = draftAccommodations.some((item) =>
+                !item.name.trim() || !item.location.trim() || !item.room_type.trim() || !item.meal_plan.trim()
+            )
+            const incompleteFaq = draftFaqs.some((item) => !item.question.trim() || !item.answer.trim())
+
+            if (incompleteDeparture || incompleteItinerary || incompleteAccommodation || incompleteFaq) {
+                setError("Please complete or remove each started departure, itinerary day, accommodation and FAQ before saving.")
+                return
+            }
+            if (!formData.tour_operator_id) {
+                setError("Please select the tour operator responsible for this safari.")
+                return
+            }
+        }
+
+        let createdTourIdForRecovery = null
+
         try {
 
             // Convert gallery image URLs into an array.
@@ -1488,6 +1531,9 @@ function AdminTours() {
             // -------------------------------------------------
             // CREATE
             // -------------------------------------------------
+            // Create the tour once, then keep this same form open.
+            // The returned tour ID unlocks departures and package
+            // sections without sending the admin back to the list.
 
             else {
 
@@ -1497,22 +1543,56 @@ function AdminTours() {
                         tourData
                     )
 
+                const createdTour = response?.tour || response
+                const createdTourId = createdTour?.id || createdTour?.tour_id
+                createdTourIdForRecovery = createdTourId
 
+                if (!createdTourId) {
+                    throw new Error("The server created the tour but did not return its ID. Please check the tour list before retrying.")
+                }
 
-                setSuccess(
-                    response.message ||
-                    "Tour created successfully."
-                )
+                // Save all related records only after the tour has an ID.
+                // Existing backend endpoints are reused to preserve validation and permissions.
+                for (const departure of draftDepartures) {
+                    await createDeparture(accessToken, {
+                        tour_id: Number(createdTourId),
+                        start_date: departure.start_date,
+                        end_date: departure.end_date,
+                        capacity: Number(departure.capacity),
+                        price_per_person: Number(departure.price_per_person),
+                        is_active: true,
+                    })
+                }
+                for (const item of draftItineraries) {
+                    await createItinerary(accessToken, createdTourId, {
+                        day_number: Number(item.day_number),
+                        title: item.title.trim(),
+                        description: item.description.trim(),
+                    })
+                }
+                for (const item of draftAccommodations) {
+                    await createAccommodation(accessToken, createdTourId, {
+                        name: item.name.trim(), category: item.category,
+                        location: item.location.trim(), room_type: item.room_type.trim(),
+                        meal_plan: item.meal_plan.trim(), description: item.description.trim(),
+                    })
+                }
+                for (const item of draftFaqs) {
+                    await createTourFaq(accessToken, createdTourId, {
+                        question: item.question.trim(), answer: item.answer.trim(),
+                    })
+                }
+
+                await loadTours()
+                setSuccess("Tour and all supplied package details were saved successfully.")
+                resetForm()
+                setShowForm(false)
+                return
             }
-
-
 
             await loadTours()
 
-
-
             resetForm()
-
             setShowForm(false)
 
         } catch (err) {
@@ -1523,6 +1603,20 @@ function AdminTours() {
             )
 
 
+
+            if (createdTourIdForRecovery) {
+                // The tour itself exists if a later related-record request failed.
+                // Switch to edit mode so retrying cannot accidentally create a duplicate tour.
+                const createdTour = tours.find((item) =>
+                    Number(item.id ?? item.tour_id) === Number(createdTourIdForRecovery)
+                ) || { id: createdTourIdForRecovery }
+                setEditingTour({ ...createdTour, id: createdTourIdForRecovery })
+                await loadTours()
+                await loadDepartures(createdTourIdForRecovery)
+                await loadTourPackage(createdTourIdForRecovery)
+                setError("The tour was created, but at least one related detail could not be saved. The form has switched to edit mode so you can finish the missing details without creating a duplicate.")
+                return
+            }
 
             setError(
                 err.response?.data?.message ||
@@ -2283,7 +2377,7 @@ function AdminTours() {
 
                     <form
                         onSubmit={handleSubmit}
-                        className="admin-tour-form"
+                        className={editingTour ? "admin-tour-form editing" : "admin-tour-form creating"}
                     >
 
                         {/* =================================================
@@ -2622,6 +2716,147 @@ function AdminTours() {
 
 
 
+
+
+                        {!editingTour && (
+                            <>
+                                <div className="form-section single-submit-section">
+                                    <div className="form-section-title">
+                                        <span>04</span>
+                                        <div>
+                                            <h3>Departure schedule</h3>
+                                            <p>Add the dates, capacity and price customers can book.</p>
+                                        </div>
+                                    </div>
+                                    {draftDepartures.map((departure, index) => (
+                                        <div className="admin-form-grid single-submit-card" key={`departure-${index}`}>
+                                            <div className="admin-form-group">
+                                                <label>Start date</label>
+                                                <input type="date" value={departure.start_date} onChange={(e) => updateDraftRow(setDraftDepartures, index, "start_date", e.target.value)} />
+                                            </div>
+                                            <div className="admin-form-group">
+                                                <label>End date</label>
+                                                <input type="date" value={departure.end_date} min={departure.start_date || undefined} onChange={(e) => updateDraftRow(setDraftDepartures, index, "end_date", e.target.value)} />
+                                            </div>
+                                            <div className="admin-form-group">
+                                                <label>Seat capacity</label>
+                                                <input type="number" min="1" step="1" value={departure.capacity} onChange={(e) => updateDraftRow(setDraftDepartures, index, "capacity", e.target.value)} placeholder="12" />
+                                            </div>
+                                            <div className="admin-form-group">
+                                                <label>Price per person (KES)</label>
+                                                <input type="number" min="1" step="0.01" value={departure.price_per_person} onChange={(e) => updateDraftRow(setDraftDepartures, index, "price_per_person", e.target.value)} placeholder="35000" />
+                                            </div>
+                                            <div className="admin-form-group full-width single-submit-row-actions">
+                                                <button type="button" className="admin-departure-cancel-button" onClick={() => setDraftDepartures((rows) => rows.filter((_, i) => i !== index))}>Remove departure</button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <button type="button" className="admin-departure-save-button" onClick={() => setDraftDepartures((rows) => [...rows, { start_date: "", end_date: "", capacity: "", price_per_person: "" }])}>+ Add departure</button>
+                                </div>
+
+                                <div className="form-section single-submit-section">
+                                    <div className="form-section-title">
+                                        <span>05</span>
+                                        <div>
+                                            <h3>Day-by-day itinerary</h3>
+                                            <p>Describe what guests will do each day.</p>
+                                        </div>
+                                    </div>
+                                    {draftItineraries.map((item, index) => (
+                                        <div className="admin-form-grid single-submit-card" key={`itinerary-${index}`}>
+                                            <div className="admin-form-group">
+                                                <label>Day number</label>
+                                                <input type="number" min="1" step="1" value={item.day_number} onChange={(e) => updateDraftRow(setDraftItineraries, index, "day_number", e.target.value)} placeholder={String(index + 1)} />
+                                            </div>
+                                            <div className="admin-form-group">
+                                                <label>Day title</label>
+                                                <input type="text" value={item.title} onChange={(e) => updateDraftRow(setDraftItineraries, index, "title", e.target.value)} placeholder="Arrival and afternoon game drive" />
+                                            </div>
+                                            <div className="admin-form-group full-width">
+                                                <label>Description</label>
+                                                <textarea rows="3" value={item.description} onChange={(e) => updateDraftRow(setDraftItineraries, index, "description", e.target.value)} placeholder="Describe the activities for this day..." />
+                                            </div>
+                                            <div className="admin-form-group full-width single-submit-row-actions">
+                                                <button type="button" className="admin-departure-cancel-button" onClick={() => setDraftItineraries((rows) => rows.filter((_, i) => i !== index))}>Remove day</button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <button type="button" className="admin-departure-save-button" onClick={() => setDraftItineraries((rows) => [...rows, { day_number: String(rows.length + 1), title: "", description: "" }])}>+ Add itinerary day</button>
+                                </div>
+
+                                <div className="form-section single-submit-section">
+                                    <div className="form-section-title">
+                                        <span>06</span>
+                                        <div>
+                                            <h3>Accommodation</h3>
+                                            <p>Add the camp or lodge included in this package. You can add more than one.</p>
+                                        </div>
+                                    </div>
+                                    {draftAccommodations.map((item, index) => (
+                                        <div className="admin-form-grid single-submit-card" key={`accommodation-${index}`}>
+                                            <div className="admin-form-group">
+                                                <label>Camp or lodge name</label>
+                                                <input type="text" value={item.name} onChange={(e) => updateDraftRow(setDraftAccommodations, index, "name", e.target.value)} />
+                                            </div>
+                                            <div className="admin-form-group">
+                                                <label>Category</label>
+                                                <select value={item.category} onChange={(e) => updateDraftRow(setDraftAccommodations, index, "category", e.target.value)}>
+                                                    <option value="budget">Budget</option><option value="mid_range">Mid-range</option><option value="luxury">Luxury</option>
+                                                </select>
+                                            </div>
+                                            <div className="admin-form-group">
+                                                <label>Location</label>
+                                                <input type="text" value={item.location} onChange={(e) => updateDraftRow(setDraftAccommodations, index, "location", e.target.value)} />
+                                            </div>
+                                            <div className="admin-form-group">
+                                                <label>Room type</label>
+                                                <input type="text" value={item.room_type} onChange={(e) => updateDraftRow(setDraftAccommodations, index, "room_type", e.target.value)} placeholder="Double tent" />
+                                            </div>
+                                            <div className="admin-form-group">
+                                                <label>Meal plan</label>
+                                                <input type="text" value={item.meal_plan} onChange={(e) => updateDraftRow(setDraftAccommodations, index, "meal_plan", e.target.value)} placeholder="Full board" />
+                                            </div>
+                                            <div className="admin-form-group full-width">
+                                                <label>Description</label>
+                                                <textarea rows="2" value={item.description} onChange={(e) => updateDraftRow(setDraftAccommodations, index, "description", e.target.value)} />
+                                            </div>
+                                            <div className="admin-form-group full-width single-submit-row-actions">
+                                                <button type="button" className="admin-departure-cancel-button" onClick={() => setDraftAccommodations((rows) => rows.filter((_, i) => i !== index))}>Remove accommodation</button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <button type="button" className="admin-departure-save-button" onClick={() => setDraftAccommodations((rows) => [...rows, { name: "", category: "budget", location: "", room_type: "", meal_plan: "", description: "" }])}>+ Add accommodation</button>
+                                </div>
+
+                                <div className="form-section single-submit-section">
+                                    <div className="form-section-title">
+                                        <span>07</span>
+                                        <div>
+                                            <h3>Frequently asked questions</h3>
+                                            <p>Answer common questions before customers book.</p>
+                                        </div>
+                                    </div>
+                                    {draftFaqs.map((item, index) => (
+                                        <div className="admin-form-grid single-submit-card" key={`faq-${index}`}>
+                                            <div className="admin-form-group full-width">
+                                                <label>Question</label>
+                                                <input type="text" value={item.question} onChange={(e) => updateDraftRow(setDraftFaqs, index, "question", e.target.value)} placeholder="What should I bring?" />
+                                            </div>
+                                            <div className="admin-form-group full-width">
+                                                <label>Answer</label>
+                                                <textarea rows="2" value={item.answer} onChange={(e) => updateDraftRow(setDraftFaqs, index, "answer", e.target.value)} />
+                                            </div>
+                                            <div className="admin-form-group full-width single-submit-row-actions">
+                                                <button type="button" className="admin-departure-cancel-button" onClick={() => setDraftFaqs((rows) => rows.filter((_, i) => i !== index))}>Remove FAQ</button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <button type="button" className="admin-departure-save-button" onClick={() => setDraftFaqs((rows) => [...rows, { question: "", answer: "" }])}>+ Add FAQ</button>
+                                </div>
+                            </>
+                        )}
+
+
                         {/* =================================================
                             DEPARTURE SCHEDULE
                         ================================================= */}
@@ -2662,13 +2897,11 @@ function AdminTours() {
                                     <div>
 
                                         <strong>
-                                            Save the tour first
+                                            Create the tour to unlock departures
                                         </strong>
 
                                         <p>
-                                            Once this tour has been created,
-                                            you can add its departure dates
-                                            from the edit form.
+                                            Save the basic details once. This form will stay open so you can add departure dates without returning to the tour list.
                                         </p>
 
                                     </div>
@@ -3154,13 +3387,11 @@ function AdminTours() {
                                     <div>
 
                                         <strong>
-                                            Save the tour first
+                                            Create the tour to unlock package details
                                         </strong>
 
                                         <p>
-                                            Once the tour is created, edit it
-                                            to add itinerary items,
-                                            accommodation and FAQs.
+                                            After saving the basic details, add the itinerary, accommodation and FAQs right here—no need to reopen the tour.
                                         </p>
 
                                     </div>
@@ -4170,8 +4401,8 @@ function AdminTours() {
                                 className="admin-tour-save-button"
                             >
                                 {editingTour
-                                    ? "Save Changes"
-                                    : "Create Tour"
+                                    ? "Save Tour Changes"
+                                    : "Save Tour"
                                 }
                             </button>
 

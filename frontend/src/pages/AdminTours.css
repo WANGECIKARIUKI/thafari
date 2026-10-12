@@ -2547,3 +2547,39 @@
     }
 
 }
+
+
+/* Single-submit tour creation workflow */
+.admin-tour-form.creating > .departure-form-section,
+.admin-tour-form.creating > .admin-tour-package-section {
+    display: none;
+}
+
+.single-submit-section {
+    border: 1px solid #e7e8df;
+    border-radius: 14px;
+    padding: 24px;
+    background: #fff;
+}
+
+.single-submit-card {
+    margin: 18px 0;
+    padding: 18px;
+    border: 1px solid #e7e8df;
+    border-radius: 12px;
+    background: #fbfcfa;
+}
+
+.single-submit-row-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.single-submit-section > .admin-departure-save-button {
+    margin-top: 8px;
+}
+
+@media (max-width: 640px) {
+    .single-submit-section { padding: 16px; }
+    .single-submit-card { padding: 12px; }
+}
