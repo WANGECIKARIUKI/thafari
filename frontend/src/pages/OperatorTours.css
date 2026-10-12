@@ -2572,3 +2572,64 @@
     .single-submit-section { padding: 16px; }
     .single-submit-card { padding: 12px; }
 }
+
+
+
+/* =========================================================
+   REQUIRED-FIELD VALIDATION
+   ========================================================= */
+
+.tour-validation-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin: 0 0 24px;
+    padding: 16px 18px;
+    border: 1px solid #efc5c2;
+    border-left: 4px solid #c54b43;
+    border-radius: 10px;
+    background: #fff4f3;
+    color: #8f302b;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.tour-validation-summary strong {
+    font-size: 14px;
+}
+
+.tour-validation-summary ul {
+    margin: 4px 0 0;
+    padding-left: 20px;
+}
+
+.tour-validation-summary li + li {
+    margin-top: 3px;
+}
+
+.admin-form-group input[aria-invalid="true"],
+.admin-form-group textarea[aria-invalid="true"],
+.admin-form-group select[aria-invalid="true"] {
+    border-color: #c54b43 !important;
+    box-shadow: 0 0 0 3px rgba(197, 75, 67, 0.10) !important;
+}
+
+.admin-form-group .price-input-wrapper:has(input[aria-invalid="true"]) {
+    border-color: #c54b43;
+    box-shadow: 0 0 0 3px rgba(197, 75, 67, 0.10);
+}
+
+.admin-form-group input[aria-invalid="true"]:focus,
+.admin-form-group textarea[aria-invalid="true"]:focus,
+.admin-form-group select[aria-invalid="true"]:focus {
+    outline: 2px solid rgba(197, 75, 67, 0.22);
+    outline-offset: 1px;
+}
+
+.section-field-error {
+    display: block;
+    margin: 10px 0;
+    color: #a83c35;
+    font-size: 12px;
+    font-weight: 600;
+}

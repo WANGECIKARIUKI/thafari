@@ -95,6 +95,9 @@ function OperatorTours() {
 
     const [success, setSuccess] = useState("")
 
+    // Field-level validation for the single-submit tour form.
+    const [validationErrors, setValidationErrors] = useState({})
+
 
     // =====================================================
     // SEARCH / FILTER STATE
@@ -243,6 +246,21 @@ function OperatorTours() {
         setter((rows) => rows.map((row, rowIndex) =>
             rowIndex === index ? { ...row, [field]: value } : row
         ))
+        const prefix = setter === setDraftDepartures
+            ? "draftDepartures"
+            : setter === setDraftItineraries
+                ? "draftItineraries"
+                : setter === setDraftAccommodations
+                    ? "draftAccommodations"
+                    : "draftFaqs"
+        const key = `${prefix}.${index}.${field}`
+        setValidationErrors((previous) => {
+            if (!previous[key] && !previous[prefix]) return previous
+            const next = { ...previous }
+            delete next[key]
+            delete next[prefix]
+            return next
+        })
     }
 
 
@@ -394,20 +412,14 @@ function OperatorTours() {
     // =====================================================
 
     const handleChange = (event) => {
-
-        const {
-            name,
-            value,
-        } = event.target
-
-
-        setFormData((previous) => ({
-
-            ...previous,
-
-            [name]: value,
-
-        }))
+        const { name, value } = event.target
+        setFormData((previous) => ({ ...previous, [name]: value }))
+        setValidationErrors((previous) => {
+            if (!previous[name]) return previous
+            const next = { ...previous }
+            delete next[name]
+            return next
+        })
     }
 
 
@@ -442,6 +454,8 @@ function OperatorTours() {
     // =====================================================
 
     const resetForm = () => {
+
+        setValidationErrors({})
 
         setFormData({
 
@@ -1464,8 +1478,76 @@ function OperatorTours() {
         event.preventDefault()
 
         setError("")
-
         setSuccess("")
+
+        const nextErrors = {}
+        const addError = (key, message) => { nextErrors[key] = message }
+        const isHttpUrl = (value) => {
+            try {
+                const parsed = new URL(value)
+                return parsed.protocol === "http:" || parsed.protocol === "https:"
+            } catch {
+                return false
+            }
+        }
+
+        if (!formData.tour_name.trim()) addError("tour_name", "Tour name is required.")
+        if (!formData.destination.trim()) addError("destination", "Destination is required.")
+        if (!formData.description.trim()) addError("description", "Tour description is required.")
+        if (!formData.duration_days || Number(formData.duration_days) < 1) addError("duration_days", "Duration in days must be at least 1.")
+        if (formData.duration_nights === "" || Number(formData.duration_nights) < 0) addError("duration_nights", "Duration in nights is required (0 or more).")
+        if (!formData.charges || Number(formData.charges) <= 0) addError("charges", "Starting price must be greater than 0.")
+        if (!formData.cover_image.trim()) addError("cover_image", "Cover image URL is required.")
+        else if (!isHttpUrl(formData.cover_image.trim())) addError("cover_image", "Enter a valid http:// or https:// cover image URL.")
+        const galleryUrls = formData.gallery_images.split("\n").map((url) => url.trim()).filter(Boolean)
+        if (!galleryUrls.length) addError("gallery_images", "At least one gallery image URL is required.")
+        else if (galleryUrls.some((url) => !isHttpUrl(url))) addError("gallery_images", "Every gallery image must use a valid http:// or https:// URL.")
+
+        if (!editingTour) {
+            if (!draftDepartures.length) addError("draftDepartures", "Add at least one complete departure.")
+            draftDepartures.forEach((item, index) => {
+                const p = `draftDepartures.${index}`
+                if (!item.start_date) addError(`${p}.start_date`, "Departure start date is required.")
+                if (!item.end_date) addError(`${p}.end_date`, "Departure end date is required.")
+                else if (item.start_date && item.end_date < item.start_date) addError(`${p}.end_date`, "End date must be on or after the start date.")
+                if (!item.capacity || Number(item.capacity) < 1) addError(`${p}.capacity`, "Capacity must be at least 1.")
+                if (!item.price_per_person || Number(item.price_per_person) <= 0) addError(`${p}.price_per_person`, "Departure price must be greater than 0.")
+            })
+            if (!draftItineraries.length) addError("draftItineraries", "Add at least one itinerary day.")
+            draftItineraries.forEach((item, index) => {
+                const p = `draftItineraries.${index}`
+                if (!item.day_number || Number(item.day_number) < 1) addError(`${p}.day_number`, "A valid day number is required.")
+                if (!item.title.trim()) addError(`${p}.title`, "Day title is required.")
+                if (!item.description.trim()) addError(`${p}.description`, "Day description is required.")
+            })
+            if (!draftAccommodations.length) addError("draftAccommodations", "Add at least one accommodation.")
+            draftAccommodations.forEach((item, index) => {
+                const p = `draftAccommodations.${index}`
+                if (!item.name.trim()) addError(`${p}.name`, "Accommodation name is required.")
+                if (!item.category) addError(`${p}.category`, "Accommodation category is required.")
+                if (!item.location.trim()) addError(`${p}.location`, "Accommodation location is required.")
+                if (!item.room_type.trim()) addError(`${p}.room_type`, "Room type is required.")
+                if (!item.meal_plan.trim()) addError(`${p}.meal_plan`, "Meal plan is required.")
+                if (!item.description.trim()) addError(`${p}.description`, "Accommodation description is required.")
+            })
+            // FAQs are optional, but a started FAQ must be completed or removed.
+            draftFaqs.forEach((item, index) => {
+                const hasQuestion = Boolean(item.question.trim())
+                const hasAnswer = Boolean(item.answer.trim())
+                if (hasQuestion && !hasAnswer) addError(`draftFaqs.${index}.answer`, "Complete the FAQ answer or remove this FAQ.")
+                if (!hasQuestion && hasAnswer) addError(`draftFaqs.${index}.question`, "Complete the FAQ question or remove this FAQ.")
+            })
+        }
+
+        setValidationErrors(nextErrors)
+        if (Object.keys(nextErrors).length) {
+            setError("Please complete the highlighted fields before saving. FAQs are optional.")
+            window.setTimeout(() => {
+                document.querySelector('[aria-invalid="true"]')?.focus()
+            }, 0)
+            return
+        }
+
 
 
         if (!editingTour) {
@@ -1479,9 +1561,9 @@ function OperatorTours() {
             const incompleteAccommodation = draftAccommodations.some((item) =>
                 !item.name.trim() || !item.location.trim() || !item.room_type.trim() || !item.meal_plan.trim()
             )
-            const incompleteFaq = draftFaqs.some((item) => !item.question.trim() || !item.answer.trim())
+            const incompleteFaq = draftFaqs.some((item) => Boolean(item.question.trim()) !== Boolean(item.answer.trim()))
             if (incompleteDeparture || incompleteItinerary || incompleteAccommodation || incompleteFaq) {
-                setError("Please complete or remove each started departure, itinerary day, accommodation and FAQ before saving.")
+                setError("Please complete or remove each started departure, itinerary day, accommodation and partially completed FAQ before saving.")
                 return
             }
         }
@@ -1648,7 +1730,7 @@ function OperatorTours() {
                     meal_plan: item.meal_plan.trim(), description: item.description.trim(),
                 })
             }
-            for (const item of draftFaqs) {
+            for (const item of draftFaqs.filter((faq) => faq.question.trim() && faq.answer.trim())) {
                 await createTourFaq(accessToken, createdTourId, {
                     question: item.question.trim(), answer: item.answer.trim(),
                 })
@@ -2356,8 +2438,21 @@ function OperatorTours() {
 
                     <form
                         onSubmit={handleSubmit}
+                        noValidate
                         className={editingTour ? "admin-tour-form editing" : "admin-tour-form creating"}
                     >
+
+                        {Object.keys(validationErrors).length > 0 && (
+                            <div className="tour-validation-summary" role="alert" aria-live="polite">
+                                <strong>Please complete the required fields.</strong>
+                                <span>{Object.keys(validationErrors).length} item(s) need attention. FAQs are optional.</span>
+                                <ul>
+                                    {Object.entries(validationErrors).map(([field, message]) => (
+                                        <li key={field}>{message}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
 
                         {/* =====================================
                             SECTION 01
@@ -2407,7 +2502,7 @@ function OperatorTours() {
                                         }
                                         placeholder="e.g. Maasai Mara Safari"
                                         required
-                                    />
+                                     aria-invalid={Boolean(validationErrors.tour_name)} />
 
                                 </div>
 
@@ -2430,7 +2525,7 @@ function OperatorTours() {
                                         }
                                         placeholder="e.g. Maasai Mara"
                                         required
-                                    />
+                                     aria-invalid={Boolean(validationErrors.destination)} />
 
                                 </div>
 
@@ -2452,7 +2547,7 @@ function OperatorTours() {
                                         }
                                         placeholder="Describe the safari experience..."
                                         rows="5"
-                                    />
+                                     aria-invalid={Boolean(validationErrors.description)} />
 
                                 </div>
 
@@ -2509,7 +2604,7 @@ function OperatorTours() {
                                             handleChange
                                         }
                                         placeholder="3"
-                                    />
+                                     aria-invalid={Boolean(validationErrors.duration_days)} />
 
                                 </div>
 
@@ -2532,7 +2627,7 @@ function OperatorTours() {
                                             handleChange
                                         }
                                         placeholder="2"
-                                    />
+                                     aria-invalid={Boolean(validationErrors.duration_nights)} />
 
                                 </div>
 
@@ -2562,7 +2657,7 @@ function OperatorTours() {
                                                 handleChange
                                             }
                                             placeholder="50000"
-                                        />
+                                         aria-invalid={Boolean(validationErrors.charges)} />
 
                                     </div>
 
@@ -2620,7 +2715,7 @@ function OperatorTours() {
                                             handleChange
                                         }
                                         placeholder="https://example.com/safari.jpg"
-                                    />
+                                     aria-invalid={Boolean(validationErrors.cover_image)} />
 
                                 </div>
 
@@ -2642,7 +2737,7 @@ function OperatorTours() {
                                         }
                                         placeholder="Paste one image URL per line..."
                                         rows="5"
-                                    />
+                                     aria-invalid={Boolean(validationErrors.gallery_images)} />
 
                                     <small>
                                         Add one image URL on
@@ -2672,19 +2767,19 @@ function OperatorTours() {
                                         <div className="admin-form-grid single-submit-card" key={`departure-${index}`}>
                                             <div className="admin-form-group">
                                                 <label>Start date</label>
-                                                <input type="date" value={departure.start_date} onChange={(e) => updateDraftRow(setDraftDepartures, index, "start_date", e.target.value)} />
+                                                <input type="date" value={departure.start_date} onChange={(e) => updateDraftRow(setDraftDepartures, index, "start_date", e.target.value)}  aria-invalid={Boolean(validationErrors[`draftDepartures.${index}.start_date`])} />
                                             </div>
                                             <div className="admin-form-group">
                                                 <label>End date</label>
-                                                <input type="date" value={departure.end_date} min={departure.start_date || undefined} onChange={(e) => updateDraftRow(setDraftDepartures, index, "end_date", e.target.value)} />
+                                                <input type="date" value={departure.end_date} min={departure.start_date || undefined} onChange={(e) => updateDraftRow(setDraftDepartures, index, "end_date", e.target.value)}  aria-invalid={Boolean(validationErrors[`draftDepartures.${index}.end_date`])} />
                                             </div>
                                             <div className="admin-form-group">
                                                 <label>Seat capacity</label>
-                                                <input type="number" min="1" step="1" value={departure.capacity} onChange={(e) => updateDraftRow(setDraftDepartures, index, "capacity", e.target.value)} placeholder="12" />
+                                                <input type="number" min="1" step="1" value={departure.capacity} onChange={(e) => updateDraftRow(setDraftDepartures, index, "capacity", e.target.value)} placeholder="12"  aria-invalid={Boolean(validationErrors[`draftDepartures.${index}.capacity`])} />
                                             </div>
                                             <div className="admin-form-group">
                                                 <label>Price per person (KES)</label>
-                                                <input type="number" min="1" step="0.01" value={departure.price_per_person} onChange={(e) => updateDraftRow(setDraftDepartures, index, "price_per_person", e.target.value)} placeholder="35000" />
+                                                <input type="number" min="1" step="0.01" value={departure.price_per_person} onChange={(e) => updateDraftRow(setDraftDepartures, index, "price_per_person", e.target.value)} placeholder="35000"  aria-invalid={Boolean(validationErrors[`draftDepartures.${index}.price_per_person`])} />
                                             </div>
                                             <div className="admin-form-group full-width single-submit-row-actions">
                                                 <button type="button" className="admin-departure-cancel-button" onClick={() => setDraftDepartures((rows) => rows.filter((_, i) => i !== index))}>Remove departure</button>
@@ -2706,15 +2801,15 @@ function OperatorTours() {
                                         <div className="admin-form-grid single-submit-card" key={`itinerary-${index}`}>
                                             <div className="admin-form-group">
                                                 <label>Day number</label>
-                                                <input type="number" min="1" step="1" value={item.day_number} onChange={(e) => updateDraftRow(setDraftItineraries, index, "day_number", e.target.value)} placeholder={String(index + 1)} />
+                                                <input type="number" min="1" step="1" value={item.day_number} onChange={(e) => updateDraftRow(setDraftItineraries, index, "day_number", e.target.value)} placeholder={String(index + 1)}  aria-invalid={Boolean(validationErrors[`draftItineraries.${index}.day_number`])} />
                                             </div>
                                             <div className="admin-form-group">
                                                 <label>Day title</label>
-                                                <input type="text" value={item.title} onChange={(e) => updateDraftRow(setDraftItineraries, index, "title", e.target.value)} placeholder="Arrival and afternoon game drive" />
+                                                <input type="text" value={item.title} onChange={(e) => updateDraftRow(setDraftItineraries, index, "title", e.target.value)} placeholder="Arrival and afternoon game drive"  aria-invalid={Boolean(validationErrors[`draftItineraries.${index}.title`])} />
                                             </div>
                                             <div className="admin-form-group full-width">
                                                 <label>Description</label>
-                                                <textarea rows="3" value={item.description} onChange={(e) => updateDraftRow(setDraftItineraries, index, "description", e.target.value)} placeholder="Describe the activities for this day..." />
+                                                <textarea rows="3" value={item.description} onChange={(e) => updateDraftRow(setDraftItineraries, index, "description", e.target.value)} placeholder="Describe the activities for this day..."  aria-invalid={Boolean(validationErrors[`draftItineraries.${index}.description`])} />
                                             </div>
                                             <div className="admin-form-group full-width single-submit-row-actions">
                                                 <button type="button" className="admin-departure-cancel-button" onClick={() => setDraftItineraries((rows) => rows.filter((_, i) => i !== index))}>Remove day</button>
@@ -2736,29 +2831,29 @@ function OperatorTours() {
                                         <div className="admin-form-grid single-submit-card" key={`accommodation-${index}`}>
                                             <div className="admin-form-group">
                                                 <label>Camp or lodge name</label>
-                                                <input type="text" value={item.name} onChange={(e) => updateDraftRow(setDraftAccommodations, index, "name", e.target.value)} />
+                                                <input type="text" value={item.name} onChange={(e) => updateDraftRow(setDraftAccommodations, index, "name", e.target.value)}  aria-invalid={Boolean(validationErrors[`draftAccommodations.${index}.name`])} />
                                             </div>
                                             <div className="admin-form-group">
                                                 <label>Category</label>
-                                                <select value={item.category} onChange={(e) => updateDraftRow(setDraftAccommodations, index, "category", e.target.value)}>
+                                                <select value={item.category} onChange={(e) => updateDraftRow(setDraftAccommodations, index, "category", e.target.value)} aria-invalid={Boolean(validationErrors[`draftAccommodations.${index}.category`])}>
                                                     <option value="budget">Budget</option><option value="mid_range">Mid-range</option><option value="luxury">Luxury</option>
                                                 </select>
                                             </div>
                                             <div className="admin-form-group">
                                                 <label>Location</label>
-                                                <input type="text" value={item.location} onChange={(e) => updateDraftRow(setDraftAccommodations, index, "location", e.target.value)} />
+                                                <input type="text" value={item.location} onChange={(e) => updateDraftRow(setDraftAccommodations, index, "location", e.target.value)}  aria-invalid={Boolean(validationErrors[`draftAccommodations.${index}.location`])} />
                                             </div>
                                             <div className="admin-form-group">
                                                 <label>Room type</label>
-                                                <input type="text" value={item.room_type} onChange={(e) => updateDraftRow(setDraftAccommodations, index, "room_type", e.target.value)} placeholder="Double tent" />
+                                                <input type="text" value={item.room_type} onChange={(e) => updateDraftRow(setDraftAccommodations, index, "room_type", e.target.value)} placeholder="Double tent"  aria-invalid={Boolean(validationErrors[`draftAccommodations.${index}.room_type`])} />
                                             </div>
                                             <div className="admin-form-group">
                                                 <label>Meal plan</label>
-                                                <input type="text" value={item.meal_plan} onChange={(e) => updateDraftRow(setDraftAccommodations, index, "meal_plan", e.target.value)} placeholder="Full board" />
+                                                <input type="text" value={item.meal_plan} onChange={(e) => updateDraftRow(setDraftAccommodations, index, "meal_plan", e.target.value)} placeholder="Full board"  aria-invalid={Boolean(validationErrors[`draftAccommodations.${index}.meal_plan`])} />
                                             </div>
                                             <div className="admin-form-group full-width">
                                                 <label>Description</label>
-                                                <textarea rows="2" value={item.description} onChange={(e) => updateDraftRow(setDraftAccommodations, index, "description", e.target.value)} />
+                                                <textarea rows="2" value={item.description} onChange={(e) => updateDraftRow(setDraftAccommodations, index, "description", e.target.value)}  aria-invalid={Boolean(validationErrors[`draftAccommodations.${index}.description`])} />
                                             </div>
                                             <div className="admin-form-group full-width single-submit-row-actions">
                                                 <button type="button" className="admin-departure-cancel-button" onClick={() => setDraftAccommodations((rows) => rows.filter((_, i) => i !== index))}>Remove accommodation</button>
@@ -2780,11 +2875,11 @@ function OperatorTours() {
                                         <div className="admin-form-grid single-submit-card" key={`faq-${index}`}>
                                             <div className="admin-form-group full-width">
                                                 <label>Question</label>
-                                                <input type="text" value={item.question} onChange={(e) => updateDraftRow(setDraftFaqs, index, "question", e.target.value)} placeholder="What should I bring?" />
+                                                <input type="text" value={item.question} onChange={(e) => updateDraftRow(setDraftFaqs, index, "question", e.target.value)} placeholder="What should I bring?"  aria-invalid={Boolean(validationErrors[`draftFaqs.${index}.question`])} />
                                             </div>
                                             <div className="admin-form-group full-width">
                                                 <label>Answer</label>
-                                                <textarea rows="2" value={item.answer} onChange={(e) => updateDraftRow(setDraftFaqs, index, "answer", e.target.value)} />
+                                                <textarea rows="2" value={item.answer} onChange={(e) => updateDraftRow(setDraftFaqs, index, "answer", e.target.value)}  aria-invalid={Boolean(validationErrors[`draftFaqs.${index}.answer`])} />
                                             </div>
                                             <div className="admin-form-group full-width single-submit-row-actions">
                                                 <button type="button" className="admin-departure-cancel-button" onClick={() => setDraftFaqs((rows) => rows.filter((_, i) => i !== index))}>Remove FAQ</button>
