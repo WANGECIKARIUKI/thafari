@@ -122,39 +122,29 @@ function Navbar() {
         }
     }, [isContactMenuOpen])
 
-    // A normal hash link can miss the target during client-side navigation.
-    // Scroll after React has navigated to the homepage.
-    useEffect(() => {
-        if (location.pathname === "/" && location.hash === "#contact") {
-            const timer = window.setTimeout(() => {
-                document.getElementById("contact")?.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start",
-                })
-            }, 80)
-
-            return () => window.clearTimeout(timer)
-        }
-
-        return undefined
-    }, [location.pathname, location.hash])
-
-    const handleContactSectionClick = (event) => {
+    // Section links must work both from other routes and from the homepage.
+    // The homepage also waits for sections above the target to finish loading
+    // before performing the final scroll, because their content changes layout.
+    const handleHomeSectionClick = (sectionId) => (event) => {
         event.preventDefault()
         setIsContactMenuOpen(false)
 
+        const targetHash = `#${sectionId}`
+
         if (location.pathname !== "/") {
-            navigate({ pathname: "/", hash: "#contact" })
+            navigate({ pathname: "/", hash: targetHash })
             return
         }
 
-        const contactSection = document.getElementById("contact")
-        if (contactSection) {
-            contactSection.scrollIntoView({ behavior: "smooth", block: "start" })
-            window.history.replaceState(null, "", "/#contact")
-        } else {
-            navigate({ pathname: "/", hash: "#contact" })
+        if (location.hash !== targetHash) {
+            navigate({ pathname: "/", hash: targetHash }, { replace: false })
+            return
         }
+
+        document.getElementById(sectionId)?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+        })
     }
 
     // ---------------------------------------------------------
@@ -579,6 +569,7 @@ function Navbar() {
                 <a
                     href="/#services"
                     className="navbar-section-link"
+                    onClick={handleHomeSectionClick("services")}
                 >
                     Services
                 </a>
@@ -616,7 +607,7 @@ function Navbar() {
                         className="navbar-contact"
                         aria-label="Go to Contact section"
                         title="Go to Contact section"
-                        onClick={handleContactSectionClick}
+                        onClick={handleHomeSectionClick("contact")}
                     >
                         <span className="navbar-contact-icon" aria-hidden="true">
                             📞

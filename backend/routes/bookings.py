@@ -882,6 +882,36 @@ def get_booking(booking_id):
                 )
             }), 403
 
+    # Retrieve every cancellation request for this booking.
+    # Newest requests appear first, and the history remains
+    # available after the customer refreshes the page.
+    cancellation_requests = (
+        CancellationRequest.query
+        .filter_by(booking_id=booking.id)
+        .order_by(CancellationRequest.created_at.desc())
+        .all()
+    )
+
+    cancellation_history = [
+        {
+            "id": cancellation_request.id,
+            "status": cancellation_request.status,
+            "reason": cancellation_request.reason,
+            "admin_reason": cancellation_request.admin_reason,
+            "created_at": (
+                cancellation_request.created_at.isoformat()
+                if cancellation_request.created_at
+                else None
+            ),
+            "reviewed_at": (
+                cancellation_request.reviewed_at.isoformat()
+                if cancellation_request.reviewed_at
+                else None
+            ),
+        }
+        for cancellation_request in cancellation_requests
+    ]
+
     return jsonify({
         "booking_id": booking.id,
         "user_id": booking.user_id,
@@ -901,7 +931,8 @@ def get_booking(booking_id):
             else None
         ),
         "created_at": booking.created_at.isoformat(),
-        "updated_at": booking.updated_at.isoformat()
+        "updated_at": booking.updated_at.isoformat(),
+        "cancellation_history": cancellation_history,
     }), 200
 
 

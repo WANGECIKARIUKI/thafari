@@ -167,10 +167,10 @@ function CancellationRequests() {
     // The routes will be:
     //
     // /admin/cancellation-requests/pending
-    // /admin/cancellation-requests/approved
-    // /admin/cancellation-requests/denied
+    // /admin/cancellation-requests/reviewed
     //
-    // All three routes intentionally use this same component.
+    // Pending requests are shown separately. Approved and denied
+    // requests are combined in the Reviewed filter.
     //
     // ---------------------------------------------------------
 
@@ -185,13 +185,8 @@ function CancellationRequests() {
 
     const normalizeStatus = (status) => {
 
-        if (status === "approved") {
-            return "approved"
-        }
-
-
-        if (status === "denied") {
-            return "denied"
+        if (status === "reviewed" || status === "approved" || status === "denied") {
+            return "reviewed"
         }
 
 
@@ -335,19 +330,35 @@ function CancellationRequests() {
 
 
             // -------------------------------------------------
-            // Load the currently selected category.
+            // Pending is its own category. Reviewed combines
+            // approved and denied requests in one history list.
             // -------------------------------------------------
 
-            const data =
-                await getCancellationRequestHistory(
+            let displayedRequests = []
+
+            if (requestedStatus === "reviewed") {
+                const [approvedHistory, deniedHistory] = await Promise.all([
+                    getCancellationRequestHistory(accessToken, "approved"),
+                    getCancellationRequestHistory(accessToken, "denied"),
+                ])
+
+                displayedRequests = [
+                    ...(approvedHistory.cancellation_requests || []),
+                    ...(deniedHistory.cancellation_requests || []),
+                ].sort((a, b) => {
+                    const dateA = new Date(a.reviewed_at || a.updated_at || a.created_at || 0).getTime()
+                    const dateB = new Date(b.reviewed_at || b.updated_at || b.created_at || 0).getTime()
+                    return dateB - dateA
+                })
+            } else {
+                const data = await getCancellationRequestHistory(
                     accessToken,
-                    requestedStatus
+                    "pending"
                 )
+                displayedRequests = data.cancellation_requests || []
+            }
 
-
-            setCancellationRequests(
-                data.cancellation_requests || []
-            )
+            setCancellationRequests(displayedRequests)
 
 
             // -------------------------------------------------
@@ -835,9 +846,8 @@ function CancellationRequests() {
 
 
                     <p>
-                        Review and manage customer cancellation
-                        requests and their refund decisions from
-                        one workspace.
+                        Review pending requests and view all approved
+                        or denied cancellation decisions in one history.
                     </p>
 
                 </div>
@@ -933,15 +943,9 @@ function CancellationRequests() {
                     ],
 
                     [
-                        "approved",
-                        "Approved",
-                        requestCounts.approved,
-                    ],
-
-                    [
-                        "denied",
-                        "Denied",
-                        requestCounts.denied,
+                        "reviewed",
+                        "Reviewed",
+                        requestCounts.approved + requestCounts.denied,
                     ],
 
                 ].map(
@@ -1003,9 +1007,7 @@ function CancellationRequests() {
 
                             {activeFilter === "pending"
                                 ? "Pending cancellation requests"
-                                : activeFilter === "approved"
-                                    ? "Approved cancellation requests"
-                                    : "Denied cancellation requests"
+                                : "Reviewed cancellation requests"
                             }
 
                         </h2>

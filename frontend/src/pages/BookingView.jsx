@@ -743,6 +743,99 @@ function BookingView() {
 
 
                 {/* =================================================
+                    CANCELLATION HISTORY
+                ================================================= */}
+
+                <section className="booking-view-card booking-view-cancellation-history">
+
+                    <p className="booking-view-card-label">
+                        CANCELLATION HISTORY
+                    </p>
+
+                    <h2>Cancellation requests</h2>
+
+                    <p className="booking-view-history-description">
+                        Track the status and review outcome of your
+                        cancellation requests.
+                    </p>
+
+                    {!Array.isArray(booking.cancellation_history) ||
+                    booking.cancellation_history.length === 0 ? (
+
+                        <div className="booking-view-history-empty">
+                            <span aria-hidden="true">📋</span>
+                            <p>
+                                No cancellation requests have been made
+                                for this booking.
+                            </p>
+                        </div>
+
+                    ) : (
+
+                        <div className="booking-view-history-list">
+
+                            {booking.cancellation_history.map((item) => (
+
+                                <article
+                                    key={item.id}
+                                    className="booking-view-history-item"
+                                >
+
+                                    <div className="booking-view-history-heading">
+
+                                        <strong>
+                                            Request #{item.id}
+                                        </strong>
+
+                                        <span
+                                            className={`booking-view-history-status ${item.status || "pending"}`}
+                                        >
+                                            {(item.status || "pending").charAt(0).toUpperCase() +
+                                                (item.status || "pending").slice(1)}
+                                        </span>
+
+                                    </div>
+
+                                    <div className="booking-view-history-date">
+                                        <span>Requested</span>
+                                        <strong>
+                                            {formatDate(item.created_at)}
+                                        </strong>
+                                    </div>
+
+                                    <div className="booking-view-history-reason">
+                                        <span>Your reason</span>
+                                        <p>{item.reason || "No reason provided."}</p>
+                                    </div>
+
+                                    {item.reviewed_at && (
+                                        <div className="booking-view-history-date">
+                                            <span>Reviewed</span>
+                                            <strong>
+                                                {formatDate(item.reviewed_at)}
+                                            </strong>
+                                        </div>
+                                    )}
+
+                                    {item.admin_reason && (
+                                        <div className="booking-view-history-reason">
+                                            <span>Staff response</span>
+                                            <p>{item.admin_reason}</p>
+                                        </div>
+                                    )}
+
+                                </article>
+
+                            ))}
+
+                        </div>
+
+                    )}
+
+                </section>
+
+
+                {/* =================================================
                     ACTIONS
                 ================================================= */}
 

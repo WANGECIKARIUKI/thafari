@@ -15,7 +15,7 @@
 
 import { useEffect, useState } from "react"
 
-import { useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 
 import { useAuth } from "../context/AuthContext"
 
@@ -35,6 +35,7 @@ import "./Home.css"
 function Home() {
 
     const navigate = useNavigate()
+    const location = useLocation()
 
     const { logout } = useAuth()
 
@@ -262,6 +263,46 @@ function Home() {
         loadReviews()
 
     }, [])
+
+
+    // -----------------------------------------------------
+    // RELIABLE HOMEPAGE SECTION NAVIGATION
+    // -----------------------------------------------------
+    // The tours, services and reviews above the Contact section load
+    // asynchronously. Wait for the content above the requested section to
+    // settle before scrolling, otherwise the page can move after the first
+    // click and leave the target partially out of view.
+    useEffect(() => {
+        if (location.pathname !== "/") return
+
+        const sectionId = location.hash.slice(1)
+        if (sectionId !== "services" && sectionId !== "contact") return
+
+        // Services is near the top; Contact is below sections whose heights
+        // change when their API requests finish.
+        const layoutAboveTargetIsReady = sectionId === "services"
+            ? true
+            : !loading && !servicesLoading && !reviewsLoading
+
+        if (!layoutAboveTargetIsReady) return
+
+        const frame = window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => {
+                document.getElementById(sectionId)?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                })
+            })
+        })
+
+        return () => window.cancelAnimationFrame(frame)
+    }, [
+        location.pathname,
+        location.hash,
+        loading,
+        servicesLoading,
+        reviewsLoading,
+    ])
 
 
     // -----------------------------------------------------

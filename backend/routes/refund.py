@@ -33,6 +33,100 @@ refund_bp = Blueprint(
 )
 
 
+
+# =========================================================
+# ADMIN REFUND LIST (READ-ONLY)
+# =========================================================
+
+@refund_bp.route(
+    "/admin/refunds",
+    methods=["GET"]
+)
+@jwt_required()
+@roles_required("admin", "tour_operator")
+def get_admin_refunds():
+    """
+    Return refund records for the admin Refunds dashboard.
+
+    This endpoint is intentionally read-only. Refund status
+    changes must come from the verified refund-provider webhook,
+    not a manual dashboard button.
+    """
+    current_user_id = int(get_jwt_identity())
+    current_user = User.query.filter_by(id=current_user_id).first()
+
+    if not current_user:
+        return jsonify({"message": "User not found."}), 404
+
+    requested_status = request.args.get("status", "pending").strip().lower()
+    allowed_statuses = {"pending", "successful", "failed"}
+
+    if requested_status not in allowed_statuses:
+        return jsonify({
+            "message": "Invalid status. Use pending, successful, or failed."
+        }), 400
+
+    query = (
+        Refund.query
+        .join(Payment, Refund.payment_id == Payment.id)
+        .join(Booking, Payment.booking_id == Booking.id)
+        .join(Departure, Booking.departure_id == Departure.id)
+        .join(Tour, Departure.tour_id == Tour.id)
+        .filter(Refund.status == requested_status)
+    )
+
+    # Tour operators may only see refunds for their own tours.
+    if current_user.role == "tour_operator":
+        query = query.filter(Tour.tour_operator_id == current_user_id)
+
+    refunds = query.order_by(Refund.created_at.desc()).all()
+    refund_list = []
+
+    for refund in refunds:
+        payment = refund.payment
+        booking = payment.booking if payment else None
+        customer = booking.user if booking else None
+        departure = booking.departure if booking else None
+        tour = departure.tour if departure else None
+
+        refund_list.append({
+            "refund_id": refund.id,
+            "refund_reference": refund.refund_reference,
+            "payment_id": payment.id if payment else None,
+            "booking_id": booking.id if booking else None,
+            "amount": float(refund.amount),
+            "status": refund.status,
+            "created_at": (
+                refund.created_at.isoformat()
+                if refund.created_at else None
+            ),
+            "refunded_at": (
+                refund.refunded_at.isoformat()
+                if refund.refunded_at else None
+            ),
+            "customer": (
+                {
+                    "user_id": customer.id,
+                    "username": customer.username,
+                    "email": customer.email
+                } if customer else None
+            ),
+            "tour": (
+                {
+                    "tour_id": tour.id,
+                    "tour_name": tour.tour_name
+                } if tour else None
+            )
+        })
+
+    return jsonify({
+        "message": "Refunds retrieved successfully.",
+        "status": requested_status,
+        "count": len(refund_list),
+        "refunds": refund_list
+    }), 200
+
+
 # =========================================================
 # CREATE REFUND REQUEST
 # =========================================================
@@ -897,29 +991,52 @@ def deny_cancellation_request(request_id):
     # CUSTOMER NOTIFICATION
     # -----------------------------------------------------
 
-    notification = create_notification(
-        user_id=booking.user_id,
-        title="Cancellation Request Denied",
-        message=(
-            f"Your cancellation request for booking "
-            f"#{booking.id} was denied. "
-            f"Reason: {cancellation_request.admin_reason}"
-        ),
-        notification_type="booking",
-        link=f"/booking/view/{booking.id}"
-    )
+    notification = None
 
     try:
 
-        emit_notification(notification)
+        notification = create_notification(
+            user_id=booking.user_id,
+            title="Cancellation Request Denied",
+            message=(
+                f"Your cancellation request for booking "
+                f"#{booking.id} was denied. "
+                f"Reason: {cancellation_request.admin_reason}"
+            ),
+            notification_type="booking",
+            link=f"/booking/view/{booking.id}"
+        )
+
+        # The cancellation decision was committed above.
+        # Commit the notification separately so it is saved in
+        # the customer's notification list, not only emitted live.
+        db.session.commit()
 
     except Exception as e:
 
-        # The cancellation decision already succeeded.
+        db.session.rollback()
+
+        # Do not reverse the already-saved cancellation decision
+        # if notification creation or persistence fails.
         print(
-            "Cancellation denial notification could not "
-            f"be delivered: {e}"
+            "Cancellation denial notification could not be "
+            f"saved: {e}"
         )
+
+    if notification is not None:
+
+        try:
+
+            emit_notification(notification)
+
+        except Exception as e:
+
+            # The saved notification remains available in the
+            # customer's notification list even if live delivery fails.
+            print(
+                "Cancellation denial notification could not "
+                f"be delivered: {e}"
+            )
 
     return jsonify({
         "message": (

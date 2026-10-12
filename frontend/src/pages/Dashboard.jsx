@@ -573,7 +573,10 @@ function Dashboard() {
             reviewCancellationRequest.cancellation_request.id
 
         const shouldApprove = window.confirm(
-            `Approve the cancellation request for Booking #${reviewCancellationRequest.booking_id}?`
+            `Approve this customer's cancellation request for Booking #${reviewCancellationRequest.booking_id}?\n\n` +
+            `If you approve, Thafari will start processing any refund the customer is eligible to receive. The customer has not necessarily received their money yet.\n\n` +
+            `The booking will be marked as cancelled after the required refund process is confirmed. Until then, it may still appear as confirmed.\n\n` +
+            `Do you want to approve this cancellation request?`
         )
 
         if (!shouldApprove) {
@@ -1104,6 +1107,36 @@ function Dashboard() {
 
                             <div
                                 style={{
+                                    background: "#eff6ff",
+                                    borderRadius: "12px",
+                                    padding: "16px",
+                                    marginBottom: "16px",
+                                    border: "1px solid #bfdbfe",
+                                    color: "#1e3a8a",
+                                }}
+                            >
+                                <strong>What happens if you approve?</strong>
+                                <p style={{ margin: "10px 0 8px" }}>
+                                    You are agreeing to the customer's request to cancel this booking. Thafari will start processing any refund the customer is eligible to receive.
+                                </p>
+                                <ul style={{ margin: "0 0 8px", paddingLeft: "20px" }}>
+                                    <li style={{ marginBottom: "6px" }}>
+                                        The customer has not necessarily received their money just because you approved the request.
+                                    </li>
+                                    <li style={{ marginBottom: "6px" }}>
+                                        The booking may still show as confirmed while the refund is being processed.
+                                    </li>
+                                    <li>
+                                        The booking will be marked as cancelled once the required refund process has been confirmed.
+                                    </li>
+                                </ul>
+                                <p style={{ marginBottom: 0 }}>
+                                    You can check the refund's progress in the Refunds section.
+                                </p>
+                            </div>
+
+                            <div
+                                style={{
                                     background: "#fffbeb",
                                     borderRadius: "12px",
                                     padding: "16px",
@@ -1175,7 +1208,7 @@ function Dashboard() {
                                             marginBottom: "8px",
                                         }}
                                     >
-                                        Denial reason
+                                        Denial reason (required to reject)
                                     </label>
 
                                     <textarea
@@ -1322,7 +1355,9 @@ function Dashboard() {
                     ADMIN OVERVIEW
                 ================================================= */}
 
-                <section className="dashboard-stats">
+                <section aria-label="Admin overview">
+                    <h2 style={{ margin: "0 0 14px", fontSize: "1.25rem" }}>Admin Overview</h2>
+                    <section className="dashboard-stats">
 
                     <article className="dashboard-stat-card">
 
@@ -1343,6 +1378,35 @@ function Dashboard() {
                         </div>
 
                     </article>
+
+
+                    <Link
+                        to="/admin/cancellation-requests/pending"
+                        className="dashboard-stat-card"
+                        style={{ textDecoration: "none", color: "inherit" }}
+                    >
+
+                        <div className="dashboard-stat-icon">
+                            ↩️
+                        </div>
+
+                        <div>
+
+                            <p>
+                                Booking Cancellations
+                            </p>
+
+                            <h2>
+                                Review
+                            </h2>
+
+                            <small>
+                                Review requests separately from refunds.
+                            </small>
+
+                        </div>
+
+                    </Link>
 
 
                     <article className="dashboard-stat-card">
@@ -1386,6 +1450,7 @@ function Dashboard() {
 
                     </article>
 
+                    </section>
                 </section>
 
 
@@ -1675,6 +1740,34 @@ function Dashboard() {
 
 
                             {/* =================================================
+                                REFUND HISTORY
+                            ================================================= */}
+
+                            <Link
+                                to="/admin/refunds"
+                                className="staff-management-card"
+                            >
+
+                                <span className="staff-management-icon">
+                                    💸
+                                </span>
+
+                                <strong>
+                                    Refunds
+                                </strong>
+
+                                <small>
+                                    Track pending refunds and confirm when customers receive their money.
+                                </small>
+
+                                <span className="staff-management-arrow">
+                                    →
+                                </span>
+
+                            </Link>
+
+
+                            {/* =================================================
                                 NOTIFICATIONS
                             ================================================= */}
 
@@ -1782,7 +1875,6 @@ function Dashboard() {
                                 </span>
 
                             </Link>
-
 
 
                             {/* =================================================

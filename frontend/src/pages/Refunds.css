@@ -1,0 +1,223 @@
+/* =========================================================
+   THAFARI — REFUNDS PAGE
+   Read-only refund history, status filters and table.
+   ========================================================= */
+
+.refunds-page {
+    width: min(1200px, calc(100% - 32px));
+    margin: 32px auto 64px;
+    color: var(--text-color, #172033);
+}
+
+.refunds-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 26px;
+}
+
+.refunds-eyebrow {
+    margin: 0 0 8px;
+    color: #64748b;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+}
+
+.refunds-header h1 {
+    margin: 0 0 8px;
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+}
+
+.refunds-header p:last-child {
+    margin: 0;
+    color: #64748b;
+}
+
+.refunds-readonly-note {
+    padding: 8px 12px;
+    border: 1px solid #dbe3ee;
+    border-radius: 999px;
+    background: #f8fafc;
+    color: #475569;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    text-align: center;
+}
+
+/* Pending / received / failed status tabs */
+.refunds-status-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.refunds-status-tabs button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 15px 17px;
+    border: 1px solid #dbe3ee;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #334155;
+    text-align: left;
+    cursor: pointer;
+}
+
+.refunds-status-tabs button.active {
+    border-color: #334155;
+    background: #f8fafc;
+    box-shadow: 0 0 0 1px #334155 inset;
+}
+
+.refunds-status-tabs button:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+.refunds-status-tabs button:focus-visible {
+    outline: 3px solid #94a3b8;
+    outline-offset: 2px;
+}
+
+.refunds-status-tabs strong {
+    font-size: 1.1rem;
+}
+
+.refunds-card {
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #ffffff;
+}
+
+.refunds-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 20px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.refunds-card-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.refunds-card-header span {
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.refunds-empty {
+    padding: 42px 20px;
+    color: #64748b;
+    text-align: center;
+}
+
+.refunds-message {
+    margin-bottom: 16px;
+    padding: 12px 15px;
+    border-radius: 10px;
+}
+
+.refunds-message.error {
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.refunds-table-wrap {
+    overflow-x: auto;
+}
+
+.refunds-table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: collapse;
+}
+
+.refunds-table th,
+.refunds-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #eef2f7;
+    text-align: left;
+    vertical-align: top;
+    font-size: 0.9rem;
+}
+
+.refunds-table th {
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.76rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.refunds-table td strong,
+.refunds-table td small {
+    display: block;
+}
+
+.refunds-table td small {
+    margin-top: 5px;
+    color: #64748b;
+    overflow-wrap: anywhere;
+}
+
+.refunds-amount {
+    font-weight: 750;
+    white-space: nowrap;
+}
+
+.refunds-status {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 0.78rem;
+    font-weight: 750;
+    text-transform: capitalize;
+}
+
+.refunds-status.pending {
+    background: #fff7ed;
+    color: #9a3412;
+}
+
+.refunds-status.successful {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.refunds-status.failed {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+@media (max-width: 640px) {
+    .refunds-header {
+        flex-direction: column;
+    }
+
+    .refunds-readonly-note {
+        border-radius: 10px;
+        text-align: left;
+    }
+
+    .refunds-status-tabs {
+        gap: 7px;
+    }
+
+    .refunds-status-tabs button {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 12px 10px;
+    }
+}

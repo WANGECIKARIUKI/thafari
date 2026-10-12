@@ -82,6 +82,8 @@ import DirectPayments from "../pages/DirectPayments"
 
 import CancellationRequests from "../pages/CancellationRequests"
 
+import Refunds from "../pages/Refunds"
+
 import AdminTours from "../pages/AdminTours"
 
 import AdminServices from "../pages/AdminServices"
@@ -695,6 +697,25 @@ function AppRoutes() {
                             message="Only administrators and tour operators can manage direct payments."
                         >
                             <DirectPayments />
+                        </RoleProtectedRoute>
+                    }
+                />
+
+
+                {/* =================================================
+                    REFUND HISTORY
+                ================================================= */}
+
+                <Route
+                    path="/admin/refunds"
+                    element={
+                        <RoleProtectedRoute
+                            allowedRoles={["admin", "tour_operator"]}
+                            eyebrow="THAFARI • REFUNDS"
+                            title="Access denied"
+                            message="Only administrators and tour operators can view refund history."
+                        >
+                            <Refunds />
                         </RoleProtectedRoute>
                     }
                 />
