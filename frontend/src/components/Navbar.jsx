@@ -76,7 +76,22 @@ function Navbar() {
     const location = useLocation()
 
     const [isContactMenuOpen, setIsContactMenuOpen] = useState(false)
+    const [contactMenuTop, setContactMenuTop] = useState(180)
     const [contactDetails, setContactDetails] = useState(null)
+
+    // On mobile the navbar wraps onto multiple rows. Place the dropdown below
+    // the complete navbar instead of covering the navigation links.
+    const handleContactMenuToggle = (event) => {
+        const shouldOpen = !isContactMenuOpen
+
+        if (shouldOpen) {
+            const navbar = event.currentTarget.closest(".navbar")
+            const navbarBottom = navbar?.getBoundingClientRect().bottom ?? 0
+            setContactMenuTop(Math.max(8, navbarBottom + 8))
+        }
+
+        setIsContactMenuOpen(shouldOpen)
+    }
 
     // Load the public contact details for the navbar dropdown.
     useEffect(() => {
@@ -195,10 +210,10 @@ function Navbar() {
     useEffect(() => {
 
         if (!isAuthenticated) {
-
-            setUnreadCount(0)
-
-            return
+            // The notification badge is only rendered for authenticated users,
+            // so no state update is needed here. Avoid synchronous state updates
+            // inside the effect body.
+            return undefined
         }
 
 
@@ -495,6 +510,8 @@ function Navbar() {
 
     const handleLogout = () => {
 
+        // Clear the badge as part of the user's logout action, not in an effect.
+        setUnreadCount(0)
         logout()
 
     }
@@ -620,13 +637,19 @@ function Navbar() {
                         aria-label={isContactMenuOpen ? "Close contact details" : "Open contact details"}
                         aria-expanded={isContactMenuOpen}
                         aria-controls="navbar-contact-menu"
-                        onClick={() => setIsContactMenuOpen((open) => !open)}
+                        onClick={handleContactMenuToggle}
                     >
                         <span aria-hidden="true">⌄</span>
                     </button>
 
                     {isContactMenuOpen && (
-                        <div className="navbar-contact-menu" id="navbar-contact-menu" role="dialog" aria-label="Thafari contact details">
+                        <div
+                            className="navbar-contact-menu"
+                            id="navbar-contact-menu"
+                            role="dialog"
+                            aria-label="Thafari contact details"
+                            style={{ "--contact-menu-top": `${contactMenuTop}px` }}
+                        >
                             <h3>Get in touch</h3>
 
                             {contactDetails?.phone_number && (

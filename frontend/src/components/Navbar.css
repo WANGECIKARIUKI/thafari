@@ -495,6 +495,9 @@
     right: 0;
     z-index: 1100;
     width: min(320px, calc(100vw - 32px));
+    max-height: min(70vh, 420px);
+    overflow-y: auto;
+    box-sizing: border-box;
     padding: 20px;
     background: #ffffff;
     border: 1px solid #e8e5de;
@@ -574,18 +577,20 @@
     background: #17221b;
 }
 
-@media (max-width: 500px) {
+/* On wrapped/mobile navbars, put the contact panel below the entire navbar
+   so it never covers the second row of navigation links. */
+@media (max-width: 800px) {
     .navbar-contact-menu {
-        right: -6px;
+        position: fixed;
+        top: var(--contact-menu-top, 180px);
+        right: 16px;
+        left: 16px;
+        width: auto;
+        max-width: 360px;
+        max-height: calc(100dvh - var(--contact-menu-top, 180px) - 16px);
+        overflow-y: auto;
+        box-sizing: border-box;
         padding: 16px;
-    }
-
-    .navbar-contact {
-        height: 38px;
-        min-width: 44px;
-    }
-
-    .navbar-contact-menu-toggle {
-        height: 38px;
+        margin-left: auto;
     }
 }
